@@ -65,4 +65,4 @@ docs/generated/
 # Chat Catalyst files
 .github/prompts/
 .github/copilot-instructions.md
-.chatcatalyst/
+.Session_starter.md
