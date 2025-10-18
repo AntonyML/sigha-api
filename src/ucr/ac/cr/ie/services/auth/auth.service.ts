@@ -283,16 +283,15 @@ export class AuthService {
         // Crear hash del token para almacenar en BD
         const tokenHash = crypto.createHash('sha256').update(accessToken).digest('hex');
 
-        // Crear nueva sesión
-        const session = new UserSession(
-            0, // ID se auto-genera
-            user.id,
-            tokenHash,
-            DateUtil.addHours(new Date(), 1), // Expira en 1 hora (igual que JWT)
-            refreshToken,
-            ipAddress,
-            userAgent
-        );
+        // Crear nueva sesión usando el approach de asignación directa
+        const session = new UserSession();
+        session.userId = user.id;
+        session.sessionToken = tokenHash;
+        session.refreshToken = refreshToken;
+        session.ipAddress = ipAddress;
+        session.userAgent = userAgent;
+        session.isActive = true;
+        session.expiresAt = DateUtil.addHours(new Date(), 1); // Expira en 1 hora (igual que JWT)
 
         await this.sessionRepository.save(session);
 
