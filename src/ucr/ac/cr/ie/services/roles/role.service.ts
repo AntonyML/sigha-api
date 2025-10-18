@@ -1,14 +1,8 @@
 import { Injectable, BadRequestException, NotFoundException, Inject } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Role, RoleType } from '../../domain/auth/core/role.entity';
-
-export interface CreateRoleDto {
-    rName: string;
-}
-
-export interface UpdateRoleDto {
-    rName?: string;
-}
+import { CreateRoleDto, UpdateRoleDto } from '../../dto/roles';
+import { SuccessResponse } from '../../interfaces';
 
 @Injectable()
 export class RoleService {
@@ -98,7 +92,7 @@ export class RoleService {
     /**
      * Eliminar rol
      */
-    async deleteRole(id: number): Promise<{ success: boolean }> {
+    async deleteRole(id: number): Promise<SuccessResponse> {
         const role = await this.findById(id);
 
         // Verificar que no sea un rol del sistema

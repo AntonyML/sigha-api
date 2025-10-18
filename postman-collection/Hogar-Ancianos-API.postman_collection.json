@@ -1,0 +1,887 @@
+{
+	"info": {
+		"_postman_id": "hogar-ancianos-api-collection",
+		"name": "Hogar de Ancianos - Sistema de Gestión API",
+		"description": "Colección completa para probar el backend del sistema de gestión del hogar de ancianos con autenticación JWT, 2FA y RBAC",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "1"
+	},
+	"item": [
+		{
+			"name": "🔐 Autenticación",
+			"item": [
+				{
+					"name": "Login - Sin 2FA",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.accessToken) {",
+									"        pm.environment.set('access_token', response.accessToken);",
+									"        pm.environment.set('refresh_token', response.refreshToken);",
+									"        console.log('✅ Login exitoso - Token guardado');",
+									"    }",
+									"    if (response.requiresTwoFactor) {",
+									"        pm.environment.set('temp_token', response.tempToken);",
+									"        console.log('⚠️ 2FA requerido - Token temporal guardado');",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"uEmail\": \"admin@hogarancianos.com\",\n  \"uPassword\": \"Admin123!\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						},
+						"description": "Login básico sin código 2FA. Si el usuario tiene 2FA habilitado, retornará requiresTwoFactor: true"
+					}
+				},
+				{
+					"name": "Login - Con 2FA",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.accessToken) {",
+									"        pm.environment.set('access_token', response.accessToken);",
+									"        pm.environment.set('refresh_token', response.refreshToken);",
+									"        console.log('✅ Login con 2FA exitoso - Token guardado');",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"uEmail\": \"admin@hogarancianos.com\",\n  \"uPassword\": \"Admin123!\",\n  \"twoFactorCode\": \"123456\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						},
+						"description": "Login completo con código 2FA de 6 dígitos"
+					}
+				},
+				{
+					"name": "Completar Login 2FA",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.accessToken) {",
+									"        pm.environment.set('access_token', response.accessToken);",
+									"        pm.environment.set('refresh_token', response.refreshToken);",
+									"        console.log('✅ 2FA completado - Token guardado');",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tempToken\": \"{{temp_token}}\",\n  \"twoFactorCode\": \"123456\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/verify-2fa",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"verify-2fa"
+							]
+						},
+						"description": "Completa el proceso de login usando el token temporal y código 2FA"
+					}
+				},
+				{
+					"name": "Obtener Perfil",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/auth/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"profile"
+							]
+						},
+						"description": "Obtiene el perfil del usuario autenticado"
+					}
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/auth/logout",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"logout"
+							]
+						},
+						"description": "Cierra la sesión actual"
+					}
+				}
+			],
+			"description": "Endpoints relacionados con autenticación, login, 2FA y gestión de sesiones"
+		},
+		{
+			"name": "👥 Gestión de Usuarios",
+			"item": [
+				{
+					"name": "Crear Usuario - Admin",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"uIdentification\": \"987654321\",\n  \"uName\": \"María\",\n  \"uFLastName\": \"González\",\n  \"uSLastName\": \"Rodríguez\",\n  \"uEmail\": \"maria.gonzalez@hogarancianos.com\",\n  \"uPassword\": \"Admin123!\",\n  \"roleId\": 2\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/users",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users"
+							]
+						},
+						"description": "Crear un nuevo usuario con rol de Admin (roleId: 2). Requiere permisos de Super Admin o Admin y 2FA."
+					}
+				},
+				{
+					"name": "Crear Usuario - Enfermero",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"uIdentification\": \"456789123\",\n  \"uName\": \"Carlos\",\n  \"uFLastName\": \"Méndez\",\n  \"uSLastName\": \"López\",\n  \"uEmail\": \"carlos.mendez@hogarancianos.com\",\n  \"uPassword\": \"Nurse123!\",\n  \"roleId\": 4\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/users",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users"
+							]
+						},
+						"description": "Crear un nuevo usuario con rol de Enfermero (roleId: 4)"
+					}
+				},
+				{
+					"name": "Crear Usuario - Fisioterapeuta",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"uIdentification\": \"789123456\",\n  \"uName\": \"Ana\",\n  \"uFLastName\": \"Jiménez\",\n  \"uSLastName\": \"Vargas\",\n  \"uEmail\": \"ana.jimenez@hogarancianos.com\",\n  \"uPassword\": \"Physio123!\",\n  \"roleId\": 5\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/users",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users"
+							]
+						},
+						"description": "Crear un nuevo usuario con rol de Fisioterapeuta (roleId: 5)"
+					}
+				},
+				{
+					"name": "Listar Todos los Usuarios",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/users",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users"
+							]
+						},
+						"description": "Obtiene lista de todos los usuarios (requiere rol de Admin o superior)"
+					}
+				},
+				{
+					"name": "Obtener Usuario por ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/users/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"1"
+							]
+						},
+						"description": "Obtiene un usuario específico por su ID"
+					}
+				},
+				{
+					"name": "Buscar Usuarios",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/users/search?term=admin",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"search"
+							],
+							"query": [
+								{
+									"key": "term",
+									"value": "admin"
+								}
+							]
+						},
+						"description": "Busca usuarios por nombre, apellido, email o identificación"
+					}
+				},
+				{
+					"name": "Usuarios por Rol",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/users/by-role/4",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"by-role",
+								"4"
+							]
+						},
+						"description": "Obtiene todos los usuarios con un rol específico (4 = Enfermero)"
+					}
+				},
+				{
+					"name": "Actualizar Usuario",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"uName\": \"María Elena\",\n  \"uEmail\": \"maria.elena@hogarancianos.com\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/users/2",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"2"
+							]
+						},
+						"description": "Actualiza información de un usuario existente"
+					}
+				},
+				{
+					"name": "Cambiar Contraseña",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"currentPassword\": \"Admin123!\",\n  \"newPassword\": \"NewAdmin123!\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/users/1/change-password",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"1",
+								"change-password"
+							]
+						},
+						"description": "Permite al usuario cambiar su contraseña"
+					}
+				},
+				{
+					"name": "Activar/Desactivar Usuario",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/users/2/toggle-status",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"2",
+								"toggle-status"
+							]
+						},
+						"description": "Cambia el estado activo/inactivo de un usuario"
+					}
+				},
+				{
+					"name": "Eliminar Usuario",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/users/3",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"3"
+							]
+						},
+						"description": "Elimina (desactiva) un usuario del sistema"
+					}
+				}
+			],
+			"description": "Endpoints para la gestión completa de usuarios del sistema"
+		},
+		{
+			"name": "🔐 Gestión de Roles",
+			"item": [
+				{
+					"name": "Listar Todos los Roles",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/roles",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"roles"
+							]
+						},
+						"description": "Obtiene lista de todos los roles disponibles en el sistema"
+					}
+				},
+				{
+					"name": "Obtener Rol por ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/roles/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"roles",
+								"1"
+							]
+						},
+						"description": "Obtiene un rol específico por su ID"
+					}
+				},
+				{
+					"name": "Crear Rol Personalizado",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"rName\": \"coordinador\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/roles",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"roles"
+							]
+						},
+						"description": "Crea un nuevo rol personalizado (solo Super Admin)"
+					}
+				},
+				{
+					"name": "Actualizar Rol",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"rName\": \"coordinador general\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/roles/9",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"roles",
+								"9"
+							]
+						},
+						"description": "Actualiza el nombre de un rol existente"
+					}
+				},
+				{
+					"name": "Eliminar Rol",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/roles/9",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"roles",
+								"9"
+							]
+						},
+						"description": "Elimina un rol personalizado (no se pueden eliminar roles del sistema)"
+					}
+				}
+			],
+			"description": "Endpoints para la gestión de roles y permisos"
+		},
+		{
+			"name": "🔒 Autenticación 2FA",
+			"item": [
+				{
+					"name": "Configurar 2FA",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/auth/setup-2fa",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"setup-2fa"
+							]
+						},
+						"description": "Inicia la configuración de 2FA para el usuario autenticado. Retorna secret, QR code y códigos de respaldo."
+					}
+				},
+				{
+					"name": "Habilitar 2FA",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"verificationCode\": \"123456\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/enable-2fa",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"enable-2fa"
+							]
+						},
+						"description": "Habilita 2FA después de verificar el código de la app authenticator"
+					}
+				},
+				{
+					"name": "Deshabilitar 2FA",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/auth/disable-2fa",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"disable-2fa"
+							]
+						},
+						"description": "Deshabilita 2FA para el usuario autenticado"
+					}
+				}
+			],
+			"description": "Endpoints para la gestión de autenticación de dos factores (2FA)"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Script que se ejecuta antes de cada request",
+					"console.log('🚀 Ejecutando request a:', pm.request.url);"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Script que se ejecuta después de cada request",
+					"console.log('📊 Status:', pm.response.code, pm.response.status);",
+					"console.log('⏱️ Tiempo de respuesta:', pm.response.responseTime + 'ms');"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:3000",
+			"type": "string"
+		},
+		{
+			"key": "access_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "refresh_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "temp_token",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

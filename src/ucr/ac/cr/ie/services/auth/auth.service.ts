@@ -5,32 +5,10 @@ import { User } from '../../domain/auth/core/user.entity';
 import { UserSession } from '../../domain/auth/sessions/user-session.entity';
 import { UserTwoFactor } from '../../domain/auth/security/user-two-factor.entity';
 import { PasswordUtil, DateUtil, TwoFactorUtil } from '../../common/utils';
+import { LoginDto } from '../../dto/auth';
+import { LoginResponse, Setup2FAResponse, Enable2FAResponse } from '../../interfaces/auth';
+import { SuccessResponse } from '../../interfaces';
 import * as crypto from 'crypto';
-
-export interface LoginDto {
-    uEmail: string;
-    uPassword: string;
-    twoFactorCode?: string;
-}
-
-export interface LoginResponse {
-    accessToken: string;
-    refreshToken?: string;
-    user: {
-        id: number;
-        uEmail: string;
-        uName: string;
-        role: string;
-    };
-    requiresTwoFactor?: boolean;
-    tempToken?: string;
-}
-
-export interface Setup2FAResponse {
-    secret: string;
-    qrCode: string;
-    backupCodes: string[];
-}
 
 @Injectable()
 export class AuthService {
@@ -223,7 +201,7 @@ export class AuthService {
     /**
      * Habilita 2FA después de verificar el código
      */
-    async enable2FA(userId: number, verificationCode: string): Promise<{ success: boolean; backupCodes: string[] }> {
+    async enable2FA(userId: number, verificationCode: string): Promise<Enable2FAResponse> {
         const twoFactor = await this.twoFactorRepository.findOne({
             where: { userId, tfaEnabled: false },
         });
@@ -253,7 +231,7 @@ export class AuthService {
     /**
      * Deshabilita 2FA
      */
-    async disable2FA(userId: number): Promise<{ success: boolean }> {
+    async disable2FA(userId: number): Promise<SuccessResponse> {
         const twoFactor = await this.twoFactorRepository.findOne({
             where: { userId, tfaEnabled: true },
         });
@@ -271,7 +249,7 @@ export class AuthService {
     /**
      * Cierra sesión
      */
-    async logout(token: string): Promise<{ success: boolean }> {
+    async logout(token: string): Promise<SuccessResponse> {
         const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
 
         const session = await this.sessionRepository.findOne({
@@ -328,3 +306,5 @@ export class AuthService {
         };
     }
 }
+
+export { LoginDto };

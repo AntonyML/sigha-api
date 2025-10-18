@@ -3,30 +3,8 @@ import { Repository } from 'typeorm';
 import { User } from '../../domain/auth/core/user.entity';
 import { Role } from '../../domain/auth/core/role.entity';
 import { PasswordUtil } from '../../common/utils';
-
-export interface CreateUserDto {
-    uIdentification: string;
-    uName: string;
-    uFLastName: string;
-    uSLastName?: string;
-    uEmail: string;
-    uPassword: string;
-    roleId: number;
-}
-
-export interface UpdateUserDto {
-    uName?: string;
-    uFLastName?: string;
-    uSLastName?: string;
-    uEmail?: string;
-    roleId?: number;
-    uIsActive?: boolean;
-}
-
-export interface ChangePasswordDto {
-    currentPassword: string;
-    newPassword: string;
-}
+import { CreateUserDto, UpdateUserDto, ChangePasswordDto } from '../../dto/users';
+import { SuccessResponse } from '../../interfaces';
 
 @Injectable()
 export class UserService {
@@ -189,7 +167,7 @@ export class UserService {
     /**
      * Cambiar contraseña de usuario
      */
-    async changePassword(userId: number, changePasswordDto: ChangePasswordDto): Promise<{ success: boolean }> {
+    async changePassword(userId: number, changePasswordDto: ChangePasswordDto): Promise<SuccessResponse> {
         const { currentPassword, newPassword } = changePasswordDto;
 
         // Buscar usuario con contraseña
@@ -233,7 +211,7 @@ export class UserService {
     /**
      * Eliminar usuario (soft delete)
      */
-    async deleteUser(id: number): Promise<{ success: boolean }> {
+    async deleteUser(id: number): Promise<SuccessResponse> {
         const user = await this.findById(id);
         user.uIsActive = false;
         await this.userRepository.save(user);
