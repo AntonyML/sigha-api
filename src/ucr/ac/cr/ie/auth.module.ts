@@ -5,6 +5,7 @@ import { AuthService } from './services/auth/auth.service';
 import { AuthController } from './controller/auth/auth.controller';
 import { authProviders } from './repository/auth/auth.providers';
 import { DatabaseModule } from './database.module';
+import { StartupService } from './services/startup.service';
 
 @Global()
 @Module({
@@ -19,6 +20,7 @@ import { DatabaseModule } from './database.module';
     controllers: [AuthController],
     providers: [
         AuthService,
+        StartupService,
         ...authProviders,
     ],
     exports: [AuthService, JwtModule, ...authProviders],
