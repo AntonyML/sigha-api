@@ -38,26 +38,26 @@ export class UserSession {
   user: User;
 
   constructor(
-    id: number,
-    userId: number,
-    sessionToken: string,
-    expiresAt: Date,
+    id?: number,
+    userId?: number,
+    sessionToken?: string,
+    expiresAt?: Date,
     refreshToken?: string,
     ipAddress?: string,
     userAgent?: string,
-    isActive: boolean = true,
+    isActive?: boolean,
     createdAt?: Date,
     lastActivity?: Date
   ) {
-    this.id = id;
-    this.userId = userId;
-    this.sessionToken = sessionToken;
-    this.refreshToken = refreshToken;
-    this.ipAddress = ipAddress;
-    this.userAgent = userAgent;
-    this.isActive = isActive;
-    this.expiresAt = expiresAt;
-    this.createdAt = createdAt || new Date();
-    this.lastActivity = lastActivity || new Date();
+    if (id !== undefined) this.id = id;
+    if (userId !== undefined) this.userId = userId;
+    if (sessionToken !== undefined) this.sessionToken = sessionToken;
+    if (expiresAt !== undefined) this.expiresAt = expiresAt;
+    if (refreshToken !== undefined) this.refreshToken = refreshToken;
+    if (ipAddress !== undefined) this.ipAddress = ipAddress;
+    if (userAgent !== undefined) this.userAgent = userAgent;
+    if (isActive !== undefined) this.isActive = isActive;
+    if (createdAt !== undefined) this.createdAt = createdAt;
+    if (lastActivity !== undefined) this.lastActivity = lastActivity;
   }
 }

@@ -1,5 +1,6 @@
 import { Injectable, UnauthorizedException, BadRequestException, Inject } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 import { Repository } from 'typeorm';
 import { User } from '../../domain/auth/core/user.entity';
 import { UserSession } from '../../domain/auth/sessions/user-session.entity';
@@ -14,6 +15,7 @@ import * as crypto from 'crypto';
 export class AuthService {
     constructor(
         private jwtService: JwtService,
+        private configService: ConfigService,
         @Inject('UserRepository')
         private userRepository: Repository<User>,
         @Inject('UserSessionRepository')
@@ -275,7 +277,7 @@ export class AuthService {
             role: user.role.rName
         };
 
-        const accessToken = this.jwtService.sign(payload, { expiresIn: '1h' });
+        const accessToken = this.jwtService.sign(payload);
         const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
 
         // Crear hash del token para almacenar en BD
@@ -286,7 +288,7 @@ export class AuthService {
             0, // ID se auto-genera
             user.id,
             tokenHash,
-            DateUtil.addHours(new Date(), 1), // Expira en 1 hora
+            DateUtil.addHours(new Date(), 1), // Expira en 1 hora (igual que JWT)
             refreshToken,
             ipAddress,
             userAgent

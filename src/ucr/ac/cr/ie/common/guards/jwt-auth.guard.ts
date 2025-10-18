@@ -75,9 +75,10 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
                 throw new UnauthorizedException('Sesión expirada');
             }
 
-            // Actualizar última actividad
-            session.lastActivity = new Date();
-            await this.sessionRepository.save(session);
+            // Actualizar última actividad sin afectar otros campos
+            await this.sessionRepository.update(session.id, { 
+                lastActivity: new Date() 
+            });
 
             // Cargar usuario completo con su rol
             const user = await this.userRepository.findOne({
