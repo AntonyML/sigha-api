@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import setupSwagger from './config/swagger.config';
+import setupSwagger from './ucr/ac/cr/ie/config/swagger.config';
 import createSuperUsers from '../scripts/create-super-users';
 
 async function bootstrap() {

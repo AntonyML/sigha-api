@@ -1,6 +1,16 @@
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { User } from './user.entity';
+
+@Entity('roles')
 export class Role {
+  @PrimaryGeneratedColumn()
   id: number;
+
+  @Column({ unique: true })
   rName: string;
+
+  @OneToMany(() => User, user => user.role)
+  users: User[];
 
   constructor(
     id: number,

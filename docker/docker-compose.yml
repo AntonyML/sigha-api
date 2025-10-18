@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  # Base de datos MySQL
+  database:
+    image: mysql:8.0
+    container_name: hogar_ancianos_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD:
+      MYSQL_DATABASE: hogar_de_ancianos
+      MYSQL_USER: app_user
+      MYSQL_PASSWORD: app_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - hogar_network
+
+  # Aplicación Backend
+  backend:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile
+    container_name: hogar_ancianos_backend
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DB_HOST: database
+      DB_PORT: 3306
+      DB_USERNAME: app_user
+      DB_PASSWORD: app_password
+      DB_NAME: hogar_de_ancianos
+      JWT_SECRET: ***REMOVED***
+    ports:
+      - "3000:3000"
+    depends_on:
+      - database
+    networks:
+      - hogar_network
+    volumes:
+      - ./logs:/app/logs
+
+volumes:
+  mysql_data:
+
+
+networks:
+  hogar_network:
+    driver: bridge

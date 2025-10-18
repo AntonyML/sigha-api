@@ -1,15 +1,52 @@
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToMany, OneToOne } from 'typeorm';
+import { Role } from './role.entity';
+import { UserSession } from '../sessions/user-session.entity';
+import { UserTwoFactor } from '../security/user-two-factor.entity';
+
+@Entity('users')
 export class User {
+  @PrimaryGeneratedColumn()
   id: number;
+
+  @Column({ unique: true })
   uIdentification: string;
+
+  @Column()
   uName: string;
+
+  @Column()
   uFLastName: string;
+
+  @Column({ nullable: true })
   uSLastName?: string;
+
+  @Column({ unique: true })
   uEmail: string;
+
+  @Column({ default: false })
   uEmailVerified: boolean;
+
+  @Column()
   uPassword: string;
+
+  @Column({ default: true })
   uIsActive: boolean;
+
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createAt: Date;
+
+  @Column()
   roleId: number;
+
+  @ManyToOne(() => Role)
+  @JoinColumn({ name: 'roleId' })
+  role: Role;
+
+  @OneToMany(() => UserSession, session => session.user)
+  sessions: UserSession[];
+
+  @OneToOne(() => UserTwoFactor, twoFactor => twoFactor.user)
+  twoFactor: UserTwoFactor;
 
   constructor(
     id: number,
