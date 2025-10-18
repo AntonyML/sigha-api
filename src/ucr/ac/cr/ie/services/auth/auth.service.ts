@@ -13,8 +13,6 @@ import * as crypto from 'crypto';
 
 @Injectable()
 export class AuthService {
-    private twoFactorUtil = new TwoFactorUtil();
-    
     constructor(
         private jwtService: JwtService,
         private configService: ConfigService,
@@ -232,7 +230,7 @@ export class AuthService {
 
         // Verificar código TOTP o backup code
         console.log('\n--- STARTING VERIFICATION ---');
-        let isValid = this.twoFactorUtil.verifyTotp(verificationCode, twoFactor.tfaSecret);
+        let isValid = TwoFactorUtil.verifyToken(verificationCode, twoFactor.tfaSecret);
         console.log('TOTP verification result:', isValid);
         
         let usedBackupCode = false;
