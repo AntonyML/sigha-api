@@ -1,9 +1,13 @@
+import { config } from 'dotenv';
 import { DataSource } from 'typeorm';
 import { Role, RoleType } from '../src/ucr/ac/cr/ie/domain/auth/core/role.entity';
 import { User } from '../src/ucr/ac/cr/ie/domain/auth/core/user.entity';
 import { UserSession } from '../src/ucr/ac/cr/ie/domain/auth/sessions/user-session.entity';
 import { UserTwoFactor } from '../src/ucr/ac/cr/ie/domain/auth/security/user-two-factor.entity';
 import { PasswordUtil } from '../src/ucr/ac/cr/ie/common/utils/password.util';
+
+// Cargar variables de entorno
+config();
 
 /**
  * Función auxiliar para deshabilitar 2FA de un usuario específico (útil para testing)
@@ -47,13 +51,21 @@ async function disable2FAForUser(email: string) {
 }
 
 async function createSuperUsers() {
+    console.log('\n=== VERIFICANDO CONFIGURACIÓN ===');
+    console.log('DB_HOST:', process.env.DB_HOST || 'undefined');
+    console.log('DB_PORT:', process.env.DB_PORT || 'undefined');
+    console.log('DB_USERNAME:', process.env.DB_USERNAME || 'undefined');
+    console.log('DB_PASSWORD:', process.env.DB_PASSWORD ? '[SET]' : 'undefined');
+    console.log('DB_NAME:', process.env.DB_NAME || 'undefined');
+    console.log();
+    
     const dataSource = new DataSource({
         type: 'mysql',
-        host: process.env.DB_HOST ,
-        port: parseInt(process.env.DB_PORT) ,
-        username: process.env.DB_USERNAME ,
-        password: process.env.DB_PASSWORD ,
-        database: process.env.DB_NAME ,
+        host: process.env.DB_HOST || 'localhost',
+        port: parseInt(process.env.DB_PORT || '3306'),
+        username: process.env.DB_USERNAME || 'root',
+        password: process.env.DB_PASSWORD || '',
+        database: process.env.DB_NAME || 'hogar_de_ancianos',
         entities: [User, Role, UserSession, UserTwoFactor],
         synchronize: true,
     });
