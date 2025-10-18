@@ -61,3 +61,8 @@ docs/generated/
 
 # PM2
 .pm2/
+
+# Chat Catalyst files
+.github/prompts/
+.github/copilot-instructions.md
+.chatcatalyst/
