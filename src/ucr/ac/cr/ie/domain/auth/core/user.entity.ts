@@ -8,38 +8,38 @@ export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ unique: true })
+  @Column({ name: 'u_identification', unique: true })
   uIdentification: string;
 
-  @Column()
+  @Column({ name: 'u_name' })
   uName: string;
 
-  @Column()
+  @Column({ name: 'u_f_last_name' })
   uFLastName: string;
 
-  @Column({ nullable: true })
+  @Column({ name: 'u_s_last_name', nullable: true })
   uSLastName?: string;
 
-  @Column({ unique: true })
+  @Column({ name: 'u_email', unique: true })
   uEmail: string;
 
-  @Column({ default: false })
+  @Column({ name: 'u_email_verified', default: false })
   uEmailVerified: boolean;
 
-  @Column()
+  @Column({ name: 'u_password' })
   uPassword: string;
 
-  @Column({ default: true })
+  @Column({ name: 'u_is_active', default: true })
   uIsActive: boolean;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({ name: 'create_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createAt: Date;
 
-  @Column()
+  @Column({ name: 'role_id' })
   roleId: number;
 
   @ManyToOne(() => Role)
-  @JoinColumn({ name: 'roleId' })
+  @JoinColumn({ name: 'role_id' })
   role: Role;
 
   @OneToMany(() => UserSession, session => session.user)

@@ -6,15 +6,20 @@ export class Role {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ unique: true })
+  @Column({ 
+    name: 'r_name',
+    type: 'enum',
+    enum: ['super admin', 'admin', 'director', 'nurse', 'physiotherapist', 'psychologist', 'social worker', 'not specified'],
+    default: 'not specified'
+  })
   rName: string;
 
   @OneToMany(() => User, user => user.role)
   users: User[];
 
   constructor(
-    id: number,
-    rName: string
+    id?: number,
+    rName?: string
   ) {
     this.id = id;
     this.rName = rName;

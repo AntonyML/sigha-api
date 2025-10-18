@@ -6,35 +6,36 @@ export class UserSession {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ name: 'user_id' })
   userId: number;
 
-  @Column()
+  @Column({ name: 'session_token' })
   sessionToken: string;
 
-  @Column({ nullable: true })
+  @Column({ name: 'refresh_token', nullable: true })
   refreshToken?: string;
 
-  @Column({ nullable: true })
+  @Column({ name: 'ip_address', nullable: true })
   ipAddress?: string;
 
-  @Column({ nullable: true })
+  @Column({ name: 'user_agent', nullable: true })
   userAgent?: string;
 
-  @Column({ default: true })
+  @Column({ name: 'is_active', default: true })
   isActive: boolean;
 
-  @Column({ type: 'timestamp' })
+  @Column({ name: 'expires_at', type: 'timestamp' })
   expiresAt: Date;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({ name: 'created_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({ name: 'created_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({ name: 'last_activity', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   lastActivity: Date;
 
   @ManyToOne(() => User, user => user.sessions)
-  @JoinColumn({ name: 'userId' })
+  @JoinColumn({ name: 'user_id' })
   user: User;
 
   constructor(

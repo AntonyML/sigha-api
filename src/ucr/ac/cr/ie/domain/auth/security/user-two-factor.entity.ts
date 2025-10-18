@@ -6,29 +6,29 @@ export class UserTwoFactor {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ name: 'user_id' })
   userId: number;
 
-  @Column()
+  @Column({ name: 'tfa_secret' })
   tfaSecret: string;
 
-  @Column({ default: false })
+  @Column({ name: 'tfa_enabled', default: false })
   tfaEnabled: boolean;
 
-  @Column({ nullable: true, type: 'text' })
+  @Column({ name: 'tfa_backup_codes', nullable: true, type: 'text' })
   tfaBackupCodes?: string; // JSON array as string
 
-  @Column({ nullable: true, type: 'timestamp' })
+  @Column({ name: 'tfa_last_used', nullable: true, type: 'timestamp' })
   tfaLastUsed?: Date;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({ name: 'created_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
+  @Column({ name: 'updated_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   updatedAt: Date;
 
   @OneToOne(() => User, user => user.twoFactor)
-  @JoinColumn({ name: 'userId' })
+  @JoinColumn({ name: 'user_id' })
   user: User;
 
   constructor(

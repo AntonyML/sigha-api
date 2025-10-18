@@ -21,7 +21,7 @@ export const databaseProviders = [
                     UserSession,
                     UserTwoFactor,
                 ],
-                synchronize: process.env.NODE_ENV === 'development',
+                synchronize: false,
                 logging: process.env.NODE_ENV === 'development',
             });
 
