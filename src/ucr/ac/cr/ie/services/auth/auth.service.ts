@@ -13,6 +13,8 @@ import * as crypto from 'crypto';
 
 @Injectable()
 export class AuthService {
+    private twoFactorUtil = new TwoFactorUtil();
+    
     constructor(
         private jwtService: JwtService,
         private configService: ConfigService,
@@ -204,16 +206,62 @@ export class AuthService {
      * Habilita 2FA después de verificar el código
      */
     async enable2FA(userId: number, verificationCode: string): Promise<Enable2FAResponse> {
+        console.log('\n=== ENABLE 2FA DEBUG ===');
+        console.log('User ID:', userId);
+        console.log('Verification Code:', verificationCode);
+        
         const twoFactor = await this.twoFactorRepository.findOne({
             where: { userId, tfaEnabled: false },
         });
 
+        console.log('2FA record found:', !!twoFactor);
+        if (twoFactor) {
+            console.log('2FA record ID:', twoFactor.id);
+            console.log('Secret exists:', !!twoFactor.tfaSecret);
+            console.log('Backup codes exist:', !!twoFactor.tfaBackupCodes);
+            
+            const backupCodes = JSON.parse(twoFactor.tfaBackupCodes || '[]');
+            console.log('Backup codes count:', backupCodes.length);
+            console.log('Backup codes:', backupCodes);
+        }
+
         if (!twoFactor) {
+            console.log('ERROR: 2FA no configurado o ya habilitado');
             throw new BadRequestException('2FA no configurado o ya habilitado');
         }
 
-        // Verificar código
-        const isValid = TwoFactorUtil.verifyToken(verificationCode, twoFactor.tfaSecret);
+        // Verificar código TOTP o backup code
+        console.log('\n--- STARTING VERIFICATION ---');
+        let isValid = this.twoFactorUtil.verifyTotp(verificationCode, twoFactor.tfaSecret);
+        console.log('TOTP verification result:', isValid);
+        
+        let usedBackupCode = false;
+        
+        if (!isValid) {
+            console.log('TOTP failed, checking backup codes');
+            // Si el código TOTP no es válido, verificar si es un backup code
+            const backupCodes = JSON.parse(twoFactor.tfaBackupCodes || '[]');
+            console.log('Available backup codes:', backupCodes);
+            console.log('Checking if code matches any backup code:', verificationCode);
+            
+            isValid = TwoFactorUtil.verifyBackupCode(verificationCode, backupCodes);
+            console.log('Backup code verification result:', isValid);
+            
+            if (isValid) {
+                console.log('SUCCESS: Backup code matched');
+                // Remover el backup code usado
+                const updatedBackupCodes = TwoFactorUtil.removeUsedBackupCode(verificationCode, backupCodes);
+                twoFactor.tfaBackupCodes = JSON.stringify(updatedBackupCodes);
+                usedBackupCode = true;
+                console.log('Backup code used for 2FA enable:', verificationCode);
+                console.log('Remaining backup codes:', updatedBackupCodes);
+            } else {
+                console.log('FAILED: Backup code not found');
+            }
+        } else {
+            console.log('SUCCESS: TOTP code verified');
+        }
+        
         if (!isValid) {
             throw new BadRequestException('Código de verificación inválido');
         }

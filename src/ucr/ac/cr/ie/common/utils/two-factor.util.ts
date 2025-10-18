@@ -41,12 +41,23 @@ export class TwoFactorUtil {
      * Verifica un token TOTP
      */
     static verifyToken(token: string, secret: string): boolean {
-        return speakeasy.totp.verify({
+        console.log('\n=== 2FA TOKEN DEBUG ===');
+        console.log('Token received:', token);
+        console.log('Secret (first 10 chars):', secret.substring(0, 10) + '...');
+        console.log('Current server time:', new Date().toISOString());
+        
+        // Probar con ventana más amplia para debugging
+        const result = speakeasy.totp.verify({
             secret,
             encoding: 'base32',
             token,
-            window: 2, // Permite tokens de ±60 segundos
+            window: 6, // Aumentado a ±180 segundos para debugging
         });
+        
+        console.log('Verification result:', result);
+        console.log('=== 2FA TOKEN DEBUG END ===\n');
+        
+        return result;
     }
 
     /**

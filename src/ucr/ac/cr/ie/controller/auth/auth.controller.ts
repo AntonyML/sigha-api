@@ -111,13 +111,12 @@ export class AuthController {
         return await this.authService.setup2FA(req.user.userId);
     }
 
-    @UseGuards(JwtAuthGuard, TwoFactorGuard)
+    @UseGuards(JwtAuthGuard)
     @ApiBearerAuth('jwt')
-    @Require2FA()
     @Post('enable-2fa')
     @ApiOperation({
         summary: 'Habilitar 2FA después de verificar código',
-        description: 'Requiere token JWT válido y verificación 2FA'
+        description: 'Requiere token JWT válido. Habilita 2FA por primera vez.'
     })
     @ApiResponse({ status: 200, description: '2FA habilitado exitosamente' })
     async enable2FA(@Body() body: { verificationCode: string }, @Request() req) {
