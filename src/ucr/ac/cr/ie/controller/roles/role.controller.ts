@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
-import { RoleService, CreateRoleDto, UpdateRoleDto } from '../../services/roles/role.service';
+import { RoleService } from '../../services/roles/role.service';
+import { CreateRoleDto, UpdateRoleDto } from '../../dto/roles';
 import { JwtAuthGuard, RolesGuard, TwoFactorGuard } from '../../common/guards';
 import { Roles, Require2FA } from '../../common/decorators';
 import { RoleType } from '../../domain/auth/core/role.entity';
