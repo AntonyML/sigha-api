@@ -42,6 +42,9 @@
     "build": "nest build",
     "start": "nest start",
     "start:dev": "nest start --watch",
-    "start:prod": "node dist/main"
+    "start:prod": "node dist/main",
+    "setup:users": "ts-node scripts/create-super-users.ts",
+    "disable:2fa": "ts-node scripts/create-super-users.ts disable-2fa",
+    "disable:2fa:admin": "ts-node scripts/create-super-users.ts disable-2fa admin@hogarancianos.com"
   }
 }

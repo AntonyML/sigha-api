@@ -96,7 +96,11 @@ Date | Achievement
 2025-10-18 | Complete Postman collection created with all endpoints and auto-scripts
 2025-10-18 | Collection includes variables, authentication, and comprehensive testing
 2025-10-18 | Puppeteer MCP activated for E2E testing and web automation
-2025-10-18 | E2E test suite created with Puppeteer integration for API validation
+2025-10-18 | Cleaned up unnecessary test files, keeping Postman as primary testing tool
+2025-10-18 | ✅ PUPPETEER E2E TEST SUCCESS: Login flow tested via Swagger UI automation
+2025-10-18 | ✅ IMPROVED LOGIN FLOW: Enhanced script to check existing users and 2FA status
+2025-10-18 | ✅ 2FA MANAGEMENT: Added utilities to disable 2FA for testing purposes
+2025-10-18 | ✅ DOCUMENTATION: Updated Swagger docs to clarify 2FA optional flow
 
 ---
 
@@ -123,6 +127,9 @@ Common Commands:
 - `npm run start:prod` - Start production server
 - `docker-compose up -d` - Start MySQL database container
 - `npm install` - Install dependencies
+- `npm run setup:users` - Create/verify admin users with 2FA status check
+- `npm run disable:2fa` - Disable 2FA for superadmin (testing)
+- `npm run disable:2fa:admin` - Disable 2FA for admin user (testing)
 
 Key Files: 
 - src/main.ts - Application entry point

@@ -12,9 +12,52 @@ export class AuthController {
     @Public()
     @Post('login')
     @HttpCode(200)
-    @ApiOperation({ summary: 'Iniciar sesión' })
-    @ApiResponse({ status: 200, description: 'Login exitoso' })
-    @ApiResponse({ status: 401, description: 'Credenciales inválidas' })
+    @ApiOperation({ 
+        summary: 'Iniciar sesión',
+        description: 'Inicia sesión con email y contraseña. Si el usuario tiene 2FA habilitado, devuelve requiresTwoFactor=true y un tempToken para completar el login con /auth/verify-2fa. Si no tiene 2FA o proporciona el código 2FA correcto, devuelve el token de acceso directamente.'
+    })
+    @ApiResponse({ 
+        status: 200, 
+        description: 'Login exitoso o requiere 2FA',
+        schema: {
+            oneOf: [
+                {
+                    type: 'object',
+                    properties: {
+                        accessToken: { type: 'string' },
+                        refreshToken: { type: 'string' },
+                        user: {
+                            type: 'object',
+                            properties: {
+                                id: { type: 'number' },
+                                uEmail: { type: 'string' },
+                                uName: { type: 'string' },
+                                role: { type: 'string' }
+                            }
+                        }
+                    }
+                },
+                {
+                    type: 'object',
+                    properties: {
+                        accessToken: { type: 'string', enum: [''] },
+                        requiresTwoFactor: { type: 'boolean', enum: [true] },
+                        tempToken: { type: 'string' },
+                        user: {
+                            type: 'object',
+                            properties: {
+                                id: { type: 'number' },
+                                uEmail: { type: 'string' },
+                                uName: { type: 'string' },
+                                role: { type: 'string' }
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    })
+    @ApiResponse({ status: 401, description: 'Credenciales inválidas o código 2FA incorrecto' })
     async login(@Body() loginDto: LoginDto, @Request() req) {
         const ipAddress = req.ip;
         const userAgent = req.get('User-Agent');
