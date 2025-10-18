@@ -96,7 +96,9 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
                 uEmail: user.uEmail,
                 roleId: user.roleId,
                 role: user.role,
-            }; return true;
+            };
+            
+            return true;
         } catch (error) {
             if (error instanceof UnauthorizedException) {
                 throw error;
