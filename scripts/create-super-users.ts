@@ -1,6 +1,8 @@
 import { DataSource } from 'typeorm';
 import { Role, RoleType } from '../src/ucr/ac/cr/ie/domain/auth/core/role.entity';
 import { User } from '../src/ucr/ac/cr/ie/domain/auth/core/user.entity';
+import { UserSession } from '../src/ucr/ac/cr/ie/domain/auth/sessions/user-session.entity';
+import { UserTwoFactor } from '../src/ucr/ac/cr/ie/domain/auth/security/user-two-factor.entity';
 import { PasswordUtil } from '../src/ucr/ac/cr/ie/common/utils/password.util';
 
 async function createSuperUsers() {
@@ -11,7 +13,7 @@ async function createSuperUsers() {
         username: process.env.DB_USERNAME ,
         password: process.env.DB_PASSWORD ,
         database: process.env.DB_NAME ,
-        entities: [User, Role],
+        entities: [User, Role, UserSession, UserTwoFactor],
         synchronize: true,
     });
 
