@@ -10,7 +10,7 @@ async function bootstrap() {
 	// Crear superusuarios si no existen
 	await createSuperUsers();
 
-	await app.listen(process.env.PORT || 3000);
+	await app.listen(process.env.PORT);
 }
 
 bootstrap();
