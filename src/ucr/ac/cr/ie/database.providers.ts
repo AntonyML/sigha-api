@@ -3,6 +3,7 @@ import { User } from './domain/auth/core/user.entity';
 import { Role } from './domain/auth/core/role.entity';
 import { UserSession } from './domain/auth/sessions/user-session.entity';
 import { UserTwoFactor } from './domain/auth/security/user-two-factor.entity';
+import { EntranceExit } from './domain/entrances-exits/entrance-exit.entity';
 
 export const databaseProviders = [
     {
@@ -20,6 +21,7 @@ export const databaseProviders = [
                     Role,
                     UserSession,
                     UserTwoFactor,
+                    EntranceExit,
                 ],
                 synchronize: false,
                 logging: process.env.NODE_ENV === 'development',

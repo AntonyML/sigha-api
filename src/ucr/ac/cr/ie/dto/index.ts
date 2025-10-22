@@ -6,3 +6,6 @@ export * from './users';
 
 // Role DTOs
 export * from './roles';
+
+// Entrances-Exits DTOs
+export * from './entrances-exits';

@@ -5,6 +5,7 @@ import { DatabaseModule } from './ucr/ac/cr/ie/database.module';
 import { AuthModule } from './ucr/ac/cr/ie/auth.module';
 import { UsersModule } from './ucr/ac/cr/ie/users.module';
 import { RolesModule } from './ucr/ac/cr/ie/roles.module';
+import { EntrancesExitsModule } from './ucr/ac/cr/ie/entrances-exits.module';
 import { JwtAuthGuard } from './ucr/ac/cr/ie/common/guards/jwt-auth.guard';
 
 @Module({
@@ -16,6 +17,7 @@ import { JwtAuthGuard } from './ucr/ac/cr/ie/common/guards/jwt-auth.guard';
         AuthModule,
         UsersModule,
         RolesModule,
+        EntrancesExitsModule,
     ],
     providers: [
         {
