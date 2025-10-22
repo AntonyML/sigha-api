@@ -11,10 +11,6 @@ build/
 *.tsbuildinfo
 
 # Variables de entorno
-.env
-.env.local
-.env.production
-.env.*.local
 
 # Logs
 logs/
