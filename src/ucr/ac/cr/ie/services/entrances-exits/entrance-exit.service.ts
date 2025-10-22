@@ -181,4 +181,55 @@ export class EntranceExitService {
         });
     }
 
+    /**
+     * Obtener todos los registros cerrados ordenados por fecha de cierre
+     */
+    async getClosedRecords(): Promise<EntranceExit[]> {
+        // Obtener todos los registros cerrados
+        const closedRecords = await this.entranceExitRepository.find({
+            where: { eeClose: true },
+            order: { createAt: 'DESC' } // Orden por defecto
+        });
+
+        // Ordenar por la fecha más reciente (fecha de cierre)
+        return closedRecords.sort((a, b) => {
+            // Obtener la fecha de cierre para cada registro
+            const dateA = this.getClosingDate(a);
+            const dateB = this.getClosingDate(b);
+
+            // Ordenar de más reciente a más antiguo
+            return dateB.getTime() - dateA.getTime();
+        });
+    }
+
+    /**
+     * Determinar la fecha de cierre de un registro
+     * La fecha de cierre es la fecha más reciente o la que no es nula
+     */
+    private getClosingDate(record: EntranceExit): Date {
+        const entrance = record.eeDatetimeEntrance;
+        const exit = record.eeDatetimeExit;
+
+        // Si ambas fechas existen, tomar la más reciente
+        if (entrance && exit) {
+            return entrance > exit ? entrance : exit;
+        }
+
+        // Si solo existe una fecha, usarla
+        if (entrance) return entrance;
+        if (exit) return exit;
+
+        // Fallback a fecha de creación
+        return record.createAt;
+    }
+
+    /**
+     * Eliminar un registro por ID
+     */
+    async remove(id: number): Promise<{ success: boolean }> {
+        const entranceExit = await this.findOne(id);
+        await this.entranceExitRepository.remove(entranceExit);
+        return { success: true };
+    }
+
 }

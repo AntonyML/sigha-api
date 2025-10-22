@@ -152,4 +152,62 @@ export class EntranceExitController {
     async getOpenExits() {
         return await this.entranceExitService.getOpenExits();
     }
+
+    @Get('closed-records')
+    @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.DIRECTOR, RoleType.NURSE, RoleType.SOCIAL_WORKER)
+    @ApiOperation({
+        summary: 'Listar registros cerrados',
+        description: 'Obtiene todos los registros que han sido cerrados (ciclos completos), independientemente del tipo. Incluye registros de entrada→salida, salida→entrada, solo entrada, o solo salida. Ordenados por la fecha más reciente de cierre.'
+    })
+    @ApiResponse({ 
+        status: 200, 
+        description: 'Lista de registros cerrados obtenida exitosamente',
+        schema: {
+            type: 'array',
+            items: {
+                type: 'object',
+                properties: {
+                    id: { type: 'number', example: 1 },
+                    eeType: { type: 'string', example: 'employee' },
+                    eeAccessType: { type: 'string', example: 'entrance' },
+                    eeIdentification: { type: 'string', example: '12345678' },
+                    eeName: { type: 'string', example: 'Juan' },
+                    eeFLastName: { type: 'string', example: 'Pérez' },
+                    eeSLastName: { type: 'string', example: 'González' },
+                    eeDatetimeEntrance: { type: 'string', example: '2025-10-21T08:30:00.000Z' },
+                    eeDatetimeExit: { type: 'string', example: '2025-10-21T17:30:00.000Z' },
+                    eeClose: { type: 'boolean', example: true },
+                    eeObservations: { type: 'string', example: 'Entrada normal | Ciclo cerrado por administrador' },
+                    createAt: { type: 'string', example: '2025-10-21T08:30:15.000Z' }
+                }
+            }
+        }
+    })
+    @ApiResponse({ status: 403, description: 'Sin permisos suficientes' })
+    async getClosedRecords() {
+        return await this.entranceExitService.getClosedRecords();
+    }
+
+    @Delete(':id')
+    @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN)
+    @ApiOperation({
+        summary: 'Eliminar registro de entrada/salida',
+        description: 'Elimina permanentemente un registro de entrada/salida por ID. Solo super administradores y administradores pueden realizar esta acción.'
+    })
+    @ApiResponse({ 
+        status: 200, 
+        description: 'Registro eliminado exitosamente',
+        schema: {
+            type: 'object',
+            properties: {
+                success: { type: 'boolean', example: true }
+            }
+        }
+    })
+    @ApiResponse({ status: 400, description: 'ID inválido' })
+    @ApiResponse({ status: 403, description: 'Sin permisos suficientes' })
+    @ApiResponse({ status: 404, description: 'Registro no encontrado' })
+    async remove(@Param('id') id: string) {
+        return await this.entranceExitService.remove(+id);
+    }
 }
