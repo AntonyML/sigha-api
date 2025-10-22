@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { EntranceExitService } from '../../services/entrances-exits/entrance-exit.service';
-import { CreateEntranceExitDto, UpdateEntranceExitDto, SearchEntranceExitDto, CloseCycleDto } from '../../dto/entrances-exits';
+import { CreateEntranceExitDto, CloseCycleDto } from '../../dto/entrances-exits';
 import { JwtAuthGuard, RolesGuard, TwoFactorGuard } from '../../common/guards';
 import { Roles, Require2FA } from '../../common/decorators';
 import { RoleType } from '../../domain/auth/core/role.entity';
@@ -81,5 +81,75 @@ export class EntranceExitController {
         @Body() closeCycleDto: CloseCycleDto
     ) {
         return await this.entranceExitService.closeCycle(+id, closeCycleDto);
+    }
+
+    @Get('open-entrances')
+    @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.DIRECTOR, RoleType.NURSE, RoleType.SOCIAL_WORKER)
+    @ApiOperation({
+        summary: 'Listar entradas sin cerrar',
+        description: 'Obtiene todos los registros de entrada que no han sido cerrados (personas/cosas que entraron pero no han registrado salida). Ordenados por fecha de entrada descendente.'
+    })
+    @ApiResponse({ 
+        status: 200, 
+        description: 'Lista de entradas sin cerrar obtenida exitosamente',
+        schema: {
+            type: 'array',
+            items: {
+                type: 'object',
+                properties: {
+                    id: { type: 'number', example: 1 },
+                    eeType: { type: 'string', example: 'employee' },
+                    eeAccessType: { type: 'string', example: 'entrance' },
+                    eeIdentification: { type: 'string', example: '12345678' },
+                    eeName: { type: 'string', example: 'Juan' },
+                    eeFLastName: { type: 'string', example: 'Pérez' },
+                    eeSLastName: { type: 'string', example: 'González' },
+                    eeDatetimeEntrance: { type: 'string', example: '2025-10-21T08:30:00.000Z' },
+                    eeDatetimeExit: { type: 'string', example: null },
+                    eeClose: { type: 'boolean', example: false },
+                    eeObservations: { type: 'string', example: 'Entrada normal de turno matutino' },
+                    createAt: { type: 'string', example: '2025-10-21T08:30:15.000Z' }
+                }
+            }
+        }
+    })
+    @ApiResponse({ status: 403, description: 'Sin permisos suficientes' })
+    async getOpenEntrances() {
+        return await this.entranceExitService.getOpenEntrances();
+    }
+
+    @Get('open-exits')
+    @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.DIRECTOR, RoleType.NURSE, RoleType.SOCIAL_WORKER)
+    @ApiOperation({
+        summary: 'Listar salidas sin cerrar',
+        description: 'Obtiene todos los registros de salida que no han sido cerrados (personas/cosas que salieron pero no se registró su entrada previa). Ordenados por fecha de salida descendente.'
+    })
+    @ApiResponse({ 
+        status: 200, 
+        description: 'Lista de salidas sin cerrar obtenida exitosamente',
+        schema: {
+            type: 'array',
+            items: {
+                type: 'object',
+                properties: {
+                    id: { type: 'number', example: 2 },
+                    eeType: { type: 'string', example: 'visitor' },
+                    eeAccessType: { type: 'string', example: 'exit' },
+                    eeIdentification: { type: 'string', example: '87654321' },
+                    eeName: { type: 'string', example: 'María' },
+                    eeFLastName: { type: 'string', example: 'López' },
+                    eeSLastName: { type: 'string', example: 'Martínez' },
+                    eeDatetimeEntrance: { type: 'string', example: null },
+                    eeDatetimeExit: { type: 'string', example: '2025-10-21T17:30:00.000Z' },
+                    eeClose: { type: 'boolean', example: false },
+                    eeObservations: { type: 'string', example: 'Salida registrada, falta entrada' },
+                    createAt: { type: 'string', example: '2025-10-21T17:30:15.000Z' }
+                }
+            }
+        }
+    })
+    @ApiResponse({ status: 403, description: 'Sin permisos suficientes' })
+    async getOpenExits() {
+        return await this.entranceExitService.getOpenExits();
     }
 }

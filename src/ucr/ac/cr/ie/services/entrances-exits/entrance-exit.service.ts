@@ -1,8 +1,7 @@
 import { Injectable, BadRequestException, NotFoundException, Inject } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { EntranceExit, EntranceExitType, AccessType } from '../../domain/entrances-exits/entrance-exit.entity';
-import { CreateEntranceExitDto, UpdateEntranceExitDto, SearchEntranceExitDto, CloseCycleDto } from '../../dto/entrances-exits';
-import { SuccessResponse } from '../../interfaces';
+import { CreateEntranceExitDto, CloseCycleDto } from '../../dto/entrances-exits';
 
 @Injectable()
 export class EntranceExitService {
@@ -79,18 +78,9 @@ export class EntranceExitService {
     }
 
     /**
-     * Obtener todos los registros
+     * Obtener registro por ID (usado internamente)
      */
-    async findAll(): Promise<EntranceExit[]> {
-        return await this.entranceExitRepository.find({
-            order: { createAt: 'DESC' }
-        });
-    }
-
-    /**
-     * Obtener registro por ID
-     */
-    async findOne(id: number): Promise<EntranceExit> {
+    private async findOne(id: number): Promise<EntranceExit> {
         const entranceExit = await this.entranceExitRepository.findOne({
             where: { id }
         });
@@ -100,145 +90,6 @@ export class EntranceExitService {
         }
 
         return entranceExit;
-    }
-
-    /**
-     * Actualizar registro
-     */
-    async update(id: number, updateEntranceExitDto: UpdateEntranceExitDto): Promise<EntranceExit> {
-        const entranceExit = await this.findOne(id);
-
-        // Validaciones de negocio para actualizaciones
-        if (updateEntranceExitDto.eeAccessType === AccessType.ENTRANCE && updateEntranceExitDto.eeDatetimeExit) {
-            throw new BadRequestException('No se puede asignar fecha de salida a un registro de entrada');
-        }
-
-        if (updateEntranceExitDto.eeAccessType === AccessType.EXIT && updateEntranceExitDto.eeDatetimeEntrance) {
-            throw new BadRequestException('No se puede asignar fecha de entrada a un registro de salida');
-        }
-
-        // Actualizar propiedades
-        Object.assign(entranceExit, updateEntranceExitDto);
-
-        // Convertir fechas si vienen como string
-        if (updateEntranceExitDto.eeDatetimeEntrance) {
-            entranceExit.eeDatetimeEntrance = new Date(updateEntranceExitDto.eeDatetimeEntrance);
-        }
-
-        if (updateEntranceExitDto.eeDatetimeExit) {
-            entranceExit.eeDatetimeExit = new Date(updateEntranceExitDto.eeDatetimeExit);
-        }
-
-        return await this.entranceExitRepository.save(entranceExit);
-    }
-
-    /**
-     * Eliminar registro
-     */
-    async remove(id: number): Promise<SuccessResponse> {
-        const entranceExit = await this.findOne(id);
-        await this.entranceExitRepository.remove(entranceExit);
-        return { success: true };
-    }
-
-    /**
-     * Buscar registros con filtros
-     */
-    async search(searchDto: SearchEntranceExitDto): Promise<{
-        data: EntranceExit[];
-        total: number;
-        page: number;
-        limit: number;
-    }> {
-        const {
-            eeType,
-            eeAccessType,
-            dateFrom,
-            dateTo,
-            eeClose,
-            search,
-            page = 1,
-            limit = 10
-        } = searchDto;
-
-        const queryBuilder = this.entranceExitRepository.createQueryBuilder('entranceExit');
-
-        // Filtros
-        if (eeType) {
-            queryBuilder.andWhere('entranceExit.eeType = :eeType', { eeType });
-        }
-
-        if (eeAccessType) {
-            queryBuilder.andWhere('entranceExit.eeAccessType = :eeAccessType', { eeAccessType });
-        }
-
-        if (dateFrom) {
-            queryBuilder.andWhere('entranceExit.createAt >= :dateFrom', { dateFrom: new Date(dateFrom) });
-        }
-
-        if (dateTo) {
-            queryBuilder.andWhere('entranceExit.createAt <= :dateTo', { dateTo: new Date(dateTo) });
-        }
-
-        if (typeof eeClose === 'boolean') {
-            queryBuilder.andWhere('entranceExit.eeClose = :eeClose', { eeClose });
-        }
-
-        if (search) {
-            queryBuilder.andWhere(
-                '(entranceExit.eeName LIKE :search OR entranceExit.eeFLastName LIKE :search OR entranceExit.eeSLastName LIKE :search OR entranceExit.eeIdentification LIKE :search)',
-                { search: `%${search}%` }
-            );
-        }
-
-        // Paginación
-        const offset = (page - 1) * limit;
-        queryBuilder.skip(offset).take(limit);
-
-        // Ordenar
-        queryBuilder.orderBy('entranceExit.createAt', 'DESC');
-
-        const [data, total] = await queryBuilder.getManyAndCount();
-
-        return {
-            data,
-            total,
-            page,
-            limit
-        };
-    }
-
-    /**
-     * Obtener personas actualmente dentro del hogar
-     */
-    async getCurrentlyInside(): Promise<EntranceExit[]> {
-        return await this.entranceExitRepository.find({
-            where: {
-                eeAccessType: AccessType.ENTRANCE,
-                eeClose: false
-            },
-            order: { eeDatetimeEntrance: 'DESC' }
-        });
-    }
-
-    /**
-     * Cerrar ciclo de entrada (registrar salida automática)
-     */
-    async closeEntranceCycle(id: number, exitTime?: Date): Promise<EntranceExit> {
-        const entranceExit = await this.findOne(id);
-
-        if (entranceExit.eeAccessType !== AccessType.ENTRANCE) {
-            throw new BadRequestException('Solo se pueden cerrar ciclos de entrada');
-        }
-
-        if (entranceExit.eeClose) {
-            throw new BadRequestException('El ciclo ya está cerrado');
-        }
-
-        entranceExit.eeDatetimeExit = exitTime || new Date();
-        entranceExit.eeClose = true;
-
-        return await this.entranceExitRepository.save(entranceExit);
     }
 
     /**
@@ -305,56 +156,29 @@ export class EntranceExitService {
     }
 
     /**
-     * Obtener estadísticas del día
+     * Obtener registros de entrada sin cerrar (entraron pero no han salido)
      */
-    async getDailyStats(date?: string): Promise<{
-        totalEntrances: number;
-        totalExits: number;
-        currentlyInside: number;
-        byType: Record<EntranceExitType, { entrances: number; exits: number }>;
-    }> {
-        const targetDate = date ? new Date(date) : new Date();
-        const startOfDay = new Date(targetDate);
-        startOfDay.setHours(0, 0, 0, 0);
-        
-        const endOfDay = new Date(targetDate);
-        endOfDay.setHours(23, 59, 59, 999);
-
-        const dayRecords = await this.entranceExitRepository.find({
-            where: {
-                createAt: {
-                    gte: startOfDay,
-                    lte: endOfDay
-                } as any
-            }
-        });
-
-        const totalEntrances = dayRecords.filter(r => r.eeAccessType === AccessType.ENTRANCE).length;
-        const totalExits = dayRecords.filter(r => r.eeAccessType === AccessType.EXIT).length;
-        
-        const currentlyInside = await this.entranceExitRepository.count({
+    async getOpenEntrances(): Promise<EntranceExit[]> {
+        return await this.entranceExitRepository.find({
             where: {
                 eeAccessType: AccessType.ENTRANCE,
                 eeClose: false
-            }
+            },
+            order: { eeDatetimeEntrance: 'DESC' }
         });
-
-        // Estadísticas por tipo
-        const byType: Record<EntranceExitType, { entrances: number; exits: number }> = {} as any;
-        
-        Object.values(EntranceExitType).forEach(type => {
-            const typeRecords = dayRecords.filter(r => r.eeType === type);
-            byType[type] = {
-                entrances: typeRecords.filter(r => r.eeAccessType === AccessType.ENTRANCE).length,
-                exits: typeRecords.filter(r => r.eeAccessType === AccessType.EXIT).length
-            };
-        });
-
-        return {
-            totalEntrances,
-            totalExits,
-            currentlyInside,
-            byType
-        };
     }
+
+    /**
+     * Obtener registros de salida sin cerrar (salieron pero no se registró entrada)
+     */
+    async getOpenExits(): Promise<EntranceExit[]> {
+        return await this.entranceExitRepository.find({
+            where: {
+                eeAccessType: AccessType.EXIT,
+                eeClose: false
+            },
+            order: { eeDatetimeExit: 'DESC' }
+        });
+    }
+
 }
