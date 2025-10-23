@@ -1,0 +1,1 @@
+export { CreateVirtualRecordDirectDto } from './create-virtual-record-direct.dto';

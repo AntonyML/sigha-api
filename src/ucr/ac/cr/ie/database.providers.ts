@@ -4,6 +4,7 @@ import { Role } from './domain/auth/core/role.entity';
 import { UserSession } from './domain/auth/sessions/user-session.entity';
 import { UserTwoFactor } from './domain/auth/security/user-two-factor.entity';
 import { EntranceExit } from './domain/entrances-exits/entrance-exit.entity';
+import { Program, SubProgram, OlderAdult, OlderAdultFamily, ClinicalHistory, ClinicalCondition, Vaccine, ClinicalMedication, ClinicalHistoryAndCondition, VaccinesAndClinicalHistory, OlderAdultSubprogram, EmergencyContact } from './domain/virtual-records';
 
 export const databaseProviders = [
     {
@@ -22,6 +23,18 @@ export const databaseProviders = [
                     UserSession,
                     UserTwoFactor,
                     EntranceExit,
+                    Program,
+                    SubProgram,
+                    OlderAdult,
+                    OlderAdultFamily,
+                    ClinicalHistory,
+                    ClinicalCondition,
+                    Vaccine,
+                    ClinicalMedication,
+                    ClinicalHistoryAndCondition,
+                    VaccinesAndClinicalHistory,
+                    OlderAdultSubprogram,
+                    EmergencyContact,
                 ],
                 synchronize: false,
                 logging: process.env.NODE_ENV === 'development',
