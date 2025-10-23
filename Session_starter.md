@@ -53,6 +53,21 @@ Project memory file for AI assistant session continuity. Auto-referenced by cust
 
 ## Recent Milestones
 
+### 2025-01-15 - Digital Record Audit History Endpoint
+- Implemented GET `/audits/digital-records/:recordId/history` endpoint
+- Query params: page, limit, action filter, dateFrom, dateTo
+- LEFT JOIN with users table, handles deleted users gracefully
+- Response includes user info (userId, userName, userEmail)
+- Pagination with metadata (currentPage, totalPages, totalRecords, limit)
+- Changes parsed as JSON with before/after structure
+- Metadata includes ipAddress and userAgent
+- Created AuditHistoryQueryDto with full validation
+- Created audit-history.interface.ts with complete TypeScript types
+- Access restricted to: super admin, admin, director, nurse
+- Documentation: DIGITAL_RECORD_AUDIT_HISTORY_ENDPOINT.md
+- Test script: scripts/test_audit_history_endpoint.sql
+- Ready for rate limiting implementation
+
 ### 2025-10-23 - Audit System Refactor with Stored Procedure
 - Updated `audit_reports` table with new fields: entity_name, entity_id, action, old_value, new_value, observations, duration, ip_address, user_agent
 - Added 5 new audit types: login_attempts, password_resets, clinical_record_changes, notifications, other

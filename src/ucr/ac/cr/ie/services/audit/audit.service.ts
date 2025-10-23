@@ -11,6 +11,7 @@ import {
   SearchOlderAdultUpdatesDto,
   AuditReportFilterDto,
   LogAuditDto,
+  AuditHistoryQueryDto,
 } from '../../dto/audit';
 import {
   AuditReportResponse,
@@ -20,6 +21,7 @@ import {
   PaginatedDigitalRecordsResponse,
   OlderAdultUpdateResponse,
   PaginatedOlderAdultUpdatesResponse,
+  AuditHistoryResponse,
 } from '../../interfaces/audit';
 
 @Injectable()
@@ -569,6 +571,88 @@ export class AuditService {
     } catch (error) {
       console.error('Error logging action with stored procedure:', error);
     }
+  }
+
+  async getDigitalRecordAuditHistory(
+    recordId: string,
+    queryDto: AuditHistoryQueryDto,
+  ): Promise<AuditHistoryResponse> {
+    const { page = 1, limit = 50, action, dateFrom, dateTo } = queryDto;
+
+    const queryBuilder = this.auditReportRepository
+      .createQueryBuilder('ar')
+      .leftJoinAndSelect('ar.generator', 'u')
+      .where('ar.arEntityName = :entityName', { entityName: 'digital_record' })
+      .andWhere('ar.arEntityId = :entityId', { entityId: parseInt(recordId) });
+
+    if (action) {
+      queryBuilder.andWhere('ar.arAction = :action', { action });
+    }
+
+    if (dateFrom) {
+      queryBuilder.andWhere('ar.arStartDate >= :dateFrom', { 
+        dateFrom: new Date(dateFrom) 
+      });
+    }
+
+    if (dateTo) {
+      queryBuilder.andWhere('ar.arStartDate <= :dateTo', { 
+        dateTo: new Date(dateTo) 
+      });
+    }
+
+    queryBuilder
+      .orderBy('ar.arStartDate', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    const [records, total] = await queryBuilder.getManyAndCount();
+
+    const formattedRecords = records.map(record => {
+      let changes = undefined;
+      if (record.arOldValue || record.arNewValue) {
+        changes = {
+          before: record.arOldValue ? JSON.parse(record.arOldValue) : undefined,
+          after: record.arNewValue ? JSON.parse(record.arNewValue) : undefined,
+        };
+      }
+
+      return {
+        id: record.id,
+        recordId: record.arEntityId.toString(),
+        entityType: record.arEntityName,
+        action: record.arAction,
+        timestamp: record.arStartDate,
+        user: {
+          userId: record.generator?.id || 0,
+          userName: record.generator 
+            ? `${record.generator.uName} ${record.generator.uFLastName}`.trim() 
+            : 'Usuario Eliminado',
+          userEmail: record.generator?.uEmail || 'no-disponible@email.com',
+        },
+        changes,
+        metadata: {
+          ipAddress: record.arIpAddress,
+          userAgent: record.arUserAgent,
+        },
+        observations: record.arObservations,
+      };
+    });
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      success: true,
+      data: {
+        records: formattedRecords,
+        pagination: {
+          currentPage: page,
+          totalPages,
+          totalRecords: total,
+          limit,
+        },
+      },
+    };
   }
 }
 
