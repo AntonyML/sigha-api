@@ -1,0 +1,1 @@
+export { VaccinesController } from './vaccines.controller';

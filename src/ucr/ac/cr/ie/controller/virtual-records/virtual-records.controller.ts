@@ -1,7 +1,7 @@
-import { Controller, Post, Get, Body, Param, ParseIntPipe, UseGuards } from '@nestjs/common';
+import { Controller, Post, Put, Get, Body, Param, ParseIntPipe, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 import { VirtualRecordsService } from '../../services/virtual-records';
-import { CreateVirtualRecordDirectDto } from '../../dto/virtual-records';
+import { CreateVirtualRecordDirectDto, UpdateVirtualRecordDirectDto } from '../../dto/virtual-records';
 import { OlderAdult } from '../../domain/virtual-records';
 import { JwtAuthGuard, RolesGuard } from '../../common/guards';
 import { Roles } from '../../common/decorators';
@@ -48,5 +48,55 @@ export class VirtualRecordsController {
     })
     async createVirtualRecord(@Body() createDto: CreateVirtualRecordDirectDto) {
         return this.virtualRecordsService.createVirtualRecordDirect(createDto);
+    }
+
+    @Put(':id')
+    @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN)
+    @ApiOperation({ 
+        summary: 'Update a virtual record',
+        description: 'Updates a complete virtual record for an older adult. Replaces all existing data with the provided information, including program enrollment, family information, and clinical history. Arrays can be empty to clear existing data.'
+    })
+    @ApiParam({
+        name: 'id',
+        description: 'ID of the older adult to update',
+        type: 'number'
+    })
+    @ApiResponse({
+        status: 200,
+        description: 'Virtual record updated successfully',
+        schema: {
+            type: 'object',
+            properties: {
+                message: { type: 'string', example: 'Virtual record updated successfully' },
+                data: {
+                    type: 'object',
+                    description: 'Updated older adult record'
+                }
+            }
+        }
+    })
+    @ApiResponse({
+        status: 400,
+        description: 'Invalid input data'
+    })
+    @ApiResponse({
+        status: 404,
+        description: 'Older adult not found'
+    })
+    @ApiResponse({
+        status: 409,
+        description: 'Identification already exists for another older adult'
+    })
+    @ApiResponse({
+        status: 500,
+        description: 'Internal server error during record update'
+    })
+    async updateVirtualRecord(
+        @Param('id', ParseIntPipe) id: number, 
+        @Body() updateDto: UpdateVirtualRecordDirectDto
+    ) {
+        // Ensure the ID in the URL matches the ID in the DTO
+        updateDto.id = id;
+        return this.virtualRecordsService.updateVirtualRecordDirect(updateDto);
     }
 }

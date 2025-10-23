@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { SubProgram } from './sub-program.entity';
 
 @Entity('programs')
 export class Program {
@@ -10,6 +11,9 @@ export class Program {
 
     @Column({ name: 'create_at', type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
     createAt: Date;
+
+    @OneToMany(() => SubProgram, subProgram => subProgram.program)
+    subPrograms?: SubProgram[];
 
     constructor(id?: number, pName?: string, createAt?: Date) {
         this.id = id;
