@@ -1,0 +1,1 @@
+export { VirtualRecordsController } from './virtual-records.controller';

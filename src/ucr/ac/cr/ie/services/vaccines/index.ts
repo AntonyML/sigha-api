@@ -1,0 +1,1 @@
+export { VaccinesService } from './vaccines.service';

@@ -7,25 +7,33 @@ import { UsersModule } from './ucr/ac/cr/ie/users.module';
 import { RolesModule } from './ucr/ac/cr/ie/roles.module';
 import { EntrancesExitsModule } from './ucr/ac/cr/ie/entrances-exits.module';
 import { AuditModule } from './ucr/ac/cr/ie/audit.module';
+import { VirtualRecordsModule } from './ucr/ac/cr/ie/virtual-records.module';
+import { ProgramsModule } from './ucr/ac/cr/ie/programs.module';
+import { ClinicalConditionsModule } from './ucr/ac/cr/ie/clinical-conditions.module';
+import { VaccinesModule } from './ucr/ac/cr/ie/vaccines.module';
 import { JwtAuthGuard } from './ucr/ac/cr/ie/common/guards/jwt-auth.guard';
 
 @Module({
-    imports: [
-        ConfigModule.forRoot({
-            isGlobal: true,
-        }),
-        DatabaseModule,
-        AuthModule,
-        UsersModule,
-        RolesModule,
-        EntrancesExitsModule,
-        AuditModule,
-    ],
-    providers: [
-        {
-            provide: APP_GUARD,
-            useClass: JwtAuthGuard,
-        },
-    ],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    DatabaseModule,
+    AuthModule,
+    UsersModule,
+    RolesModule,
+    EntrancesExitsModule,
+    AuditModule,
+    VirtualRecordsModule,
+    ProgramsModule,
+    ClinicalConditionsModule,
+    VaccinesModule,
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+  ],
 })
-export class AppModule { }
+export class AppModule {}

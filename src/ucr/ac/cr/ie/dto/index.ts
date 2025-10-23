@@ -12,3 +12,6 @@ export * from './entrances-exits';
 
 // Audit DTOs
 export * from './audit';
+
+// Virtual Records DTOs
+export * from './virtual-records';

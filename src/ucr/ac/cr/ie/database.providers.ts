@@ -7,6 +7,20 @@ import { LoginAttempt } from './domain/auth/security/login-attempt.entity';
 import { EntranceExit } from './domain/entrances-exits/entrance-exit.entity';
 import { RoleChange } from './domain/roles/role-change.entity';
 import { AuditReport, DigitalRecord, OlderAdultUpdate } from './domain/audit';
+import { 
+    Program, 
+    SubProgram, 
+    OlderAdult, 
+    OlderAdultFamily, 
+    ClinicalHistory, 
+    ClinicalCondition, 
+    Vaccine, 
+    ClinicalMedication, 
+    ClinicalHistoryAndCondition, 
+    VaccinesAndClinicalHistory, 
+    OlderAdultSubprogram, 
+    EmergencyContact 
+} from './domain/virtual-records';
 
 export const databaseProviders = [
     {
@@ -30,6 +44,18 @@ export const databaseProviders = [
                     AuditReport,
                     DigitalRecord,
                     OlderAdultUpdate,
+                    Program,
+                    SubProgram,
+                    OlderAdult,
+                    OlderAdultFamily,
+                    ClinicalHistory,
+                    ClinicalCondition,
+                    Vaccine,
+                    ClinicalMedication,
+                    ClinicalHistoryAndCondition,
+                    VaccinesAndClinicalHistory,
+                    OlderAdultSubprogram,
+                    EmergencyContact,
                 ],
                 synchronize: false,
                 logging: process.env.NODE_ENV === 'development',
