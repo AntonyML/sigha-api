@@ -21,7 +21,7 @@ import {
     RcvgType,
     OlderAdultStatus
 } from '../../domain/virtual-records';
-import { CreateVirtualRecordDirectDto, UpdateVirtualRecordDirectDto } from '../../dto/virtual-records';
+import { CreateVirtualRecordDirectDto, UpdateVirtualRecordDirectDto, SearchVirtualRecordsDto } from '../../dto/virtual-records';
 
 @Injectable()
 export class VirtualRecordsService {
@@ -473,6 +473,670 @@ export class VirtualRecordsService {
             throw new InternalServerErrorException('Failed to update virtual record');
         } finally {
             await queryRunner.release();
+        }
+    }
+
+    async searchVirtualRecords(searchDto: SearchVirtualRecordsDto): Promise<{ message: string; data: any[] }> {
+        try {
+            const searchTerm = searchDto.search;
+
+            // Create query builder for universal search
+            const queryBuilder = this.olderAdultRepository.createQueryBuilder('oa')
+                .where('oa.oaIdentification LIKE :searchTerm', { searchTerm: `%${searchTerm}%` })
+                .orWhere('oa.oaName LIKE :searchTerm', { searchTerm: `%${searchTerm}%` })
+                .orWhere('oa.oaFLastName LIKE :searchTerm', { searchTerm: `%${searchTerm}%` })
+                .orWhere('oa.oaSLastName LIKE :searchTerm', { searchTerm: `%${searchTerm}%` })
+                .orWhere('CONCAT(oa.oaName, " ", oa.oaFLastName) LIKE :searchTerm', { searchTerm: `%${searchTerm}%` })
+                .orWhere('CONCAT(oa.oaName, " ", oa.oaFLastName, " ", oa.oaSLastName) LIKE :searchTerm', { searchTerm: `%${searchTerm}%` })
+                .orWhere('CONCAT(oa.oaFLastName, " ", oa.oaSLastName) LIKE :searchTerm', { searchTerm: `%${searchTerm}%` })
+                .orderBy('oa.id', 'ASC');
+
+            const olderAdults = await queryBuilder.getMany();
+
+            // Transform the results to include all related data
+            const transformedData = await Promise.all(
+                olderAdults.map(async (adult) => {
+                    // Get program information
+                    let program = null;
+                    if (adult.idProgram) {
+                        const programEntity = await this.programRepository.findOne({
+                            where: { id: adult.idProgram }
+                        });
+
+                        if (programEntity) {
+                            // Get sub-programs for this older adult
+                            const subPrograms = await this.olderAdultSubprogramRepository.find({
+                                where: { idOlderAdult: adult.id }
+                            });
+
+                            const subProgramsData = await Promise.all(
+                                subPrograms.map(async (oasp) => {
+                                    const subProgram = await this.subProgramRepository.findOne({
+                                        where: { id: oasp.idSubProgram }
+                                    });
+                                    return subProgram ? {
+                                        id: subProgram.id,
+                                        spName: subProgram.spName,
+                                        idProgram: subProgram.idProgram
+                                    } : null;
+                                })
+                            );
+
+                            program = {
+                                id: programEntity.id,
+                                pName: programEntity.pName,
+                                createAt: programEntity.createAt,
+                                subPrograms: subProgramsData.filter(sp => sp !== null)
+                            };
+                        }
+                    }
+
+                    // Get family information
+                    let family = null;
+                    if (adult.idFamily) {
+                        const familyEntity = await this.familyRepository.findOne({
+                            where: { id: adult.idFamily }
+                        });
+
+                        if (familyEntity) {
+                            family = {
+                                id: familyEntity.id,
+                                pfIdentification: familyEntity.pfIdentification,
+                                pfName: familyEntity.pfName,
+                                pfFLastName: familyEntity.pfFLastName,
+                                pfSLastName: familyEntity.pfSLastName,
+                                pfPhoneNumber: familyEntity.pfPhoneNumber,
+                                pfEmail: familyEntity.pfEmail,
+                                pfKinship: familyEntity.pfKinship,
+                                createAt: familyEntity.createAt
+                            };
+                        }
+                    }
+
+                    // Get clinical history with conditions, vaccines, and medications
+                    const clinicalHistory = await this.clinicalHistoryRepository.findOne({
+                        where: { idOlderAdult: adult.id }
+                    });
+
+                    let clinicalData = null;
+                    if (clinicalHistory) {
+                        // Get conditions
+                        const historyConditions = await this.historyConditionRepository.find({
+                            where: { idCHistory: clinicalHistory.id }
+                        });
+
+                        const conditions = await Promise.all(
+                            historyConditions.map(async (hc) => {
+                                const condition = await this.clinicalConditionRepository.findOne({
+                                    where: { id: hc.idCCondition }
+                                });
+                                return condition ? {
+                                    id: condition.id,
+                                    ccName: condition.ccName
+                                } : null;
+                            })
+                        );
+
+                        // Get vaccines
+                        const historyVaccines = await this.historyVaccineRepository.find({
+                            where: { idCHistory: clinicalHistory.id }
+                        });
+
+                        const vaccines = await Promise.all(
+                            historyVaccines.map(async (hv) => {
+                                const vaccine = await this.vaccineRepository.findOne({
+                                    where: { id: hv.idVaccine }
+                                });
+                                return vaccine ? {
+                                    id: vaccine.id,
+                                    vName: vaccine.vName
+                                } : null;
+                            })
+                        );
+
+                        // Get medications
+                        const medications = await this.medicationRepository.find({
+                            where: { idClinicalHistory: clinicalHistory.id }
+                        });
+
+                        clinicalData = {
+                            id: clinicalHistory.id,
+                            chFrequentFalls: clinicalHistory.chFrequentFalls,
+                            chWeight: clinicalHistory.chWeight,
+                            chHeight: clinicalHistory.chHeight,
+                            chImc: clinicalHistory.chImc,
+                            chBloodPressure: clinicalHistory.chBloodPressure,
+                            chNeoplasms: clinicalHistory.chNeoplasms,
+                            chNeoplasmsDescription: clinicalHistory.chNeoplasmsDescription,
+                            chObservations: clinicalHistory.chObservations,
+                            chRcvg: clinicalHistory.chRcvg,
+                            chVisionProblems: clinicalHistory.chVisionProblems,
+                            chVisionHearing: clinicalHistory.chVisionHearing,
+                            createAt: clinicalHistory.createAt,
+                            conditions: conditions.filter(c => c !== null),
+                            vaccines: vaccines.filter(v => v !== null),
+                            medications: medications.map(med => ({
+                                id: med.id,
+                                mMedication: med.mMedication,
+                                mDosage: med.mDosage,
+                                mTreatmentType: med.mTreatmentType
+                            }))
+                        };
+                    }
+
+                    return {
+                        id: adult.id,
+                        oaIdentification: adult.oaIdentification,
+                        oaName: adult.oaName,
+                        oaFLastName: adult.oaFLastName,
+                        oaSLastName: adult.oaSLastName,
+                        oaBirthdate: adult.oaBirthdate,
+                        oaMaritalStatus: adult.oaMaritalStatus,
+                        oaDwelling: adult.oaDwelling,
+                        oaYearsSchooling: adult.oaYearsSchooling,
+                        oaPreviousWork: adult.oaPreviousWork,
+                        oaIsRetired: adult.oaIsRetired,
+                        oaHasPension: adult.oaHasPension,
+                        oaOther: adult.oaOther,
+                        oaOtherDescription: adult.oaOtherDescription,
+                        oaAreaOfOrigin: adult.oaAreaOfOrigin,
+                        oaChildrenCount: adult.oaChildrenCount,
+                        oaStatus: adult.oaStatus,
+                        oaDeathDate: adult.oaDeathDate,
+                        oaEconomicIncome: adult.oaEconomicIncome,
+                        oaPhoneNumber: adult.oaPhoneNumber,
+                        oaEmail: adult.oaEmail,
+                        oaProfilePhotoUrl: adult.oaProfilePhotoUrl,
+                        oaGender: adult.oaGender,
+                        oaBloodType: adult.oaBloodType,
+                        createAt: adult.createAt,
+                        program,
+                        family,
+                        clinicalHistory: clinicalData
+                    };
+                })
+            );
+
+            return {
+                message: `Found ${transformedData.length} virtual record(s) matching "${searchTerm}"`,
+                data: transformedData
+            };
+
+        } catch (error) {
+            console.error('Error searching virtual records:', error);
+            throw new InternalServerErrorException('Failed to search virtual records');
+        }
+    }
+
+    async getAllVirtualRecords(): Promise<{ message: string; data: any[] }> {
+        try {
+            // Get all older adults ordered by ID
+            const olderAdults = await this.olderAdultRepository.find({
+                order: { id: 'ASC' }
+            });
+
+            // Transform the results to include all related data (same logic as searchVirtualRecords)
+            const transformedData = await Promise.all(
+                olderAdults.map(async (adult) => {
+                    // Get program information
+                    let program = null;
+                    if (adult.idProgram) {
+                        const programEntity = await this.programRepository.findOne({
+                            where: { id: adult.idProgram }
+                        });
+
+                        if (programEntity) {
+                            // Get sub-programs for this older adult
+                            const subPrograms = await this.olderAdultSubprogramRepository.find({
+                                where: { idOlderAdult: adult.id }
+                            });
+
+                            const subProgramsData = await Promise.all(
+                                subPrograms.map(async (oasp) => {
+                                    const subProgram = await this.subProgramRepository.findOne({
+                                        where: { id: oasp.idSubProgram }
+                                    });
+                                    return subProgram ? {
+                                        id: subProgram.id,
+                                        spName: subProgram.spName,
+                                        idProgram: subProgram.idProgram
+                                    } : null;
+                                })
+                            );
+
+                            program = {
+                                id: programEntity.id,
+                                pName: programEntity.pName,
+                                createAt: programEntity.createAt,
+                                subPrograms: subProgramsData.filter(sp => sp !== null)
+                            };
+                        }
+                    }
+
+                    // Get family information with emergency contacts
+                    let family = null;
+                    if (adult.idFamily) {
+                        const familyEntity = await this.familyRepository.findOne({
+                            where: { id: adult.idFamily }
+                        });
+
+                        if (familyEntity) {
+                            // Note: Emergency contacts would need a separate entity/repository
+                            // For now, we'll return the family info without emergency contacts
+                            family = {
+                                id: familyEntity.id,
+                                pfIdentification: familyEntity.pfIdentification,
+                                pfName: familyEntity.pfName,
+                                pfFLastName: familyEntity.pfFLastName,
+                                pfSLastName: familyEntity.pfSLastName,
+                                pfPhoneNumber: familyEntity.pfPhoneNumber,
+                                pfEmail: familyEntity.pfEmail,
+                                pfKinship: familyEntity.pfKinship,
+                                createAt: familyEntity.createAt,
+                                emergencyContacts: [] // TODO: Implement emergency contacts entity
+                            };
+                        }
+                    }
+
+                    // Get clinical history with conditions, vaccines, and medications
+                    const clinicalHistory = await this.clinicalHistoryRepository.findOne({
+                        where: { idOlderAdult: adult.id }
+                    });
+
+                    let clinicalData = null;
+                    if (clinicalHistory) {
+                        // Get conditions
+                        const historyConditions = await this.historyConditionRepository.find({
+                            where: { idCHistory: clinicalHistory.id }
+                        });
+
+                        const conditions = await Promise.all(
+                            historyConditions.map(async (hc) => {
+                                const condition = await this.clinicalConditionRepository.findOne({
+                                    where: { id: hc.idCCondition }
+                                });
+                                return condition ? {
+                                    id: condition.id,
+                                    ccName: condition.ccName
+                                } : null;
+                            })
+                        );
+
+                        // Get vaccines
+                        const historyVaccines = await this.historyVaccineRepository.find({
+                            where: { idCHistory: clinicalHistory.id }
+                        });
+
+                        const vaccines = await Promise.all(
+                            historyVaccines.map(async (hv) => {
+                                const vaccine = await this.vaccineRepository.findOne({
+                                    where: { id: hv.idVaccine }
+                                });
+                                return vaccine ? {
+                                    id: vaccine.id,
+                                    vName: vaccine.vName
+                                } : null;
+                            })
+                        );
+
+                        // Get medications
+                        const medications = await this.medicationRepository.find({
+                            where: { idClinicalHistory: clinicalHistory.id }
+                        });
+
+                        clinicalData = {
+                            id: clinicalHistory.id,
+                            chBloodType: adult.oaBloodType, // Include blood type from older adult
+                            chAllergies: null, // TODO: Add allergies field to entity if needed
+                            chEmergencyObservations: clinicalHistory.chObservations,
+                            chFrequentFalls: clinicalHistory.chFrequentFalls,
+                            chWeight: clinicalHistory.chWeight,
+                            chHeight: clinicalHistory.chHeight,
+                            chImc: clinicalHistory.chImc,
+                            chBloodPressure: clinicalHistory.chBloodPressure,
+                            chNeoplasms: clinicalHistory.chNeoplasms,
+                            chNeoplasmsDescription: clinicalHistory.chNeoplasmsDescription,
+                            chObservations: clinicalHistory.chObservations,
+                            chRcvg: clinicalHistory.chRcvg,
+                            chVisionProblems: clinicalHistory.chVisionProblems,
+                            chVisionHearing: clinicalHistory.chVisionHearing,
+                            createAt: clinicalHistory.createAt,
+                            conditions: conditions.filter(c => c !== null),
+                            vaccines: vaccines.filter(v => v !== null),
+                            medications: medications.map(med => ({
+                                id: med.id,
+                                mMedication: med.mMedication,
+                                mDosage: med.mDosage,
+                                mTreatmentType: med.mTreatmentType,
+                                mStartDate: null, // TODO: Add start date field to medication entity if needed
+                                mObservations: null // TODO: Add observations field to medication entity if needed
+                            }))
+                        };
+                    }
+
+                    return {
+                        id: adult.id,
+                        oaIdentification: adult.oaIdentification,
+                        oaName: adult.oaName,
+                        oaFLastName: adult.oaFLastName,
+                        oaSLastName: adult.oaSLastName,
+                        oaBirthdate: adult.oaBirthdate,
+                        oaGender: adult.oaGender,
+                        oaPhoneNumber: adult.oaPhoneNumber,
+                        oaEmail: adult.oaEmail,
+                        oaAddress: adult.oaDwelling,
+                        oaEntryDate: adult.createAt, // Using createAt as entry date
+                        oaStatus: adult.oaStatus,
+                        oaMaritalStatus: adult.oaMaritalStatus,
+                        oaYearsSchooling: adult.oaYearsSchooling,
+                        oaPreviousWork: adult.oaPreviousWork,
+                        oaIsRetired: adult.oaIsRetired,
+                        oaHasPension: adult.oaHasPension,
+                        oaOther: adult.oaOther,
+                        oaOtherDescription: adult.oaOtherDescription,
+                        oaAreaOfOrigin: adult.oaAreaOfOrigin,
+                        oaChildrenCount: adult.oaChildrenCount,
+                        oaDeathDate: adult.oaDeathDate,
+                        oaEconomicIncome: adult.oaEconomicIncome,
+                        oaProfilePhotoUrl: adult.oaProfilePhotoUrl,
+                        oaBloodType: adult.oaBloodType,
+                        createAt: adult.createAt,
+                        program,
+                        family,
+                        clinicalHistory: clinicalData
+                    };
+                })
+            );
+
+            return {
+                message: `Found ${transformedData.length} virtual record(s)`,
+                data: transformedData
+            };
+
+        } catch (error) {
+            console.error('Error retrieving all virtual records:', error);
+            throw new InternalServerErrorException('Failed to retrieve virtual records');
+        }
+    }
+
+    async deleteVirtualRecord(id: number): Promise<{ message: string }> {
+        // Check if older adult exists
+        const existingOlderAdult = await this.olderAdultRepository.findOne({
+            where: { id: id }
+        });
+
+        if (!existingOlderAdult) {
+            throw new NotFoundException(`Older adult with ID ${id} not found`);
+        }
+
+        const queryRunner = this.dataSource.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        try {
+            // 1. Find and delete clinical history related data first
+            const clinicalHistory = await queryRunner.manager.findOne(ClinicalHistory, {
+                where: { idOlderAdult: id }
+            });
+
+            if (clinicalHistory) {
+                // Delete medications related to this clinical history
+                await queryRunner.manager.delete(ClinicalMedication, { 
+                    idClinicalHistory: clinicalHistory.id 
+                });
+
+                // Delete clinical conditions associations
+                await queryRunner.manager.delete(ClinicalHistoryAndCondition, { 
+                    idCHistory: clinicalHistory.id 
+                });
+
+                // Delete vaccines associations
+                await queryRunner.manager.delete(VaccinesAndClinicalHistory, { 
+                    idCHistory: clinicalHistory.id 
+                });
+
+                // Delete the clinical history itself
+                await queryRunner.manager.delete(ClinicalHistory, { 
+                    id: clinicalHistory.id 
+                });
+            }
+
+            // 2. Delete sub-program associations for this older adult
+            await queryRunner.manager.delete(OlderAdultSubprogram, { 
+                idOlderAdult: id 
+            });
+
+            // 3. Handle family deletion - only delete if this is the only older adult using this family
+            if (existingOlderAdult.idFamily) {
+                // Check if any other older adult is using the same family
+                const otherAdultsWithSameFamily = await queryRunner.manager.find(OlderAdult, {
+                    where: { idFamily: existingOlderAdult.idFamily }
+                });
+
+                // If this is the only older adult using this family, delete the family
+                if (otherAdultsWithSameFamily.length === 1 && otherAdultsWithSameFamily[0].id === id) {
+                    await queryRunner.manager.delete(OlderAdultFamily, { 
+                        id: existingOlderAdult.idFamily 
+                    });
+                }
+            }
+
+            // 4. Finally, delete the older adult record itself
+            await queryRunner.manager.delete(OlderAdult, { id: id });
+
+            await queryRunner.commitTransaction();
+
+            return {
+                message: 'Virtual record deleted successfully'
+            };
+
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            console.error('Error deleting virtual record:', error);
+            
+            if (error instanceof NotFoundException) {
+                throw error;
+            }
+            
+            throw new InternalServerErrorException('Failed to delete virtual record');
+        } finally {
+            await queryRunner.release();
+        }
+    }
+
+    async getVirtualRecordById(id: number): Promise<{ message: string; data: any }> {
+        try {
+            // Find the older adult by ID
+            const olderAdult = await this.olderAdultRepository.findOne({
+                where: { id: id }
+            });
+
+            if (!olderAdult) {
+                throw new NotFoundException(`Virtual record with ID ${id} not found`);
+            }
+
+            // Transform the result to include all related data (same logic as getAllVirtualRecords)
+            // Get program information
+            let program = null;
+            if (olderAdult.idProgram) {
+                const programEntity = await this.programRepository.findOne({
+                    where: { id: olderAdult.idProgram }
+                });
+
+                if (programEntity) {
+                    // Get sub-programs for this older adult
+                    const subPrograms = await this.olderAdultSubprogramRepository.find({
+                        where: { idOlderAdult: olderAdult.id }
+                    });
+
+                    const subProgramsData = await Promise.all(
+                        subPrograms.map(async (oasp) => {
+                            const subProgram = await this.subProgramRepository.findOne({
+                                where: { id: oasp.idSubProgram }
+                            });
+                            return subProgram ? {
+                                id: subProgram.id,
+                                spName: subProgram.spName,
+                                idProgram: subProgram.idProgram
+                            } : null;
+                        })
+                    );
+
+                    program = {
+                        id: programEntity.id,
+                        pName: programEntity.pName,
+                        createAt: programEntity.createAt,
+                        subPrograms: subProgramsData.filter(sp => sp !== null)
+                    };
+                }
+            }
+
+            // Get family information with emergency contacts
+            let family = null;
+            if (olderAdult.idFamily) {
+                const familyEntity = await this.familyRepository.findOne({
+                    where: { id: olderAdult.idFamily }
+                });
+
+                if (familyEntity) {
+                    // Note: Emergency contacts would need a separate entity/repository
+                    // For now, we'll return the family info without emergency contacts
+                    family = {
+                        id: familyEntity.id,
+                        pfIdentification: familyEntity.pfIdentification,
+                        pfName: familyEntity.pfName,
+                        pfFLastName: familyEntity.pfFLastName,
+                        pfSLastName: familyEntity.pfSLastName,
+                        pfPhoneNumber: familyEntity.pfPhoneNumber,
+                        pfEmail: familyEntity.pfEmail,
+                        pfKinship: familyEntity.pfKinship,
+                        createAt: familyEntity.createAt,
+                        emergencyContacts: [] // TODO: Implement emergency contacts entity
+                    };
+                }
+            }
+
+            // Get clinical history with conditions, vaccines, and medications
+            const clinicalHistory = await this.clinicalHistoryRepository.findOne({
+                where: { idOlderAdult: olderAdult.id }
+            });
+
+            let clinicalData = null;
+            if (clinicalHistory) {
+                // Get conditions
+                const historyConditions = await this.historyConditionRepository.find({
+                    where: { idCHistory: clinicalHistory.id }
+                });
+
+                const conditions = await Promise.all(
+                    historyConditions.map(async (hc) => {
+                        const condition = await this.clinicalConditionRepository.findOne({
+                            where: { id: hc.idCCondition }
+                        });
+                        return condition ? {
+                            id: condition.id,
+                            ccName: condition.ccName
+                        } : null;
+                    })
+                );
+
+                // Get vaccines
+                const historyVaccines = await this.historyVaccineRepository.find({
+                    where: { idCHistory: clinicalHistory.id }
+                });
+
+                const vaccines = await Promise.all(
+                    historyVaccines.map(async (hv) => {
+                        const vaccine = await this.vaccineRepository.findOne({
+                            where: { id: hv.idVaccine }
+                        });
+                        return vaccine ? {
+                            id: vaccine.id,
+                            vName: vaccine.vName
+                        } : null;
+                    })
+                );
+
+                // Get medications
+                const medications = await this.medicationRepository.find({
+                    where: { idClinicalHistory: clinicalHistory.id }
+                });
+
+                clinicalData = {
+                    id: clinicalHistory.id,
+                    chBloodType: olderAdult.oaBloodType, // Include blood type from older adult
+                    chAllergies: null, // TODO: Add allergies field to entity if needed
+                    chEmergencyObservations: clinicalHistory.chObservations,
+                    chFrequentFalls: clinicalHistory.chFrequentFalls,
+                    chWeight: clinicalHistory.chWeight,
+                    chHeight: clinicalHistory.chHeight,
+                    chImc: clinicalHistory.chImc,
+                    chBloodPressure: clinicalHistory.chBloodPressure,
+                    chNeoplasms: clinicalHistory.chNeoplasms,
+                    chNeoplasmsDescription: clinicalHistory.chNeoplasmsDescription,
+                    chObservations: clinicalHistory.chObservations,
+                    chRcvg: clinicalHistory.chRcvg,
+                    chVisionProblems: clinicalHistory.chVisionProblems,
+                    chVisionHearing: clinicalHistory.chVisionHearing,
+                    createAt: clinicalHistory.createAt,
+                    conditions: conditions.filter(c => c !== null),
+                    vaccines: vaccines.filter(v => v !== null),
+                    medications: medications.map(med => ({
+                        id: med.id,
+                        mMedication: med.mMedication,
+                        mDosage: med.mDosage,
+                        mTreatmentType: med.mTreatmentType,
+                        mStartDate: null, // TODO: Add start date field to medication entity if needed
+                        mObservations: null // TODO: Add observations field to medication entity if needed
+                    }))
+                };
+            }
+
+            const transformedData = {
+                id: olderAdult.id,
+                oaIdentification: olderAdult.oaIdentification,
+                oaName: olderAdult.oaName,
+                oaFLastName: olderAdult.oaFLastName,
+                oaSLastName: olderAdult.oaSLastName,
+                oaBirthdate: olderAdult.oaBirthdate,
+                oaGender: olderAdult.oaGender,
+                oaPhoneNumber: olderAdult.oaPhoneNumber,
+                oaEmail: olderAdult.oaEmail,
+                oaAddress: olderAdult.oaDwelling,
+                oaEntryDate: olderAdult.createAt, // Using createAt as entry date
+                oaStatus: olderAdult.oaStatus,
+                oaMaritalStatus: olderAdult.oaMaritalStatus,
+                oaYearsSchooling: olderAdult.oaYearsSchooling,
+                oaPreviousWork: olderAdult.oaPreviousWork,
+                oaIsRetired: olderAdult.oaIsRetired,
+                oaHasPension: olderAdult.oaHasPension,
+                oaOther: olderAdult.oaOther,
+                oaOtherDescription: olderAdult.oaOtherDescription,
+                oaAreaOfOrigin: olderAdult.oaAreaOfOrigin,
+                oaChildrenCount: olderAdult.oaChildrenCount,
+                oaDeathDate: olderAdult.oaDeathDate,
+                oaEconomicIncome: olderAdult.oaEconomicIncome,
+                oaProfilePhotoUrl: olderAdult.oaProfilePhotoUrl,
+                oaBloodType: olderAdult.oaBloodType,
+                createAt: olderAdult.createAt,
+                program,
+                family,
+                clinicalHistory: clinicalData
+            };
+
+            return {
+                message: 'Virtual record found successfully',
+                data: transformedData
+            };
+
+        } catch (error) {
+            console.error('Error retrieving virtual record:', error);
+            
+            if (error instanceof NotFoundException) {
+                throw error;
+            }
+            
+            throw new InternalServerErrorException('Failed to retrieve virtual record');
         }
     }
 }

@@ -15,3 +15,12 @@ export * from './audit';
 
 // Virtual Records DTOs
 export * from './virtual-records';
+
+// Programs DTOs
+export * from './programs';
+
+// Clinical Conditions DTOs
+export * from './clinical-conditions';
+
+// Vaccines DTOs
+export * from './vaccines';
