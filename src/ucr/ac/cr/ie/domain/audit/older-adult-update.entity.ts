@@ -1,29 +1,28 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { User } from '../auth/core/user.entity';
 
-@Entity('role_changes')
-export class RoleChange {
+@Entity('older_adult_updates')
+export class OlderAdultUpdate {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ name: 'rc_old_role', length: 50 })
-  rcOldRole: string;
+  @Column({ name: 'oau_field_changed', length: 100 })
+  oauFieldChanged: string;
 
-  @Column({ name: 'rc_new_role', length: 50 })
-  rcNewRole: string;
+  @Column({ name: 'oau_old_value', type: 'text', nullable: true })
+  oauOldValue?: string;
+
+  @Column({ name: 'oau_new_value', type: 'text', nullable: true })
+  oauNewValue?: string;
 
   @CreateDateColumn({ name: 'changed_at' })
   changedAt: Date;
 
-  @Column({ name: 'id_user' })
-  idUser: number;
+  @Column({ name: 'id_older_adult' })
+  idOlderAdult: number;
 
   @Column({ name: 'changed_by' })
   changedBy: number;
-
-  @ManyToOne(() => User)
-  @JoinColumn({ name: 'id_user' })
-  user: User;
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'changed_by' })

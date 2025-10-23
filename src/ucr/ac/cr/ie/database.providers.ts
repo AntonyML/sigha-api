@@ -3,7 +3,10 @@ import { User } from './domain/auth/core/user.entity';
 import { Role } from './domain/auth/core/role.entity';
 import { UserSession } from './domain/auth/sessions/user-session.entity';
 import { UserTwoFactor } from './domain/auth/security/user-two-factor.entity';
+import { LoginAttempt } from './domain/auth/security/login-attempt.entity';
 import { EntranceExit } from './domain/entrances-exits/entrance-exit.entity';
+import { RoleChange } from './domain/roles/role-change.entity';
+import { AuditReport, DigitalRecord, OlderAdultUpdate } from './domain/audit';
 
 export const databaseProviders = [
     {
@@ -21,7 +24,12 @@ export const databaseProviders = [
                     Role,
                     UserSession,
                     UserTwoFactor,
+                    LoginAttempt,
                     EntranceExit,
+                    RoleChange,
+                    AuditReport,
+                    DigitalRecord,
+                    OlderAdultUpdate,
                 ],
                 synchronize: false,
                 logging: process.env.NODE_ENV === 'development',

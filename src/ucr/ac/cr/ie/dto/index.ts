@@ -9,3 +9,6 @@ export * from './roles';
 
 // Entrances-Exits DTOs
 export * from './entrances-exits';
+
+// Audit DTOs
+export * from './audit';

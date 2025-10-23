@@ -1,30 +1,5 @@
-export class AuditReport {
-  id: number;
-  arAuditNumber: number;
-  arType: string;
-  arStartDate: Date;
-  arEndDate: Date;
-  createAt: Date;
-  idGenerator: number;
-
-  constructor(
-    id: number,
-    arAuditNumber: number,
-    arType: string,
-    arStartDate: Date,
-    arEndDate: Date,
-    idGenerator: number,
-    createAt?: Date
-  ) {
-    this.id = id;
-    this.arAuditNumber = arAuditNumber;
-    this.arType = arType;
-    this.arStartDate = arStartDate;
-    this.arEndDate = arEndDate;
-    this.idGenerator = idGenerator;
-    this.createAt = createAt || new Date();
-  }
-}
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { User } from '../auth/core/user.entity';
 
 export enum AuditReportType {
   GENERAL_ACTIONS = 'general_actions',
@@ -32,4 +7,37 @@ export enum AuditReportType {
   OLDER_ADULT_UPDATES = 'older_adult_updates',
   SYSTEM_ACCESS = 'system_access',
   OTHER = 'other'
+}
+
+@Entity('audit_reports')
+export class AuditReport {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({ name: 'ar_audit_number', unique: true })
+  arAuditNumber: number;
+
+  @Column({ 
+    name: 'ar_type', 
+    type: 'enum',
+    enum: AuditReportType,
+    default: AuditReportType.OTHER 
+  })
+  arType: AuditReportType;
+
+  @Column({ name: 'ar_start_date', type: 'datetime' })
+  arStartDate: Date;
+
+  @Column({ name: 'ar_end_date', type: 'datetime' })
+  arEndDate: Date;
+
+  @CreateDateColumn({ name: 'create_at' })
+  createAt: Date;
+
+  @Column({ name: 'id_generator' })
+  idGenerator: number;
+
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'id_generator' })
+  generator: User;
 }

@@ -11,7 +11,7 @@ export class TwoFactorUtil {
     /**
      * Genera un secreto 2FA para un usuario
      */
-    static generateSecret(userEmail: string, serviceName: string = 'Hogar de Ancianos'): {
+    static generateSecret(userEmail: string, serviceName: string = 'Hogar Adulto Mayor Guapiles'): {
         secret: string;
         otpauthUrl: string;
     } {
@@ -41,23 +41,12 @@ export class TwoFactorUtil {
      * Verifica un token TOTP
      */
     static verifyToken(token: string, secret: string): boolean {
-        console.log('\n=== 2FA TOKEN DEBUG ===');
-        console.log('Token received:', token);
-        console.log('Secret (first 10 chars):', secret.substring(0, 10) + '...');
-        console.log('Current server time:', new Date().toISOString());
-        
-        // Probar con ventana más amplia para debugging
-        const result = speakeasy.totp.verify({
+        return speakeasy.totp.verify({
             secret,
             encoding: 'base32',
             token,
-            window: 6, // Aumentado a ±180 segundos para debugging
+            window: 2,
         });
-        
-        console.log('Verification result:', result);
-        console.log('=== 2FA TOKEN DEBUG END ===\n');
-        
-        return result;
     }
 
     /**
