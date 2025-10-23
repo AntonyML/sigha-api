@@ -53,6 +53,17 @@ Project memory file for AI assistant session continuity. Auto-referenced by cust
 
 ## Recent Milestones
 
+### 2025-10-23 - Audit System Refactor with Stored Procedure
+- Updated `audit_reports` table with new fields: entity_name, entity_id, action, old_value, new_value, observations, duration, ip_address, user_agent
+- Added 5 new audit types: login_attempts, password_resets, clinical_record_changes, notifications, other
+- Created `sp_log_audit` stored procedure for centralized audit logging with automatic duration calculation
+- New AuditAction enum: create, update, delete, view, login, logout, export, other
+- Added POST `/audits/log` endpoint using stored procedure (recommended method)
+- Created `logAuditWithStoredProcedure` and `logActionWithSP` helper methods in AuditService
+- Database scripts: `update_audit_reports.sql`, `clean_all_data.sql`, `test_data.sql`
+- Documentation: `AUDIT_SYSTEM_GUIDE.md` with usage examples for all scenarios
+- Build successful, ready for testing with new audit structure
+
 ### 2025-10-23 - Frontend Integration & Audit Endpoints
 - Adapted audit endpoints from `/audit` to `/audits` to match frontend expectations
 - Added new endpoints: GET `/audits`, `/audits/stats`, `/audits/search`, `/audits/user/:userId`, `/audits/entity/:entity/:entityId`
@@ -160,13 +171,40 @@ src/ucr/ac/cr/ie/
 
 ### Audit Logging
 ```typescript
-// Manual logging
-await auditService.logAction(userId, AuditAction.CREATE, 'table', recordId, 'description');
+// Método 1: Endpoint POST /audits/log (Recomendado - usa stored procedure)
+await axios.post('/audits/log', {
+  type: 'login_attempts',
+  action: 'login',
+  ipAddress: req.ip,
+  userAgent: req.headers['user-agent'],
+  observations: 'Ingreso exitoso'
+}, { headers: { Authorization: `Bearer ${token}` } });
 
-// Automatic with decorator
+// Método 2: Helper method (interno)
+await auditService.logActionWithSP(
+  userId, 
+  AuditReportType.CLINICAL_RECORD_CHANGES,
+  AuditAction.UPDATE,
+  'clinical_history',
+  12,
+  JSON.stringify({ bp: '120/80' }),
+  JSON.stringify({ bp: '130/85' }),
+  ipAddress,
+  userAgent,
+  'Actualización de presión arterial'
+);
+
+// Método 3: Automatic con decorator (deprecado, usar stored procedure)
 @Post()
 @AuditLog({ action: AuditAction.CREATE, tableName: 'users' })
 async create() { }
+```
+
+### Audit Types & Actions
+```typescript
+// Tipos: login_attempts, role_changes, older_adult_updates, system_access,
+//        clinical_record_changes, password_resets, notifications, other
+// Acciones: create, update, delete, view, login, logout, export, other
 ```
 
 ### Database Entities Registered

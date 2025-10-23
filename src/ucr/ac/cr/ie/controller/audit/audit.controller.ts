@@ -27,6 +27,7 @@ import {
   SearchDigitalRecordsDto,
   SearchOlderAdultUpdatesDto,
   AuditReportFilterDto,
+  LogAuditDto,
 } from '../../dto/audit';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -275,4 +276,37 @@ export class AuditController {
   async deleteAuditReport(@Param('id', ParseIntPipe) id: number) {
     await this.auditService.deleteAuditReport(id);
   }
+
+  @Post('log')
+  @Roles('super admin', 'admin', 'director', 'nurse', 'physiotherapist', 'psychologist', 'social worker')
+  @ApiOperation({
+    summary: 'Log audit action using stored procedure',
+    description: 'Create an audit log entry using the sp_log_audit stored procedure. This is the recommended method for centralized audit logging.',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Audit action logged successfully',
+    schema: {
+      example: {
+        success: true,
+        message: 'Audit log created successfully via stored procedure',
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - Invalid parameters',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - Invalid or missing JWT token',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Insufficient permissions',
+  })
+  async logAudit(@Req() req: any, @Body() logDto: LogAuditDto) {
+    return this.auditService.logAuditWithStoredProcedure(req.user.userId, logDto);
+  }
 }
+
