@@ -376,4 +376,118 @@ export class AuditService {
     }
     await this.auditReportRepository.remove(report);
   }
+
+  async getDigitalRecordById(id: number): Promise<DigitalRecordResponse> {
+    const record = await this.digitalRecordRepository.findOne({
+      where: { id },
+      relations: ['user'],
+    });
+
+    if (!record) {
+      throw new NotFoundException(`Digital record with ID ${id} not found`);
+    }
+
+    return {
+      id: record.id,
+      userId: record.drUserId,
+      userName: `${record.user.uName} ${record.user.uFLastName}`,
+      userEmail: record.user.uEmail,
+      action: record.drAction,
+      tableName: record.drTableName,
+      recordId: record.drRecordId,
+      description: record.drDescription,
+      timestamp: record.drTimestamp,
+    };
+  }
+
+  async getAuditStatistics(startDate?: string, endDate?: string): Promise<any> {
+    const whereConditions: any = {};
+
+    if (startDate && endDate) {
+      whereConditions.drTimestamp = Between(new Date(startDate), new Date(endDate));
+    } else if (startDate) {
+      whereConditions.drTimestamp = MoreThanOrEqual(new Date(startDate));
+    } else if (endDate) {
+      whereConditions.drTimestamp = LessThanOrEqual(new Date(endDate));
+    }
+
+    const totalActions = await this.digitalRecordRepository.count({ where: whereConditions });
+
+    const actionsByType = await this.digitalRecordRepository
+      .createQueryBuilder('record')
+      .select('record.drAction', 'action')
+      .addSelect('COUNT(*)', 'count')
+      .where(whereConditions.drTimestamp ? 'record.drTimestamp BETWEEN :start AND :end' : '1=1', {
+        start: startDate,
+        end: endDate,
+      })
+      .groupBy('record.drAction')
+      .getRawMany();
+
+    const actionsByEntity = await this.digitalRecordRepository
+      .createQueryBuilder('record')
+      .select('record.drTableName', 'entity')
+      .addSelect('COUNT(*)', 'count')
+      .where(whereConditions.drTimestamp ? 'record.drTimestamp BETWEEN :start AND :end' : '1=1', {
+        start: startDate,
+        end: endDate,
+      })
+      .andWhere('record.drTableName IS NOT NULL')
+      .groupBy('record.drTableName')
+      .getRawMany();
+
+    const topUsers = await this.digitalRecordRepository
+      .createQueryBuilder('record')
+      .leftJoin('record.user', 'user')
+      .select('user.id', 'userId')
+      .addSelect('CONCAT(user.uName, " ", user.uFLastName)', 'username')
+      .addSelect('COUNT(*)', 'actionCount')
+      .where(whereConditions.drTimestamp ? 'record.drTimestamp BETWEEN :start AND :end' : '1=1', {
+        start: startDate,
+        end: endDate,
+      })
+      .groupBy('user.id')
+      .orderBy('actionCount', 'DESC')
+      .limit(10)
+      .getRawMany();
+
+    const recentActivity = await this.digitalRecordRepository.find({
+      where: whereConditions,
+      relations: ['user'],
+      order: { drTimestamp: 'DESC' },
+      take: 10,
+    });
+
+    const formattedActionsByType: Record<string, number> = {};
+    actionsByType.forEach(item => {
+      formattedActionsByType[item.action] = parseInt(item.count);
+    });
+
+    const formattedActionsByEntity: Record<string, number> = {};
+    actionsByEntity.forEach(item => {
+      formattedActionsByEntity[item.entity || 'OTHER'] = parseInt(item.count);
+    });
+
+    return {
+      totalActions,
+      actionsByType: formattedActionsByType,
+      actionsByEntity: formattedActionsByEntity,
+      topUsers: topUsers.map(user => ({
+        userId: user.userId,
+        username: user.username,
+        actionCount: parseInt(user.actionCount),
+      })),
+      recentActivity: recentActivity.map(record => ({
+        id: record.id,
+        userId: record.drUserId,
+        userName: `${record.user.uName} ${record.user.uFLastName}`,
+        userEmail: record.user.uEmail,
+        action: record.drAction,
+        tableName: record.drTableName,
+        recordId: record.drRecordId,
+        description: record.drDescription,
+        timestamp: record.drTimestamp,
+      })),
+    };
+  }
 }

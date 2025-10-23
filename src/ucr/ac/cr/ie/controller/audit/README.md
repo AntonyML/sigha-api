@@ -39,42 +39,67 @@ Tracks changes to older adult records:
 
 ## API Endpoints
 
-### Digital Records
+### Main Audit Endpoints
 
-**POST** `/audit/digital-records`
+**GET** `/audits`
+- Get all audit records with pagination and filtering
+- Roles: super admin, admin, director
+- Query: `SearchDigitalRecordsDto` (userId, action, tableName, recordId, dates, page, limit, sortBy, sortOrder)
+
+**GET** `/audits/:id`
+- Get a specific audit record by ID
+- Roles: super admin, admin, director
+
+**POST** `/audits`
 - Create a manual audit log entry
 - Roles: super admin, admin, director
 - Body: `CreateDigitalRecordDto`
 
-**GET** `/audit/digital-records`
-- Search and filter digital records
+**GET** `/audits/stats`
+- Get audit statistics (total actions, by type, by entity, top users, recent activity)
 - Roles: super admin, admin, director
-- Query: `SearchDigitalRecordsDto` (userId, action, tableName, recordId, dates, pagination)
+- Query: `startDate`, `endDate` (optional)
+
+**GET** `/audits/search`
+- Search audit records with advanced filters
+- Roles: super admin, admin, director
+- Query: `SearchDigitalRecordsDto`
+
+**GET** `/audits/user/:userId`
+- Get all audit records for a specific user
+- Roles: super admin, admin, director
+- Query: `SearchDigitalRecordsDto` (optional pagination/filtering)
+
+**GET** `/audits/entity/:entity/:entityId`
+- Get all audit records for a specific entity
+- Roles: super admin, admin, director
+- Params: `entity` (table name), `entityId` (record ID)
+- Query: `SearchDigitalRecordsDto` (optional)
 
 ### Older Adult Updates
 
-**GET** `/audit/older-adult-updates`
+**GET** `/audits/older-adult-updates`
 - Search older adult change history
 - Roles: super admin, admin, director, nurse, physiotherapist, psychologist, social worker
 - Query: `SearchOlderAdultUpdatesDto` (olderAdultId, fieldChanged, changedBy, dates, pagination)
 
 ### Audit Reports
 
-**POST** `/audit/reports`
+**POST** `/audits/reports`
 - Generate a new audit report
 - Roles: super admin, admin, director
 - Body: `GenerateAuditReportDto` (type, startDate, endDate)
 
-**GET** `/audit/reports`
+**GET** `/audits/reports`
 - Get all audit reports
 - Roles: super admin, admin, director
 - Query: `AuditReportFilterDto` (type, dates)
 
-**GET** `/audit/reports/:id`
+**GET** `/audits/reports/:id`
 - Get detailed audit report with data
 - Roles: super admin, admin, director
 
-**DELETE** `/audit/reports/:id`
+**DELETE** `/audits/reports/:id`
 - Delete an audit report
 - Roles: super admin only
 
@@ -129,7 +154,7 @@ export class UserController {
 ### Generate Audit Report
 
 ```typescript
-POST /audit/reports
+POST /audits/reports
 Authorization: Bearer <jwt_token>
 Content-Type: application/json
 
@@ -143,7 +168,28 @@ Content-Type: application/json
 ### Search Digital Records
 
 ```typescript
-GET /audit/digital-records?userId=1&action=create&startDate=2025-01-01&page=1&limit=50
+GET /audits?userId=1&action=create&startDate=2025-01-01&page=1&limit=50
+Authorization: Bearer <jwt_token>
+```
+
+### Get Audit Statistics
+
+```typescript
+GET /audits/stats?startDate=2025-01-01&endDate=2025-01-31
+Authorization: Bearer <jwt_token>
+```
+
+### Get Audits by User
+
+```typescript
+GET /audits/user/1?page=1&limit=25
+Authorization: Bearer <jwt_token>
+```
+
+### Get Audits by Entity
+
+```typescript
+GET /audits/entity/older_adult/123?page=1&limit=25
 Authorization: Bearer <jwt_token>
 ```
 

@@ -35,19 +35,141 @@ import { Roles } from '../../common/decorators/roles.decorator';
 @ApiTags('Audit')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Controller('audit')
+@Controller('audits')
 export class AuditController {
   constructor(private readonly auditService: AuditService) {}
 
-  @Post('digital-records')
+  @Get()
   @Roles('super admin', 'admin', 'director')
   @ApiOperation({
-    summary: 'Create a digital record (manual logging)',
+    summary: 'Get all audit records with pagination',
+    description: 'Retrieve all digital audit records with pagination and filtering support.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Audit records retrieved successfully',
+  })
+  async getAllAudits(@Query() searchDto: SearchDigitalRecordsDto) {
+    return this.auditService.searchDigitalRecords(searchDto);
+  }
+
+  @Get('stats')
+  @Roles('super admin', 'admin', 'director')
+  @ApiOperation({
+    summary: 'Get audit statistics',
+    description: 'Retrieve audit statistics including counts by action type, entity, and recent activity.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Audit statistics retrieved successfully',
+  })
+  async getAuditStats(
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    return this.auditService.getAuditStatistics(startDate, endDate);
+  }
+
+  @Get('search')
+  @Roles('super admin', 'admin', 'director')
+  @ApiOperation({
+    summary: 'Search audit records with advanced filters',
+    description: 'Search and filter digital audit records with advanced filtering options.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Search results retrieved successfully',
+  })
+  async searchAudits(@Query() searchDto: SearchDigitalRecordsDto) {
+    return this.auditService.searchDigitalRecords(searchDto);
+  }
+
+  @Get('user/:userId')
+  @Roles('super admin', 'admin', 'director')
+  @ApiOperation({
+    summary: 'Get audits by user',
+    description: 'Retrieve all audit records for a specific user.',
+  })
+  @ApiParam({
+    name: 'userId',
+    description: 'User ID',
+    example: 1,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'User audit records retrieved successfully',
+  })
+  async getAuditsByUser(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Query() searchDto: SearchDigitalRecordsDto,
+  ) {
+    return this.auditService.searchDigitalRecords({ ...searchDto, userId });
+  }
+
+  @Get('entity/:entity/:entityId')
+  @Roles('super admin', 'admin', 'director')
+  @ApiOperation({
+    summary: 'Get audits by entity',
+    description: 'Retrieve all audit records for a specific entity and entity ID.',
+  })
+  @ApiParam({
+    name: 'entity',
+    description: 'Entity name (table name)',
+    example: 'older_adult',
+  })
+  @ApiParam({
+    name: 'entityId',
+    description: 'Entity ID',
+    example: 1,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Entity audit records retrieved successfully',
+  })
+  async getAuditsByEntity(
+    @Param('entity') entity: string,
+    @Param('entityId', ParseIntPipe) entityId: number,
+    @Query() searchDto: SearchDigitalRecordsDto,
+  ) {
+    return this.auditService.searchDigitalRecords({
+      ...searchDto,
+      tableName: entity,
+      recordId: entityId,
+    });
+  }
+
+  @Get(':id')
+  @Roles('super admin', 'admin', 'director')
+  @ApiOperation({
+    summary: 'Get audit record by ID',
+    description: 'Retrieve a specific audit record by its ID.',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'Audit record ID',
+    example: 1,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Audit record retrieved successfully',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Audit record not found',
+  })
+  async getAuditById(@Param('id', ParseIntPipe) id: number) {
+    return this.auditService.getDigitalRecordById(id);
+  }
+
+  @Post()
+  @Roles('super admin', 'admin', 'director')
+  @ApiOperation({
+    summary: 'Create audit record (manual logging)',
     description: 'Manually create an audit log entry. Typically used for important actions that need explicit logging.',
   })
   @ApiResponse({
     status: 201,
-    description: 'Digital record created successfully',
+    description: 'Audit record created successfully',
   })
   @ApiResponse({
     status: 401,
@@ -57,22 +179,8 @@ export class AuditController {
     status: 403,
     description: 'Forbidden - Insufficient permissions',
   })
-  async createDigitalRecord(@Req() req: any, @Body() createDto: CreateDigitalRecordDto) {
+  async createAudit(@Req() req: any, @Body() createDto: CreateDigitalRecordDto) {
     return this.auditService.createDigitalRecord(req.user.userId, createDto);
-  }
-
-  @Get('digital-records')
-  @Roles('super admin', 'admin', 'director')
-  @ApiOperation({
-    summary: 'Search digital records',
-    description: 'Search and filter digital audit records with pagination support.',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Digital records retrieved successfully',
-  })
-  async searchDigitalRecords(@Query() searchDto: SearchDigitalRecordsDto) {
-    return this.auditService.searchDigitalRecords(searchDto);
   }
 
   @Get('older-adult-updates')
