@@ -136,4 +136,28 @@ export class AuthController {
     async disable2FA(@Request() req) {
         return await this.authService.disable2FA(req.user.userId);
     }
+
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth('jwt')
+    @Get('2fa/status')
+    @ApiOperation({
+        summary: 'Obtener estado de autenticación de dos factores',
+        description: 'Obtiene el estado actual de 2FA para el usuario autenticado'
+    })
+    @ApiResponse({
+        status: 200,
+        description: 'Estado de 2FA obtenido exitosamente',
+        schema: {
+            type: 'object',
+            properties: {
+                enabled: { type: 'boolean', description: 'Si 2FA está habilitado' },
+                lastUsed: { type: 'string', format: 'date-time', nullable: true, description: 'Última vez que se usó 2FA' },
+                hasBackupCodes: { type: 'boolean', description: 'Si tiene códigos de respaldo disponibles' }
+            }
+        }
+    })
+    @ApiResponse({ status: 401, description: 'No autenticado' })
+    async get2FAStatus(@Request() req) {
+        return await this.authService.get2FAStatus(req.user.userId);
+    }
 }

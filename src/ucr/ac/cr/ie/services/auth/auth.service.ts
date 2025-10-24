@@ -7,7 +7,7 @@ import { UserSession } from '../../domain/auth/sessions/user-session.entity';
 import { UserTwoFactor } from '../../domain/auth/security/user-two-factor.entity';
 import { PasswordUtil, DateUtil, TwoFactorUtil } from '../../common/utils';
 import { LoginDto } from '../../dto/auth';
-import { LoginResponse, Setup2FAResponse, Enable2FAResponse } from '../../interfaces/auth';
+import { LoginResponse, Setup2FAResponse, Enable2FAResponse, TwoFactorStatusResponse } from '../../interfaces/auth';
 import { SuccessResponse } from '../../interfaces';
 import * as crypto from 'crypto';
 
@@ -292,6 +292,31 @@ export class AuthService {
         await this.twoFactorRepository.remove(twoFactor);
 
         return { success: true };
+    }
+
+    /**
+     * Obtiene el estado actual de 2FA para un usuario
+     */
+    async get2FAStatus(userId: number): Promise<TwoFactorStatusResponse> {
+        const twoFactor = await this.twoFactorRepository.findOne({
+            where: { userId },
+        });
+
+        if (!twoFactor) {
+            return {
+                enabled: false,
+                lastUsed: null,
+                hasBackupCodes: false,
+            };
+        }
+
+        const backupCodes = JSON.parse(twoFactor.tfaBackupCodes || '[]');
+
+        return {
+            enabled: twoFactor.tfaEnabled,
+            lastUsed: twoFactor.tfaLastUsed,
+            hasBackupCodes: backupCodes.length > 0,
+        };
     }
 
     /**

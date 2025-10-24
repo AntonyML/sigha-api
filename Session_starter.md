@@ -51,7 +51,30 @@ Project memory file for AI assistant session continuity. Auto-referenced by cust
 
 ---
 
-## Recent Milestones
+### 2025-10-23 - Endpoint 2FA Status Implementado
+- ✅ **Evaluación de Seguridad**: Completada - Endpoint seguro de implementar
+- ✅ **Interface Creada**: `TwoFactorStatusResponse` con campos seguros
+- ✅ **Método en AuthService**: `get2FAStatus()` implementado
+- ✅ **Endpoint en AuthController**: `GET /auth/2fa/status` agregado
+- ✅ **Documentación**: `GET_2FA_STATUS_ENDPOINT.md` creado
+- ✅ **Script de Prueba**: `test_2fa_status_endpoint.sql` creado
+- ✅ **Sincronización Frontend**: Ahora compatible con `twoFactorService.get2FAStatus()`
+
+**Características de Seguridad:**
+- Solo expone estado general (enabled, lastUsed, hasBackupCodes)
+- No revela secretos TOTP ni códigos de respaldo reales
+- Requiere JWT válido
+- Usuario solo puede consultar su propio estado
+- Información auditada automáticamente
+
+**Campos Expuestos (Seguros):**
+- `enabled`: boolean - Estado de 2FA
+- `lastUsed`: Date|null - Último uso exitoso
+- `hasBackupCodes`: boolean - Existencia de códigos respaldo
+
+**Campos Protegidos:**
+- `tfaSecret`: Secreto TOTP (nunca expuesto)
+- `tfaBackupCodes`: Valores reales de códigos (protegidos)
 
 ### 2025-01-15 - Digital Record Audit History Endpoint
 - Implemented GET `/audits/digital-records/:recordId/history` endpoint
