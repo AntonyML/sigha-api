@@ -119,7 +119,6 @@ export class RoleService {
             if (!existingRole) {
                 const role = new Role(0, roleName);
                 await this.roleRepository.save(role);
-                console.log(`Rol del sistema creado: ${roleName}`);
             }
         }
     }

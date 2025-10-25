@@ -30,7 +30,6 @@ export class AuthService {
     async login(loginDto: LoginDto, ipAddress?: string, userAgent?: string): Promise<LoginResponse> {
         const { uEmail, uPassword, twoFactorCode } = loginDto;
 
-        // Buscar usuario por email
         const user = await this.userRepository.findOne({
             where: { uEmail, uIsActive: true },
             relations: ['role'],
@@ -40,20 +39,16 @@ export class AuthService {
             throw new UnauthorizedException('Credenciales inválidas');
         }
 
-        // Verificar contraseña
         const isPasswordValid = await PasswordUtil.verify(uPassword, user.uPassword);
         if (!isPasswordValid) {
             throw new UnauthorizedException('Credenciales inválidas');
         }
 
-        // Verificar si tiene 2FA habilitado
         const twoFactor = await this.twoFactorRepository.findOne({
             where: { userId: user.id, tfaEnabled: true },
         });
 
-        // Si tiene 2FA habilitado pero no proporcionó código
         if (twoFactor && !twoFactorCode) {
-            // Generar token temporal para 2FA
             const tempToken = this.jwtService.sign(
                 { sub: user.id, email: user.uEmail, require2FA: true },
                 { expiresIn: '5m' }
@@ -72,12 +67,10 @@ export class AuthService {
             };
         }
 
-        // Si tiene 2FA habilitado y proporcionó código, verificarlo
         if (twoFactor && twoFactorCode) {
             const isValidCode = TwoFactorUtil.verifyToken(twoFactorCode, twoFactor.tfaSecret);
 
             if (!isValidCode) {
-                // Verificar si es un código de respaldo
                 const backupCodes = JSON.parse(twoFactor.tfaBackupCodes || '[]');
                 const isValidBackupCode = TwoFactorUtil.verifyBackupCode(twoFactorCode, backupCodes);
 
@@ -85,18 +78,15 @@ export class AuthService {
                     throw new UnauthorizedException('Código de autenticación inválido');
                 }
 
-                // Remover el código de respaldo usado
                 const updatedBackupCodes = TwoFactorUtil.removeUsedBackupCode(twoFactorCode, backupCodes);
                 twoFactor.tfaBackupCodes = JSON.stringify(updatedBackupCodes);
                 await this.twoFactorRepository.save(twoFactor);
             }
 
-            // Actualizar última vez usado 2FA
             twoFactor.tfaLastUsed = new Date();
             await this.twoFactorRepository.save(twoFactor);
         }
 
-        // Generar tokens de acceso
         return this.generateTokens(user, ipAddress, userAgent);
     }
 
@@ -128,11 +118,9 @@ export class AuthService {
                 throw new UnauthorizedException('2FA no configurado');
             }
 
-            // Verificar código 2FA
             const isValidCode = TwoFactorUtil.verifyToken(twoFactorCode, twoFactor.tfaSecret);
 
             if (!isValidCode) {
-                // Verificar códigos de respaldo
                 const backupCodes = JSON.parse(twoFactor.tfaBackupCodes || '[]');
                 const isValidBackupCode = TwoFactorUtil.verifyBackupCode(twoFactorCode, backupCodes);
 
@@ -140,13 +128,11 @@ export class AuthService {
                     throw new UnauthorizedException('Código de autenticación inválido');
                 }
 
-                // Remover código de respaldo usado
                 const updatedBackupCodes = TwoFactorUtil.removeUsedBackupCode(twoFactorCode, backupCodes);
                 twoFactor.tfaBackupCodes = JSON.stringify(updatedBackupCodes);
                 await this.twoFactorRepository.save(twoFactor);
             }
 
-            // Actualizar última vez usado
             twoFactor.tfaLastUsed = new Date();
             await this.twoFactorRepository.save(twoFactor);
 
@@ -168,7 +154,6 @@ export class AuthService {
             throw new BadRequestException('Usuario no encontrado');
         }
 
-        // Verificar si ya tiene 2FA configurado
         let twoFactor = await this.twoFactorRepository.findOne({
             where: { userId },
         });
@@ -177,16 +162,14 @@ export class AuthService {
             throw new BadRequestException('2FA ya está habilitado para este usuario');
         }
 
-        // Generar configuración 2FA
         const setup = await TwoFactorUtil.setupTwoFactor(user.uEmail);
 
-        // Guardar o actualizar configuración
         if (!twoFactor) {
             twoFactor = new UserTwoFactor(
-                0, // ID se auto-genera
+                0,
                 userId,
                 setup.secret,
-                false, // No habilitado hasta confirmar
+                false,
                 JSON.stringify(setup.backupCodes)
             );
         } else {
@@ -204,67 +187,35 @@ export class AuthService {
      * Habilita 2FA después de verificar el código
      */
     async enable2FA(userId: number, verificationCode: string): Promise<Enable2FAResponse> {
-        console.log('\n=== ENABLE 2FA DEBUG ===');
-        console.log('User ID:', userId);
-        console.log('Verification Code:', verificationCode);
-        
+
         const twoFactor = await this.twoFactorRepository.findOne({
             where: { userId, tfaEnabled: false },
         });
 
-        console.log('2FA record found:', !!twoFactor);
-        if (twoFactor) {
-            console.log('2FA record ID:', twoFactor.id);
-            console.log('Secret exists:', !!twoFactor.tfaSecret);
-            console.log('Backup codes exist:', !!twoFactor.tfaBackupCodes);
-            
-            const backupCodes = JSON.parse(twoFactor.tfaBackupCodes || '[]');
-            console.log('Backup codes count:', backupCodes.length);
-            console.log('Backup codes:', backupCodes);
-        }
-
         if (!twoFactor) {
-            console.log('ERROR: 2FA no configurado o ya habilitado');
             throw new BadRequestException('2FA no configurado o ya habilitado');
         }
 
-        // Verificar código TOTP o backup code
-        console.log('\n--- STARTING VERIFICATION ---');
         let isValid = TwoFactorUtil.verifyToken(verificationCode, twoFactor.tfaSecret);
-        console.log('TOTP verification result:', isValid);
-        
+
         let usedBackupCode = false;
-        
+
         if (!isValid) {
-            console.log('TOTP failed, checking backup codes');
-            // Si el código TOTP no es válido, verificar si es un backup code
             const backupCodes = JSON.parse(twoFactor.tfaBackupCodes || '[]');
-            console.log('Available backup codes:', backupCodes);
-            console.log('Checking if code matches any backup code:', verificationCode);
-            
+
             isValid = TwoFactorUtil.verifyBackupCode(verificationCode, backupCodes);
-            console.log('Backup code verification result:', isValid);
-            
+
             if (isValid) {
-                console.log('SUCCESS: Backup code matched');
-                // Remover el backup code usado
                 const updatedBackupCodes = TwoFactorUtil.removeUsedBackupCode(verificationCode, backupCodes);
                 twoFactor.tfaBackupCodes = JSON.stringify(updatedBackupCodes);
                 usedBackupCode = true;
-                console.log('Backup code used for 2FA enable:', verificationCode);
-                console.log('Remaining backup codes:', updatedBackupCodes);
-            } else {
-                console.log('FAILED: Backup code not found');
             }
-        } else {
-            console.log('SUCCESS: TOTP code verified');
         }
-        
+
         if (!isValid) {
             throw new BadRequestException('Código de verificación inválido');
         }
 
-        // Habilitar 2FA
         twoFactor.tfaEnabled = true;
         await this.twoFactorRepository.save(twoFactor);
 
