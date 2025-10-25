@@ -1,0 +1,108 @@
+<testsuites id="" name="" tests="16" failures="2" skipped="6" errors="0" time="17.680466">
+<testsuite name="black-box\AuthTest\auth-black-box.spec.ts" timestamp="2025-10-25T02:18:23.946Z" hostname="auth-black-box" tests="16" failures="2" skipped="6" time="0.977" errors="0">
+<testcase name="AUTH MODULE - BLACK BOX TESTING › Login - Equivalence Partitioning › TC_BB_AUTH_001: Login válido sin 2FA debería retornar tokens" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.315">
+</testcase>
+<testcase name="AUTH MODULE - BLACK BOX TESTING › Login - Equivalence Partitioning › TC_BB_AUTH_002: Login con credenciales inválidas debería fallar" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.02">
+</testcase>
+<testcase name="AUTH MODULE - BLACK BOX TESTING › Login - Equivalence Partitioning › TC_BB_AUTH_003: Login con usuario inactivo debería fallar" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.015">
+</testcase>
+<testcase name="AUTH MODULE - BLACK BOX TESTING › 2FA - State Transition Testing › TC_BB_AUTH_004: Login con 2FA habilitado debería requerir verificación" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.245">
+</testcase>
+<testcase name="AUTH MODULE - BLACK BOX TESTING › 2FA - State Transition Testing › TC_BB_AUTH_005: Verificación 2FA con código válido debería completar login" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.012">
+<failure message="auth-black-box.spec.ts:97:13 TC_BB_AUTH_005: Verificación 2FA con código válido debería completar login" type="FAILURE">
+<![CDATA[  [auth-black-box] › black-box\AuthTest\auth-black-box.spec.ts:97:13 › AUTH MODULE - BLACK BOX TESTING › 2FA - State Transition Testing › TC_BB_AUTH_005: Verificación 2FA con código válido debería completar login 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 401
+
+      100 |             // Arrange: Setup 2FA y obtener código válido
+      101 |             const setupResponse = await authUtils.setup2FA(tempToken);
+    > 102 |             expect(setupResponse.status()).toBe(200);
+          |                                            ^
+      103 |             const setupData = await setupResponse.json();
+      104 |             const validCode = authUtils.generateValidTOTP(setupData.secret);
+      105 |
+        at D:\Ano_2025_UCR\Analisis\Proyecto\backend_nest_js_hogar_de_ancianos\tests\black-box\AuthTest\auth-black-box.spec.ts:102:44
+]]>
+</failure>
+</testcase>
+<testcase name="AUTH MODULE - BLACK BOX TESTING › 2FA - State Transition Testing › TC_BB_AUTH_006: Verificación 2FA con código inválido debería fallar" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.018">
+<properties>
+<property name="skip" value="Requiere tempToken de prueba anterior">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="AUTH MODULE - BLACK BOX TESTING › 2FA - State Transition Testing › TC_BB_AUTH_007: Verificación 2FA con token expirado debería fallar" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.005">
+<properties>
+<property name="skip" value="Requiere tempToken de prueba anterior">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="AUTH MODULE - BLACK BOX TESTING › Backup Codes - Decision Table Testing › TC_BB_AUTH_008: Código de respaldo válido debería funcionar" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.004">
+<properties>
+<property name="skip" value="Requiere tempToken de prueba anterior">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="AUTH MODULE - BLACK BOX TESTING › Backup Codes - Decision Table Testing › TC_BB_AUTH_009: Código de respaldo inválido debería fallar" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.006">
+<properties>
+<property name="skip" value="Requiere tempToken de prueba anterior">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="AUTH MODULE - BLACK BOX TESTING › Session Management - Boundary Value Analysis › TC_BB_AUTH_010: Logout con token válido debería cerrar sesión" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.005">
+<properties>
+<property name="skip" value="Requiere accessToken de pruebas anteriores">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="AUTH MODULE - BLACK BOX TESTING › Session Management - Boundary Value Analysis › TC_BB_AUTH_011: Acceso a perfil sin token debería fallar" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.029">
+</testcase>
+<testcase name="AUTH MODULE - BLACK BOX TESTING › Session Management - Boundary Value Analysis › TC_BB_AUTH_012: Acceso a perfil con token válido debería retornar datos" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.003">
+<properties>
+<property name="skip" value="Requiere accessToken válido">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="AUTH MODULE - BLACK BOX TESTING › Time Synchronization - Critical Path Testing › TC_BB_AUTH_013: Servidor debe tener hora sincronizada para TOTP" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.006">
+</testcase>
+<testcase name="AUTH MODULE - BLACK BOX TESTING › Security - Negative Testing › TC_BB_AUTH_014: Ataque de fuerza bruta debería ser mitigado" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.035">
+</testcase>
+<testcase name="AUTH MODULE - BLACK BOX TESTING › Security - Negative Testing › TC_BB_AUTH_015: SQL Injection debería ser prevenido" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.01">
+</testcase>
+<testcase name="AUTH MODULE - BLACK BOX TESTING › TOTP Server Time Synchronization › TC_BB_AUTH_999: El servidor acepta TOTP generado localmente (sincronización horaria)" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.249">
+<failure message="auth-black-box.spec.ts:264:13 TC_BB_AUTH_999: El servidor acepta TOTP generado localmente (sincronización horaria)" type="FAILURE">
+<![CDATA[  [auth-black-box] › black-box\AuthTest\auth-black-box.spec.ts:264:13 › AUTH MODULE - BLACK BOX TESTING › TOTP Server Time Synchronization › TC_BB_AUTH_999: El servidor acepta TOTP generado localmente (sincronización horaria) 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 401
+
+      277 |             // 2. Setup 2FA para obtener el secret
+      278 |             const setupResponse = await authUtils.setup2FA(tempToken);
+    > 279 |             expect(setupResponse.status()).toBe(200);
+          |                                            ^
+      280 |             const setupData = await setupResponse.json();
+      281 |             const secret = setupData.secret;
+      282 |
+        at D:\Ano_2025_UCR\Analisis\Proyecto\backend_nest_js_hogar_de_ancianos\tests\black-box\AuthTest\auth-black-box.spec.ts:279:44
+]]>
+</failure>
+</testcase>
+</testsuite>
+</testsuites>

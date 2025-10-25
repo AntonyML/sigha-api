@@ -1,0 +1,899 @@
+{
+  "config": {
+    "configFile": "D:\\Ano_2025_UCR\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\playwright.config.ts",
+    "rootDir": "D:/Ano_2025_UCR/Analisis/Proyecto/backend_nest_js_hogar_de_ancianos/tests",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results.json"
+        }
+      ],
+      [
+        "junit",
+        {
+          "outputFile": "test-results.xml"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "D:/Ano_2025_UCR/Analisis/Proyecto/backend_nest_js_hogar_de_ancianos/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "auth-black-box",
+        "name": "auth-black-box",
+        "testDir": "D:/Ano_2025_UCR/Analisis/Proyecto/backend_nest_js_hogar_de_ancianos/tests/black-box",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.spec.ts"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "D:/Ano_2025_UCR/Analisis/Proyecto/backend_nest_js_hogar_de_ancianos/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "auth-white-box",
+        "name": "auth-white-box",
+        "testDir": "D:/Ano_2025_UCR/Analisis/Proyecto/backend_nest_js_hogar_de_ancianos/tests/white-box",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.spec.ts"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "D:/Ano_2025_UCR/Analisis/Proyecto/backend_nest_js_hogar_de_ancianos/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "auth-all",
+        "name": "auth-all",
+        "testDir": "D:/Ano_2025_UCR/Analisis/Proyecto/backend_nest_js_hogar_de_ancianos/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.spec.ts"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.56.1",
+    "workers": 6,
+    "webServer": {
+      "command": "npm run start:dev",
+      "port": 3000,
+      "reuseExistingServer": true,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "black-box\\AuthTest\\auth-black-box.spec.ts",
+      "file": "black-box/AuthTest/auth-black-box.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "AUTH MODULE - BLACK BOX TESTING",
+          "file": "black-box/AuthTest/auth-black-box.spec.ts",
+          "line": 18,
+          "column": 6,
+          "specs": [],
+          "suites": [
+            {
+              "title": "Login - Equivalence Partitioning",
+              "file": "black-box/AuthTest/auth-black-box.spec.ts",
+              "line": 33,
+              "column": 10,
+              "specs": [
+                {
+                  "title": "TC_BB_AUTH_001: Login válido sin 2FA debería retornar tokens",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "auth-black-box",
+                      "projectName": "auth-black-box",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 315,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-10-25T02:18:24.973Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "e16cbd94e00e4daf418d-30dca69367bc0f63d342",
+                  "file": "black-box/AuthTest/auth-black-box.spec.ts",
+                  "line": 34,
+                  "column": 13
+                },
+                {
+                  "title": "TC_BB_AUTH_002: Login con credenciales inválidas debería fallar",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "auth-black-box",
+                      "projectName": "auth-black-box",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 20,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-10-25T02:18:25.319Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "e16cbd94e00e4daf418d-3c7af5ae57bb557d85ca",
+                  "file": "black-box/AuthTest/auth-black-box.spec.ts",
+                  "line": 52,
+                  "column": 13
+                },
+                {
+                  "title": "TC_BB_AUTH_003: Login con usuario inactivo debería fallar",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "auth-black-box",
+                      "projectName": "auth-black-box",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 15,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-10-25T02:18:25.356Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "e16cbd94e00e4daf418d-2e5e21652c3eaa59504f",
+                  "file": "black-box/AuthTest/auth-black-box.spec.ts",
+                  "line": 62,
+                  "column": 13
+                }
+              ]
+            },
+            {
+              "title": "2FA - State Transition Testing",
+              "file": "black-box/AuthTest/auth-black-box.spec.ts",
+              "line": 72,
+              "column": 10,
+              "specs": [
+                {
+                  "title": "TC_BB_AUTH_004: Login con 2FA habilitado debería requerir verificación",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "auth-black-box",
+                      "projectName": "auth-black-box",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 245,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-10-25T02:18:25.387Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "e16cbd94e00e4daf418d-acfe8da562297f27538c",
+                  "file": "black-box/AuthTest/auth-black-box.spec.ts",
+                  "line": 74,
+                  "column": 13
+                },
+                {
+                  "title": "TC_BB_AUTH_005: Verificación 2FA con código válido debería completar login",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "auth-black-box",
+                      "projectName": "auth-black-box",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "failed",
+                          "duration": 12,
+                          "error": {
+                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m",
+                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m\n    at D:\\Ano_2025_UCR\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts:102:44",
+                            "location": {
+                              "file": "D:\\Ano_2025_UCR\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts",
+                              "column": 44,
+                              "line": 102
+                            },
+                            "snippet": "\u001b[0m \u001b[90m 100 |\u001b[39m             \u001b[90m// Arrange: Setup 2FA y obtener código válido\u001b[39m\n \u001b[90m 101 |\u001b[39m             \u001b[36mconst\u001b[39m setupResponse \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m authUtils\u001b[33m.\u001b[39msetup2FA(tempToken)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 102 |\u001b[39m             expect(setupResponse\u001b[33m.\u001b[39mstatus())\u001b[33m.\u001b[39mtoBe(\u001b[35m200\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                            \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 103 |\u001b[39m             \u001b[36mconst\u001b[39m setupData \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m setupResponse\u001b[33m.\u001b[39mjson()\u001b[33m;\u001b[39m\n \u001b[90m 104 |\u001b[39m             \u001b[36mconst\u001b[39m validCode \u001b[33m=\u001b[39m authUtils\u001b[33m.\u001b[39mgenerateValidTOTP(setupData\u001b[33m.\u001b[39msecret)\u001b[33m;\u001b[39m\n \u001b[90m 105 |\u001b[39m\u001b[0m"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "D:\\Ano_2025_UCR\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts",
+                                "column": 44,
+                                "line": 102
+                              },
+                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m\n\n\u001b[0m \u001b[90m 100 |\u001b[39m             \u001b[90m// Arrange: Setup 2FA y obtener código válido\u001b[39m\n \u001b[90m 101 |\u001b[39m             \u001b[36mconst\u001b[39m setupResponse \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m authUtils\u001b[33m.\u001b[39msetup2FA(tempToken)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 102 |\u001b[39m             expect(setupResponse\u001b[33m.\u001b[39mstatus())\u001b[33m.\u001b[39mtoBe(\u001b[35m200\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                            \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 103 |\u001b[39m             \u001b[36mconst\u001b[39m setupData \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m setupResponse\u001b[33m.\u001b[39mjson()\u001b[33m;\u001b[39m\n \u001b[90m 104 |\u001b[39m             \u001b[36mconst\u001b[39m validCode \u001b[33m=\u001b[39m authUtils\u001b[33m.\u001b[39mgenerateValidTOTP(setupData\u001b[33m.\u001b[39msecret)\u001b[33m;\u001b[39m\n \u001b[90m 105 |\u001b[39m\u001b[0m\n\u001b[2m    at D:\\Ano_2025_UCR\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts:102:44\u001b[22m"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-10-25T02:18:25.646Z",
+                          "annotations": [],
+                          "attachments": [],
+                          "errorLocation": {
+                            "file": "D:\\Ano_2025_UCR\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts",
+                            "column": 44,
+                            "line": 102
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "e16cbd94e00e4daf418d-b294d9118a0b4ad7e2bc",
+                  "file": "black-box/AuthTest/auth-black-box.spec.ts",
+                  "line": 97,
+                  "column": 13
+                },
+                {
+                  "title": "TC_BB_AUTH_006: Verificación 2FA con código inválido debería fallar",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "Requiere tempToken de prueba anterior",
+                          "location": {
+                            "file": "D:\\Ano_2025_UCR\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts",
+                            "line": 119,
+                            "column": 18
+                          }
+                        }
+                      ],
+                      "expectedStatus": "skipped",
+                      "projectId": "auth-black-box",
+                      "projectName": "auth-black-box",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 0,
+                          "status": "skipped",
+                          "duration": 18,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-10-25T02:18:26.804Z",
+                          "annotations": [
+                            {
+                              "type": "skip",
+                              "description": "Requiere tempToken de prueba anterior",
+                              "location": {
+                                "file": "D:\\Ano_2025_UCR\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts",
+                                "line": 119,
+                                "column": 18
+                              }
+                            }
+                          ],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "e16cbd94e00e4daf418d-ec844c5db4862950c0ca",
+                  "file": "black-box/AuthTest/auth-black-box.spec.ts",
+                  "line": 118,
+                  "column": 13
+                },
+                {
+                  "title": "TC_BB_AUTH_007: Verificación 2FA con token expirado debería fallar",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "Requiere tempToken de prueba anterior",
+                          "location": {
+                            "file": "D:\\Ano_2025_UCR\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts",
+                            "line": 131,
+                            "column": 18
+                          }
+                        }
+                      ],
+                      "expectedStatus": "skipped",
+                      "projectId": "auth-black-box",
+                      "projectName": "auth-black-box",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 0,
+                          "status": "skipped",
+                          "duration": 5,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-10-25T02:18:26.861Z",
+                          "annotations": [
+                            {
+                              "type": "skip",
+                              "description": "Requiere tempToken de prueba anterior",
+                              "location": {
+                                "file": "D:\\Ano_2025_UCR\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts",
+                                "line": 131,
+                                "column": 18
+                              }
+                            }
+                          ],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "e16cbd94e00e4daf418d-2a241059ded8a9f42801",
+                  "file": "black-box/AuthTest/auth-black-box.spec.ts",
+                  "line": 130,
+                  "column": 13
+                }
+              ]
+            },
+            {
+              "title": "Backup Codes - Decision Table Testing",
+              "file": "black-box/AuthTest/auth-black-box.spec.ts",
+              "line": 153,
+              "column": 10,
+              "specs": [
+                {
+                  "title": "TC_BB_AUTH_008: Código de respaldo válido debería funcionar",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "Requiere tempToken de prueba anterior",
+                          "location": {
+                            "file": "D:\\Ano_2025_UCR\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts",
+                            "line": 155,
+                            "column": 18
+                          }
+                        }
+                      ],
+                      "expectedStatus": "skipped",
+                      "projectId": "auth-black-box",
+                      "projectName": "auth-black-box",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 0,
+                          "status": "skipped",
+                          "duration": 4,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-10-25T02:18:26.887Z",
+                          "annotations": [
+                            {
+                              "type": "skip",
+                              "description": "Requiere tempToken de prueba anterior",
+                              "location": {
+                                "file": "D:\\Ano_2025_UCR\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts",
+                                "line": 155,
+                                "column": 18
+                              }
+                            }
+                          ],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "e16cbd94e00e4daf418d-cdd2226de4870f9b892c",
+                  "file": "black-box/AuthTest/auth-black-box.spec.ts",
+                  "line": 154,
+                  "column": 13
+                },
+                {
+                  "title": "TC_BB_AUTH_009: Código de respaldo inválido debería fallar",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "Requiere tempToken de prueba anterior",
+                          "location": {
+                            "file": "D:\\Ano_2025_UCR\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts",
+                            "line": 170,
+                            "column": 18
+                          }
+                        }
+                      ],
+                      "expectedStatus": "skipped",
+                      "projectId": "auth-black-box",
+                      "projectName": "auth-black-box",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 0,
+                          "status": "skipped",
+                          "duration": 6,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-10-25T02:18:26.912Z",
+                          "annotations": [
+                            {
+                              "type": "skip",
+                              "description": "Requiere tempToken de prueba anterior",
+                              "location": {
+                                "file": "D:\\Ano_2025_UCR\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts",
+                                "line": 170,
+                                "column": 18
+                              }
+                            }
+                          ],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "e16cbd94e00e4daf418d-76605cf5ed17872cf551",
+                  "file": "black-box/AuthTest/auth-black-box.spec.ts",
+                  "line": 169,
+                  "column": 13
+                }
+              ]
+            },
+            {
+              "title": "Session Management - Boundary Value Analysis",
+              "file": "black-box/AuthTest/auth-black-box.spec.ts",
+              "line": 181,
+              "column": 10,
+              "specs": [
+                {
+                  "title": "TC_BB_AUTH_010: Logout con token válido debería cerrar sesión",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "Requiere accessToken de pruebas anteriores",
+                          "location": {
+                            "file": "D:\\Ano_2025_UCR\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts",
+                            "line": 183,
+                            "column": 18
+                          }
+                        }
+                      ],
+                      "expectedStatus": "skipped",
+                      "projectId": "auth-black-box",
+                      "projectName": "auth-black-box",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 0,
+                          "status": "skipped",
+                          "duration": 5,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-10-25T02:18:26.935Z",
+                          "annotations": [
+                            {
+                              "type": "skip",
+                              "description": "Requiere accessToken de pruebas anteriores",
+                              "location": {
+                                "file": "D:\\Ano_2025_UCR\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts",
+                                "line": 183,
+                                "column": 18
+                              }
+                            }
+                          ],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "e16cbd94e00e4daf418d-0446b0829ead942ef0d0",
+                  "file": "black-box/AuthTest/auth-black-box.spec.ts",
+                  "line": 182,
+                  "column": 13
+                },
+                {
+                  "title": "TC_BB_AUTH_011: Acceso a perfil sin token debería fallar",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "auth-black-box",
+                      "projectName": "auth-black-box",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 29,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-10-25T02:18:26.955Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "e16cbd94e00e4daf418d-a5d1ccf8646f2fbf4825",
+                  "file": "black-box/AuthTest/auth-black-box.spec.ts",
+                  "line": 194,
+                  "column": 13
+                },
+                {
+                  "title": "TC_BB_AUTH_012: Acceso a perfil con token válido debería retornar datos",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "Requiere accessToken válido",
+                          "location": {
+                            "file": "D:\\Ano_2025_UCR\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts",
+                            "line": 203,
+                            "column": 18
+                          }
+                        }
+                      ],
+                      "expectedStatus": "skipped",
+                      "projectId": "auth-black-box",
+                      "projectName": "auth-black-box",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 0,
+                          "status": "skipped",
+                          "duration": 3,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-10-25T02:18:27.002Z",
+                          "annotations": [
+                            {
+                              "type": "skip",
+                              "description": "Requiere accessToken válido",
+                              "location": {
+                                "file": "D:\\Ano_2025_UCR\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts",
+                                "line": 203,
+                                "column": 18
+                              }
+                            }
+                          ],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "e16cbd94e00e4daf418d-644d245a1df9f37eb648",
+                  "file": "black-box/AuthTest/auth-black-box.spec.ts",
+                  "line": 202,
+                  "column": 13
+                }
+              ]
+            },
+            {
+              "title": "Time Synchronization - Critical Path Testing",
+              "file": "black-box/AuthTest/auth-black-box.spec.ts",
+              "line": 217,
+              "column": 10,
+              "specs": [
+                {
+                  "title": "TC_BB_AUTH_013: Servidor debe tener hora sincronizada para TOTP",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "auth-black-box",
+                      "projectName": "auth-black-box",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 6,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-10-25T02:18:27.020Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "e16cbd94e00e4daf418d-2b32bf30077c34f25ef0",
+                  "file": "black-box/AuthTest/auth-black-box.spec.ts",
+                  "line": 218,
+                  "column": 13
+                }
+              ]
+            },
+            {
+              "title": "Security - Negative Testing",
+              "file": "black-box/AuthTest/auth-black-box.spec.ts",
+              "line": 232,
+              "column": 10,
+              "specs": [
+                {
+                  "title": "TC_BB_AUTH_014: Ataque de fuerza bruta debería ser mitigado",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "auth-black-box",
+                      "projectName": "auth-black-box",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 35,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-10-25T02:18:27.044Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "e16cbd94e00e4daf418d-be6eeec0c3cc89d34427",
+                  "file": "black-box/AuthTest/auth-black-box.spec.ts",
+                  "line": 233,
+                  "column": 13
+                },
+                {
+                  "title": "TC_BB_AUTH_015: SQL Injection debería ser prevenido",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "auth-black-box",
+                      "projectName": "auth-black-box",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 10,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-10-25T02:18:27.096Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "e16cbd94e00e4daf418d-ecbe2dcf781de155b867",
+                  "file": "black-box/AuthTest/auth-black-box.spec.ts",
+                  "line": 249,
+                  "column": 13
+                }
+              ]
+            },
+            {
+              "title": "TOTP Server Time Synchronization",
+              "file": "black-box/AuthTest/auth-black-box.spec.ts",
+              "line": 263,
+              "column": 10,
+              "specs": [
+                {
+                  "title": "TC_BB_AUTH_999: El servidor acepta TOTP generado localmente (sincronización horaria)",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "auth-black-box",
+                      "projectName": "auth-black-box",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 0,
+                          "status": "failed",
+                          "duration": 249,
+                          "error": {
+                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m",
+                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m\n    at D:\\Ano_2025_UCR\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts:279:44",
+                            "location": {
+                              "file": "D:\\Ano_2025_UCR\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts",
+                              "column": 44,
+                              "line": 279
+                            },
+                            "snippet": "\u001b[0m \u001b[90m 277 |\u001b[39m             \u001b[90m// 2. Setup 2FA para obtener el secret\u001b[39m\n \u001b[90m 278 |\u001b[39m             \u001b[36mconst\u001b[39m setupResponse \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m authUtils\u001b[33m.\u001b[39msetup2FA(tempToken)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 279 |\u001b[39m             expect(setupResponse\u001b[33m.\u001b[39mstatus())\u001b[33m.\u001b[39mtoBe(\u001b[35m200\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                            \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 280 |\u001b[39m             \u001b[36mconst\u001b[39m setupData \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m setupResponse\u001b[33m.\u001b[39mjson()\u001b[33m;\u001b[39m\n \u001b[90m 281 |\u001b[39m             \u001b[36mconst\u001b[39m secret \u001b[33m=\u001b[39m setupData\u001b[33m.\u001b[39msecret\u001b[33m;\u001b[39m\n \u001b[90m 282 |\u001b[39m\u001b[0m"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "D:\\Ano_2025_UCR\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts",
+                                "column": 44,
+                                "line": 279
+                              },
+                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m\n\n\u001b[0m \u001b[90m 277 |\u001b[39m             \u001b[90m// 2. Setup 2FA para obtener el secret\u001b[39m\n \u001b[90m 278 |\u001b[39m             \u001b[36mconst\u001b[39m setupResponse \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m authUtils\u001b[33m.\u001b[39msetup2FA(tempToken)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 279 |\u001b[39m             expect(setupResponse\u001b[33m.\u001b[39mstatus())\u001b[33m.\u001b[39mtoBe(\u001b[35m200\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                            \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 280 |\u001b[39m             \u001b[36mconst\u001b[39m setupData \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m setupResponse\u001b[33m.\u001b[39mjson()\u001b[33m;\u001b[39m\n \u001b[90m 281 |\u001b[39m             \u001b[36mconst\u001b[39m secret \u001b[33m=\u001b[39m setupData\u001b[33m.\u001b[39msecret\u001b[33m;\u001b[39m\n \u001b[90m 282 |\u001b[39m\u001b[0m\n\u001b[2m    at D:\\Ano_2025_UCR\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts:279:44\u001b[22m"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-10-25T02:18:27.123Z",
+                          "annotations": [],
+                          "attachments": [],
+                          "errorLocation": {
+                            "file": "D:\\Ano_2025_UCR\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts",
+                            "column": 44,
+                            "line": 279
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "e16cbd94e00e4daf418d-b2007cf4245f041f786f",
+                  "file": "black-box/AuthTest/auth-black-box.spec.ts",
+                  "line": 264,
+                  "column": 13
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-10-25T02:18:09.828Z",
+    "duration": 17680.466,
+    "expected": 8,
+    "skipped": 6,
+    "unexpected": 2,
+    "flaky": 0
+  }
+}

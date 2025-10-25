@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { AuthAPITestUtils, TestUsers, TimeConstants } from '../../utils/auth-test-utils';
+import * as jwt from 'jsonwebtoken';
 
 /**
  * PRUEBAS DE CAJA BLANCA - MÓDULO DE AUTENTICACIÓN
@@ -17,6 +18,7 @@ import { AuthAPITestUtils, TestUsers, TimeConstants } from '../../utils/auth-tes
 
 test.describe('AUTH MODULE - WHITE BOX TESTING', () => {
     let authUtils: AuthAPITestUtils;
+    let tempToken: string;
 
     test.beforeEach(async ({ playwright }) => {
         const request = await playwright.request.newContext();
@@ -24,7 +26,7 @@ test.describe('AUTH MODULE - WHITE BOX TESTING', () => {
     });
 
     test.afterEach(async ({ playwright }) => {
-        await playwright.request.newContext().dispose();
+        // Cleanup is handled automatically by Playwright
     });
 
     // ===== JWT TOKEN GENERATION =====
@@ -45,8 +47,7 @@ test.describe('AUTH MODULE - WHITE BOX TESTING', () => {
                 expect(typeof data.tempToken).toBe('string');
 
                 // Verificar payload del token (conocimiento interno)
-                const jwt = require('jsonwebtoken');
-                const decoded = jwt.decode(data.tempToken);
+                const decoded = jwt.decode(data.tempToken) as jwt.JwtPayload;
 
                 expect(decoded).toHaveProperty('sub');
                 expect(decoded).toHaveProperty('email', TestUsers.SUPER_ADMIN.email);
@@ -77,8 +78,7 @@ test.describe('AUTH MODULE - WHITE BOX TESTING', () => {
 
             if (!data.requiresTwoFactor) {
                 // Assert: Verificar token de acceso
-                const jwt = require('jsonwebtoken');
-                const decoded = jwt.decode(data.accessToken);
+                const decoded = jwt.decode(data.accessToken) as jwt.JwtPayload;
 
                 expect(decoded).toHaveProperty('sub');
                 expect(decoded).toHaveProperty('email');
@@ -153,10 +153,14 @@ test.describe('AUTH MODULE - WHITE BOX TESTING', () => {
 
     // ===== TOTP VALIDATION =====
     test.describe('TOTP Validation - Condition Coverage', () => {
-        let tempToken: string;
         let secret: string;
+        let authUtils: AuthAPITestUtils;
 
-        test.beforeAll(async () => {
+        test.beforeAll(async ({ playwright }) => {
+            // Initialize auth utils
+            const request = await playwright.request.newContext();
+            authUtils = new AuthAPITestUtils(request);
+
             // Setup: Obtener tempToken y secret para pruebas
             const response = await authUtils.login(
                 TestUsers.SUPER_ADMIN.email,
@@ -229,11 +233,16 @@ test.describe('AUTH MODULE - WHITE BOX TESTING', () => {
         });
     });
 
-    // ===== BACKUP CODE LOGIC =====
+        // ===== BACKUP CODE LOGIC =====
     test.describe('Backup Code Logic - Multiple Condition Coverage', () => {
         let backupCodes: string[];
+        let authUtils: AuthAPITestUtils;
 
-        test.beforeAll(async () => {
+        test.beforeAll(async ({ playwright }) => {
+            // Initialize auth utils
+            const request = await playwright.request.newContext();
+            authUtils = new AuthAPITestUtils(request);
+
             // Setup: Obtener códigos de respaldo
             const setupResponse = await authUtils.setup2FA('valid_token');
             if (setupResponse.status() === 200) {
@@ -322,8 +331,7 @@ test.describe('AUTH MODULE - WHITE BOX TESTING', () => {
                 expect(data.refreshToken).toBeDefined();
 
                 // Verificar estructura del token
-                const jwt = require('jsonwebtoken');
-                const decoded = jwt.decode(data.accessToken);
+                const decoded = jwt.decode(data.accessToken) as jwt.JwtPayload;
 
                 expect(decoded).toHaveProperty('sub');
                 expect(decoded).toHaveProperty('email');
@@ -372,7 +380,6 @@ test.describe('AUTH MODULE - WHITE BOX TESTING', () => {
 
         test('TC_WB_AUTH_017: completeTwoFactorLogin debe manejar token expirado', async () => {
             // Arrange: Crear token expirado manualmente
-            const jwt = require('jsonwebtoken');
             const expiredToken = jwt.sign(
                 { sub: 1, email: 'test@test.com', require2FA: true },
                 'test-secret',

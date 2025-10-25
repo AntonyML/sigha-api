@@ -56,27 +56,9 @@ export default defineConfig({
       },
     },
     {
-      name: 'auth-integration',
-      testDir: './tests/integration',
-      testMatch: '**/*.spec.ts',
-      use: {
-        ...devices['Desktop Chrome'],
-        baseURL: process.env.BASE_URL || 'http://localhost:3000',
-      },
-    },
-    {
-      name: 'auth-e2e',
-      testDir: './tests/e2e',
-      testMatch: '**/*.spec.ts',
-      use: {
-        ...devices['Desktop Chrome'],
-        baseURL: process.env.BASE_URL || 'http://localhost:3000',
-      },
-    },
-    {
-      name: 'auth-full-suite',
+      name: 'auth-all',
       testDir: './tests',
-      testMatch: '**/auth/**/*.spec.ts',
+      testMatch: '**/*.spec.ts',
       use: {
         ...devices['Desktop Chrome'],
         baseURL: process.env.BASE_URL || 'http://localhost:3000',
@@ -99,8 +81,4 @@ export default defineConfig({
   expect: {
     timeout: 10 * 1000, // 10 seconds
   },
-
-  /* Global setup and teardown */
-  globalSetup: require.resolve('./tests/global-setup'),
-  globalTeardown: require.resolve('./tests/global-teardown'),
 });
