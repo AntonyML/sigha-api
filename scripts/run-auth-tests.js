@@ -31,37 +31,37 @@ function runTests(testType) {
   const testFiles = TEST_TYPES[testType];
 
   if (!testFiles) {
-    console.error(`❌ Tipo de prueba desconocido: ${testType}`);
-    console.log('📋 Tipos disponibles:', Object.keys(TEST_TYPES).join(', '));
+    console.error(`[ERROR] Tipo de prueba desconocido: ${testType}`);
+    console.log('[LIST] Tipos disponibles:', Object.keys(TEST_TYPES).join(', '));
     process.exit(1);
   }
 
-  console.log(`🚀 Ejecutando pruebas de ${testType}...`);
+  console.log(`[START] Ejecutando pruebas de ${testType}...`);
 
   try {
     const command = Array.isArray(testFiles)
       ? `npx playwright test ${testFiles.join(' ')}`
       : `npx playwright test ${testFiles}`;
 
-    console.log(`📝 Comando: ${command}`);
+    console.log(`[NOTE] Comando: ${command}`);
 
     execSync(command, {
       stdio: 'inherit',
       cwd: path.join(__dirname, '..')
     });
 
-    console.log(`✅ Pruebas de ${testType} completadas exitosamente`);
+    console.log(`[OK] Pruebas de ${testType} completadas exitosamente`);
   } catch (error) {
-    console.error(`❌ Error ejecutando pruebas de ${testType}:`, error.message);
+    console.error(`[ERROR] Error ejecutando pruebas de ${testType}:`, error.message);
     process.exit(1);
   }
 }
 
 function showUsage() {
   console.log(`
-🤖 Framework de Pruebas QA - Módulo de Autenticación
+[BOT] Framework de Pruebas QA - Módulo de Autenticación
 
-📋 Comandos disponibles:
+[LIST] Comandos disponibles:
   npm run test:auth:black-box    - Pruebas de caja negra (funcionales)
   npm run test:auth:white-box    - Pruebas de caja blanca (estructurales)
   npm run test:auth:integration  - Pruebas de integración
@@ -69,18 +69,18 @@ function showUsage() {
   npm run test:auth:all          - Todas las pruebas
   npm run test:auth:smoke        - Pruebas de humo (rápidas)
 
-🔧 Configuración:
+[CONFIG] Configuración:
   - Base URL: ${process.env.BASE_URL || 'http://localhost:3000'}
   - Reportes: test-results.html, test-results.json, test-results.xml
 
-📊 Cobertura de Pruebas:
+[STATS] Cobertura de Pruebas:
   - Black Box: 15 casos de prueba
   - White Box: 17 casos de prueba
   - Integration: 21 casos de prueba
   - E2E: 15 casos de prueba
   - Total: 68 casos de prueba
 
-🎯 Estrategias Implementadas:
+[TARGET] Estrategias Implementadas:
   - Equivalence Partitioning
   - Boundary Value Analysis
   - Decision Tables

@@ -30,12 +30,12 @@ async function disable2FAForUser(email: string) {
         const users = await dataSource.query(userQuery, [email]);
         
         if (!users || users.length === 0) {
-            console.log('❌ Usuario no encontrado o inactivo');
+            console.log('[ERROR] Usuario no encontrado o inactivo');
             return;
         }
 
         const user = users[0];
-        console.log(`✅ Usuario encontrado: ${user.u_name} (ID: ${user.id})`);
+        console.log(`[OK] Usuario encontrado: ${user.u_name} (ID: ${user.id})`);
 
         // Verificar si tiene 2FA habilitado
         const twoFactorQuery = `
@@ -47,14 +47,14 @@ async function disable2FAForUser(email: string) {
         const twoFactorRecords = await dataSource.query(twoFactorQuery, [user.id]);
         
         if (!twoFactorRecords || twoFactorRecords.length === 0) {
-            console.log('ℹ️  Usuario no tiene configuración 2FA');
+            console.log('[INFO] Usuario no tiene configuración 2FA');
             return;
         }
 
         const twoFactor = twoFactorRecords[0];
         
         if (!twoFactor.tfa_enabled) {
-            console.log('ℹ️  2FA ya está deshabilitado para este usuario');
+            console.log('[INFO] 2FA ya está deshabilitado para este usuario');
             return;
         }
 
@@ -66,11 +66,11 @@ async function disable2FAForUser(email: string) {
         
         await dataSource.query(disableQuery, [user.id]);
         
-        console.log('🎉 2FA deshabilitado exitosamente');
-        console.log('✅ Ahora puedes hacer login normal sin 2FA');
+        console.log('[SUCCESS] 2FA deshabilitado exitosamente');
+        console.log('[OK] Ahora puedes hacer login normal sin 2FA');
 
     } catch (error) {
-        console.error('❌ Error:', error);
+        console.error('[ERROR] Error:', error);
     } finally {
         await dataSource.destroy();
     }
@@ -79,11 +79,11 @@ async function disable2FAForUser(email: string) {
 // Obtener email de argumentos de línea de comandos
 const email = process.argv.find(arg => arg.includes('@')) || 'superadmin@hogarancianos.com';
 
-console.log('🚀 Iniciando script para deshabilitar 2FA...');
+console.log('[START] Iniciando script para deshabilitar 2FA...');
 disable2FAForUser(email).then(() => {
-    console.log('📝 Script completado');
+    console.log('[NOTE] Script completado');
     process.exit(0);
 }).catch(error => {
-    console.error('💥 Error fatal:', error);
+    console.error('[FATAL] Error fatal:', error);
     process.exit(1);
 });

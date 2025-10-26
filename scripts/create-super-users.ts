@@ -28,16 +28,16 @@ async function disable2FAForUser(email: string) {
 
         const user = await userRepository.findOne({ where: { uEmail: email } });
         if (!user) {
-            console.log(`❌ Usuario no encontrado: ${email}`);
+            console.log(`[ERROR] Usuario no encontrado: ${email}`);
             return;
         }
 
         const twoFactor = await twoFactorRepository.findOne({ where: { userId: user.id } });
         if (twoFactor) {
             await twoFactorRepository.remove(twoFactor);
-            console.log(`✅ 2FA deshabilitado para: ${email}`);
+            console.log(`[OK] 2FA deshabilitado para: ${email}`);
         } else {
-            console.log(`ℹ️  El usuario ${email} no tenía 2FA habilitado`);
+            console.log(`[INFO] El usuario ${email} no tenía 2FA habilitado`);
         }
     } catch (error) {
         console.error('Error:', error);
@@ -77,8 +77,8 @@ async function createSuperUsers() {
         await createSystemRoles(roleRepository);
         await createSuperAdminsFromEnv(userRepository, twoFactorRepository, roleRepository);
 
-        console.log('\n🎉 Inicialización completada exitosamente');
-        console.log('\n📝 NOTAS IMPORTANTES:');
+        console.log('\n[SUCCESS] Inicialización completada exitosamente');
+        console.log('\n[NOTE] NOTAS IMPORTANTES:');
         console.log('   • El 2FA está DESHABILITADO por defecto para nuevos usuarios');
         console.log('   • Los usuarios pueden habilitar 2FA desde la aplicación usando /auth/setup-2fa');
         console.log('   • Para testing, usa login directo sin twoFactorCode');
@@ -98,7 +98,7 @@ async function createSystemRoles(roleRepository: any) {
         if (!existingRole) {
             const role = new Role(0, roleName);
             await roleRepository.save(role);
-            console.log(`✅ Rol creado: ${roleName}`);
+            console.log(`[OK] Rol creado: ${roleName}`);
         } else {
             console.log(`ℹ️  Rol ya existe: ${roleName}`);
         }
@@ -169,20 +169,20 @@ async function createOrVerifyUser(adminData: any, userRepository: any, twoFactor
         );
 
         await userRepository.save(superAdmin);
-        console.log(`✅ Super administrador creado:`);
-        console.log(`   📧 Email: ${adminData.email}`);
-        console.log(`   🔑 Password: ${adminData.password}`);
-        console.log(`   🔒 2FA: DESHABILITADO (se activa manualmente desde la app)`);
-        console.log(`   ⚠️  IMPORTANTE: Cambiar la contraseña después del primer login!`);
+        console.log(`[OK] Super administrador creado:`);
+        console.log(`   [EMAIL] Email: ${adminData.email}`);
+        console.log(`   [PASSWORD] Password: ${adminData.password}`);
+        console.log(`   [LOCK] 2FA: DESHABILITADO (se activa manualmente desde la app)`);
+        console.log(`   [WARNING] IMPORTANTE: Cambiar la contraseña después del primer login!`);
     } else {
         console.log(`ℹ️  Super administrador ya existe: ${adminData.email}`);
 
         const twoFactor = await twoFactorRepository.findOne({ where: { userId: existingUser.id } });
 
         if (twoFactor && twoFactor.tfaEnabled) {
-            console.log('   🔐 2FA: HABILITADO - Para testing, deshabilitar desde la app o base de datos');
+            console.log('   [SECURE] 2FA: HABILITADO - Para testing, deshabilitar desde la app o base de datos');
         } else {
-            console.log('   🔒 2FA: DESHABILITADO - Listo para login directo');
+            console.log('   [LOCK] 2FA: DESHABILITADO - Listo para login directo');
         }
     }
 }
@@ -192,10 +192,10 @@ if (require.main === module) {
 
     if (args.length > 0 && args[0] === 'disable-2fa') {
         const email = args[1] || 'antony.mongelopez@ucr.ac.cr';
-        console.log(`🔧 Deshabilitando 2FA para: ${email}`);
+        console.log(`[TOOL] Deshabilitando 2FA para: ${email}`);
         disable2FAForUser(email);
     } else {
-        console.log('🚀 Iniciando creación/verificación de usuarios administradores...');
+        console.log('[START] Iniciando creación/verificación de usuarios administradores...');
         createSuperUsers();
     }
 }
