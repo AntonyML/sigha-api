@@ -6,12 +6,8 @@ import { UserSession } from '../src/ucr/ac/cr/ie/domain/auth/sessions/user-sessi
 import { UserTwoFactor } from '../src/ucr/ac/cr/ie/domain/auth/security/user-two-factor.entity';
 import { PasswordUtil } from '../src/ucr/ac/cr/ie/common/utils/password.util';
 
-// Cargar variables de entorno
 config();
 
-/**
- * Función auxiliar para deshabilitar 2FA de un usuario específico (útil para testing)
- */
 async function disable2FAForUser(email: string) {
     const dataSource = new DataSource({
         type: 'mysql',
@@ -26,16 +22,16 @@ async function disable2FAForUser(email: string) {
 
     try {
         await dataSource.initialize();
-        
+
         const userRepository = dataSource.getRepository(User);
         const twoFactorRepository = dataSource.getRepository(UserTwoFactor);
-        
+
         const user = await userRepository.findOne({ where: { uEmail: email } });
         if (!user) {
             console.log(`❌ Usuario no encontrado: ${email}`);
             return;
         }
-        
+
         const twoFactor = await twoFactorRepository.findOne({ where: { userId: user.id } });
         if (twoFactor) {
             await twoFactorRepository.remove(twoFactor);
@@ -58,7 +54,7 @@ async function createSuperUsers() {
     console.log('DB_PASSWORD:', process.env.DB_PASSWORD ? '[SET]' : 'undefined');
     console.log('DB_NAME:', process.env.DB_NAME || 'undefined');
     console.log();
-    
+
     const dataSource = new DataSource({
         type: 'mysql',
         host: process.env.DB_HOST || 'localhost',
@@ -78,108 +74,8 @@ async function createSuperUsers() {
         const userRepository = dataSource.getRepository(User);
         const twoFactorRepository = dataSource.getRepository(UserTwoFactor);
 
-        // Crear roles del sistema
-        console.log('\n=== VERIFICANDO ROLES DEL SISTEMA ===');
-        const systemRoles = Object.values(RoleType);
-        for (const roleName of systemRoles) {
-            const existingRole = await roleRepository.findOne({ where: { rName: roleName } });
-            if (!existingRole) {
-                const role = new Role(0, roleName);
-                await roleRepository.save(role);
-                console.log(`✅ Rol creado: ${roleName}`);
-            } else {
-                console.log(`ℹ️  Rol ya existe: ${roleName}`);
-            }
-        }
-
-        console.log('\n=== VERIFICANDO USUARIOS ADMINISTRADORES ===');
-        
-        // Crear usuario super admin
-        const superAdminRole = await roleRepository.findOne({ where: { rName: RoleType.SUPER_ADMIN } });
-        if (superAdminRole) {
-            const existingSuperAdmin = await userRepository.findOne({
-                where: { uEmail: 'superadmin@hogarancianos.com' }
-            });
-
-            if (!existingSuperAdmin) {
-                const hashedPassword = await PasswordUtil.hash('SuperAdmin123!');
-                const superAdmin = new User(
-                    0,
-                    'SUPER-ADMIN-001',
-                    'Super',
-                    'Administrator',
-                    'superadmin@hogarancianos.com',
-                    hashedPassword,
-                    superAdminRole.id,
-                    undefined,
-                    true,
-                    true
-                );
-
-                await userRepository.save(superAdmin);
-                console.log('✅ Super administrador creado:');
-                console.log('   📧 Email: superadmin@hogarancianos.com');
-                console.log('   🔑 Password: SuperAdmin123!');
-                console.log('   🔒 2FA: DESHABILITADO (se activa manualmente desde la app)');
-                console.log('   ⚠️  IMPORTANTE: Cambiar la contraseña después del primer login!');
-            } else {
-                console.log('ℹ️  Super administrador ya existe: superadmin@hogarancianos.com');
-                
-                // Verificar estado del 2FA
-                const twoFactor = await twoFactorRepository.findOne({
-                    where: { userId: existingSuperAdmin.id }
-                });
-                
-                if (twoFactor && twoFactor.tfaEnabled) {
-                    console.log('   🔐 2FA: HABILITADO - Para testing, deshabilitar desde la app o base de datos');
-                } else {
-                    console.log('   🔒 2FA: DESHABILITADO - Listo para login directo');
-                }
-            }
-        }
-
-        // Crear usuario admin
-        const adminRole = await roleRepository.findOne({ where: { rName: RoleType.ADMIN } });
-        if (adminRole) {
-            const existingAdmin = await userRepository.findOne({
-                where: { uEmail: 'admin@hogarancianos.com' }
-            });
-
-            if (!existingAdmin) {
-                const hashedPassword = await PasswordUtil.hash('Admin123!');
-                const admin = new User(
-                    0,
-                    'ADMIN-001',
-                    'Administrador',
-                    'Sistema',
-                    'admin@hogarancianos.com',
-                    hashedPassword,
-                    adminRole.id,
-                    undefined,
-                    true,
-                    true
-                );
-
-                await userRepository.save(admin);
-                console.log('✅ Administrador creado:');
-                console.log('   📧 Email: admin@hogarancianos.com');
-                console.log('   🔑 Password: Admin123!');
-                console.log('   🔒 2FA: DESHABILITADO (se activa manualmente desde la app)');
-            } else {
-                console.log('ℹ️  Administrador ya existe: admin@hogarancianos.com');
-                
-                // Verificar estado del 2FA
-                const twoFactor = await twoFactorRepository.findOne({
-                    where: { userId: existingAdmin.id }
-                });
-                
-                if (twoFactor && twoFactor.tfaEnabled) {
-                    console.log('   🔐 2FA: HABILITADO - Para testing, deshabilitar desde la app o base de datos');
-                } else {
-                    console.log('   🔒 2FA: DESHABILITADO - Listo para login directo');
-                }
-            }
-        }
+        await createSystemRoles(roleRepository);
+        await createSuperAdminsFromEnv(userRepository, twoFactorRepository, roleRepository);
 
         console.log('\n🎉 Inicialización completada exitosamente');
         console.log('\n📝 NOTAS IMPORTANTES:');
@@ -194,12 +90,108 @@ async function createSuperUsers() {
     }
 }
 
-// Script ejecutable desde línea de comandos
+async function createSystemRoles(roleRepository: any) {
+    console.log('\n=== VERIFICANDO ROLES DEL SISTEMA ===');
+    const systemRoles = Object.values(RoleType);
+    for (const roleName of systemRoles) {
+        const existingRole = await roleRepository.findOne({ where: { rName: roleName } });
+        if (!existingRole) {
+            const role = new Role(0, roleName);
+            await roleRepository.save(role);
+            console.log(`✅ Rol creado: ${roleName}`);
+        } else {
+            console.log(`ℹ️  Rol ya existe: ${roleName}`);
+        }
+    }
+}
+
+async function createSuperAdminsFromEnv(userRepository: any, twoFactorRepository: any, roleRepository: any) {
+    console.log('\n=== VERIFICANDO USUARIOS SUPER ADMINISTRADORES ===');
+
+    const superAdminRole = await roleRepository.findOne({ where: { rName: RoleType.SUPER_ADMIN } });
+    if (!superAdminRole) return;
+
+    const superAdmins = getSuperAdminsFromEnv();
+
+    for (const adminData of superAdmins) {
+        await createOrVerifyUser(adminData, userRepository, twoFactorRepository, superAdminRole.id);
+    }
+}
+
+function getSuperAdminsFromEnv() {
+    return [
+        {
+            code: process.env.SUPER_ADMIN_1_CODE || '604700548',
+            firstName: process.env.SUPER_ADMIN_1_FIRST_NAME || 'Antony',
+            lastName: process.env.SUPER_ADMIN_1_LAST_NAME || 'Monge',
+            secondLastName: process.env.SUPER_ADMIN_1_SECOND_LAST_NAME || 'Lopez',
+            email: process.env.SUPER_ADMIN_1_EMAIL || 'antony.mongelopez@ucr.ac.cr',
+            employeeCode: process.env.SUPER_ADMIN_1_EMPLOYEE_CODE || 'C36589',
+            password: process.env.SUPER_ADMIN_1_PASSWORD || '***REMOVED***'
+        },
+        {
+            code: process.env.SUPER_ADMIN_2_CODE || 'C35380',
+            firstName: process.env.SUPER_ADMIN_2_FIRST_NAME || 'Luis',
+            lastName: process.env.SUPER_ADMIN_2_LAST_NAME || 'Rivera',
+            secondLastName: process.env.SUPER_ADMIN_2_SECOND_LAST_NAME || 'Lopez',
+            email: process.env.SUPER_ADMIN_2_EMAIL || 'luis.riveralopez@ucr.ac.cr',
+            employeeCode: process.env.SUPER_ADMIN_2_EMPLOYEE_CODE || 'C35380',
+            password: process.env.SUPER_ADMIN_2_PASSWORD || '***REMOVED***'
+        },
+        {
+            code: process.env.SUPER_ADMIN_3_CODE || 'JMF001',
+            firstName: process.env.SUPER_ADMIN_3_FIRST_NAME || 'Jonathan',
+            lastName: process.env.SUPER_ADMIN_3_LAST_NAME || 'Moreno',
+            secondLastName: process.env.SUPER_ADMIN_3_SECOND_LAST_NAME || 'Fajardo',
+            email: process.env.SUPER_ADMIN_3_EMAIL || 'jonathanfajardo406@gmail.com',
+            employeeCode: process.env.SUPER_ADMIN_3_EMPLOYEE_CODE || 'JMF001',
+            password: process.env.SUPER_ADMIN_3_PASSWORD || '***REMOVED***'
+        }
+    ];
+}
+
+async function createOrVerifyUser(adminData: any, userRepository: any, twoFactorRepository: any, roleId: number) {
+    const existingUser = await userRepository.findOne({ where: { uEmail: adminData.email } });
+
+    if (!existingUser) {
+        const hashedPassword = await PasswordUtil.hash(adminData.password);
+        const superAdmin = new User(
+            0,
+            adminData.employeeCode,
+            adminData.firstName,
+            adminData.lastName,
+            adminData.email,
+            hashedPassword,
+            roleId,
+            adminData.secondLastName,
+            true,
+            true
+        );
+
+        await userRepository.save(superAdmin);
+        console.log(`✅ Super administrador creado:`);
+        console.log(`   📧 Email: ${adminData.email}`);
+        console.log(`   🔑 Password: ${adminData.password}`);
+        console.log(`   🔒 2FA: DESHABILITADO (se activa manualmente desde la app)`);
+        console.log(`   ⚠️  IMPORTANTE: Cambiar la contraseña después del primer login!`);
+    } else {
+        console.log(`ℹ️  Super administrador ya existe: ${adminData.email}`);
+
+        const twoFactor = await twoFactorRepository.findOne({ where: { userId: existingUser.id } });
+
+        if (twoFactor && twoFactor.tfaEnabled) {
+            console.log('   🔐 2FA: HABILITADO - Para testing, deshabilitar desde la app o base de datos');
+        } else {
+            console.log('   🔒 2FA: DESHABILITADO - Listo para login directo');
+        }
+    }
+}
+
 if (require.main === module) {
     const args = process.argv.slice(2);
-    
+
     if (args.length > 0 && args[0] === 'disable-2fa') {
-        const email = args[1] || 'superadmin@hogarancianos.com';
+        const email = args[1] || 'antony.mongelopez@ucr.ac.cr';
         console.log(`🔧 Deshabilitando 2FA para: ${email}`);
         disable2FAForUser(email);
     } else {

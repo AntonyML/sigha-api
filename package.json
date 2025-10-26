@@ -49,7 +49,7 @@
     "test:white": "playwright test --project=auth-white-box",
     "test:all": "playwright test --project=auth-all",
     "test:report": "playwright show-report",
-    "setup:users": "ts-node scripts/create-super-users.ts",
+    "setup:users": "ts-node scripts/create-super-users.ts", 
     "disable:2fa": "ts-node scripts/disable-2fa.ts",
     "disable:2fa:admin": "ts-node scripts/disable-2fa.ts admin@hogarancianos.com",
     "disable:2fa:superadmin": "ts-node scripts/disable-2fa.ts superadmin@hogarancianos.com"

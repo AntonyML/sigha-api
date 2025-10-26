@@ -1,0 +1,55 @@
+Síntesis Integrada: Páginas Principales, Funciones Transversales y Endpoints para Auditoría en Frontend
+
+Aquí te dejo una síntesis integrada de las **páginas principales** del frontend para auditoría, combinando las **funciones transversales** (comunes en todas) y los **endpoints específicos** del backend que ya existen. Esto te ayuda a mapear directamente qué implementar en el frontend (ej. en React o similar) y cómo consumir los endpoints. Asumiendo que el frontend maneja autenticación JWT, cada endpoint requiere el header `Authorization: Bearer <token>` y valida roles.
+
+### Páginas Principales (con Funciones y Endpoints Asociados)
+Cada página tiene funciones clave, y listo los endpoints exactos para consumir datos. Los roles se validan en el backend (ej. super admin ve todo, nurse solo ciertas cosas).
+
+1. **Página de Dashboard de Auditoría** (Vista general rápida para detectar anomalías)
+   - **Funciones clave**: Mostrar estadísticas resumidas (total acciones, por tipo/entidad, top usuarios), actividad reciente (últimas 10 acciones), gráficos simples (barras/pasteles), filtros por rango de fechas.
+   - **Endpoints específicos**:
+     - `GET /audits/stats` (opcional: `?startDate=2025-10-01&endDate=2025-10-25`) → Devuelve JSON con `totalActions`, `actionsByType` (ej. {"CREATE": 150}), `actionsByEntity`, `topUsers`, `recentActivity`. Roles: super admin, admin, director.
+   - **Cómo usar en frontend**: Llama al endpoint al cargar la página; actualiza con filtros. Muestra en cards/gráficos.
+
+2. **Página de Registros de Auditoría** (Lista y búsqueda de historial completo)
+   - **Funciones clave**: Lista paginada con filtros (usuario, acción, entidad, fechas, texto), vista detallada por clic, exportar a CSV/PDF, enlaces a sub-vistas (por usuario/entidad).
+   - **Endpoints específicos**:
+     - `GET /audits` o `GET /audits/search` (query: `?userId=1&action=UPDATE&tableName=older_adult&startDate=2025-10-01&endDate=2025-10-25&page=1&limit=50`) → Lista paginada de registros (usuario, acción, tabla, fecha, descripción). Roles: super admin, admin, director.
+     - `GET /audits/user/:userId` (ej. `/audits/user/5`) → Registros de un usuario específico.
+     - `GET /audits/entity/:entity/:entityId` (ej. `/audits/entity/older_adult/123`) → Registros de una entidad específica.
+     - `GET /audits/:id` (ej. `/audits/100`) → Detalle de un registro (incluye user info).
+   - **Cómo usar en frontend**: Usa filtros para construir query params; pagina con `page` y `limit`. Exporta convirtiendo JSON a CSV.
+
+3. **Página de Historial de Adultos Mayores** (Cambios en datos de pacientes)
+   - **Funciones clave**: Lista de cambios por paciente (campo, antes/después, quién cambió), filtros (paciente, campo, usuario, fechas), vista comparativa (diff visual), notificaciones de cambios recientes.
+   - **Endpoints específicos**:
+     - `GET /audits/older-adult-updates` (query: `?olderAdultId=123&fieldChanged=nombre&changedBy=5&startDate=2025-10-01&endDate=2025-10-25&page=1&limit=50`) → Lista paginada de actualizaciones (campo cambiado, valores, fecha, usuario). Roles: super admin, admin, director, nurse, physiotherapist, psychologist, social worker.
+   - **Cómo usar en frontend**: Filtra por paciente; muestra diffs con colores (rojo para cambios).
+
+4. **Página de Reportes de Auditoría** (Generación y consulta de reportes formales)
+   - **Funciones clave**: Formulario para generar reporte (tipo, fechas), lista de reportes generados, vista detallada con datos tabulados, exportar, eliminar (solo super admin).
+   - **Endpoints específicos**:
+     - `POST /audits/reports` (body: `{"type": "GENERAL_ACTIONS", "startDate": "2025-10-01", "endDate": "2025-10-25"}`) → Genera reporte y devuelve ID/número. Roles: super admin, admin, director.
+     - `GET /audits/reports` (opcional: `?type=GENERAL_ACTIONS&startDate=...&endDate=...`) → Lista de reportes (ID, tipo, fechas, generado por).
+     - `GET /audits/reports/:id` (ej. `/audits/reports/1`) → Detalles del reporte (datos tabulados, total registros).
+     - `DELETE /audits/reports/:id` → Elimina reporte (sin body). Roles: solo super admin.
+   - **Cómo usar en frontend**: POST para generar (muestra progreso); GET para listar/ver; DELETE con confirmación.
+
+5. **Página de Historial de Registros Digitales** (Cambios en documentos específicos)
+   - **Funciones clave**: Buscar por ID de registro, mostrar historial paginado (acción, cambios, metadatos), filtros (acción, fechas), vista timeline con diffs.
+   - **Endpoints específicos**:
+     - `GET /audits/digital-records/:recordId/history` (ej. `/audits/digital-records/123/history?page=1&limit=50&action=UPDATE&dateFrom=2025-10-01&dateTo=2025-10-25`) → Historial con cambios (antes/después), user, IP, etc. Roles: super admin, admin, director, nurse.
+   - **Cómo usar en frontend**: Input para ID; muestra timeline con JSON diffs parseados.
+
+### Funciones Transversales (Comunes en Todas las Páginas)
+Estas se aplican a todas las páginas y usan endpoints donde aplica. Implementa como componentes reutilizables (ej. en React hooks).
+- **Autenticación y Roles**: Verifica token JWT al cargar página (ej. con un hook). Si 403, redirige o muestra error. No expongas datos sin permisos.
+- **Filtros y Búsqueda Global**: Componente con dropdowns (ej. para usuarios/acciones), datepickers, input de texto. Construye query params para endpoints (ej. `?startDate=...`). Actualiza lista en tiempo real (debounced).
+- **Paginación y Carga**: Para listas, usa `page` y `limit` en query. Spinner durante fetch. "Cargar más" para UX.
+- **Exportar Datos**: Botón que toma JSON del endpoint y genera CSV/PDF (librerías como `react-csv` o `jspdf`).
+- **Notificaciones**: Toast para errores (ej. "Fecha inválida" si 400) o éxito (ej. "Reporte generado"). Maneja códigos HTTP (401: "Sesión expirada", 404: "No encontrado").
+- **Responsive y UX**: Diseño móvil (enfermeras usan tablets). Iconos (lupa para búsqueda), colores (verde OK, rojo deletes), tooltips explicativos.
+- **Logging Automático**: Para acciones críticas (ej. generar reporte), llama `POST /audits/log` (body: `{"type": "GENERAL_ACTIONS", "action": "GENERATE_REPORT", "entityName": "audit_report", "entityId": 1, "observations": "Generado desde frontend"}`) para registrar en backend. Roles: varios.
+- **Manejo de Errores**: Intercepta respuestas (ej. con Axios interceptors) y muestra mensajes user-friendly.
+
+Esto te da un mapa completo: cada página consume endpoints específicos, y las transversales unen todo. Si implementas en React, por ejemplo, usa `useEffect` para fetches y `useState` para filtros. ¿Quieres un ejemplo de código para consumir un endpoint específico?
