@@ -12,7 +12,6 @@ export class ClinicalConditionsService {
 
     async createClinicalCondition(createClinicalConditionDto: CreateClinicalConditionDto): Promise<{ message: string; data: ClinicalCondition }> {
         try {
-            // Check if clinical condition with the same name already exists
             const existingCondition = await this.clinicalConditionRepository.findOne({
                 where: { ccName: createClinicalConditionDto.ccName }
             });
@@ -21,7 +20,6 @@ export class ClinicalConditionsService {
                 throw new ConflictException('A clinical condition with this name already exists');
             }
 
-            // Create new clinical condition
             const newCondition = new ClinicalCondition(
                 undefined,
                 createClinicalConditionDto.ccName

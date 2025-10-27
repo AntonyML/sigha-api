@@ -12,7 +12,6 @@ export class VaccinesService {
 
     async createVaccine(createVaccineDto: CreateVaccineDto): Promise<{ message: string; data: Vaccine }> {
         try {
-            // Check if vaccine with the same name already exists
             const existingVaccine = await this.vaccineRepository.findOne({
                 where: { vName: createVaccineDto.vName }
             });
@@ -21,7 +20,6 @@ export class VaccinesService {
                 throw new ConflictException('A vaccine with this name already exists');
             }
 
-            // Create new vaccine
             const newVaccine = new Vaccine(
                 undefined,
                 createVaccineDto.vName

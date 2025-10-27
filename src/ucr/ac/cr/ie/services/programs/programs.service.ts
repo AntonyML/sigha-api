@@ -15,7 +15,6 @@ export class ProgramsService {
 
     async createProgram(createProgramDto: CreateProgramDto): Promise<{ message: string; data: Program }> {
         try {
-            // Check if program with the same name already exists
             const existingProgram = await this.programRepository.findOne({
                 where: { pName: createProgramDto.pName }
             });
@@ -24,7 +23,6 @@ export class ProgramsService {
                 throw new ConflictException('A program with this name already exists');
             }
 
-            // Create new program
             const newProgram = new Program(
                 undefined,
                 createProgramDto.pName
@@ -50,7 +48,6 @@ export class ProgramsService {
 
     async createSubProgram(createSubProgramDto: CreateSubProgramDto): Promise<{ message: string; data: SubProgram }> {
         try {
-            // Check if the program exists
             const program = await this.programRepository.findOne({
                 where: { id: createSubProgramDto.idProgram }
             });
@@ -59,7 +56,6 @@ export class ProgramsService {
                 throw new NotFoundException(`Program with ID ${createSubProgramDto.idProgram} not found`);
             }
 
-            // Check if sub-program with the same name already exists for this program
             const existingSubProgram = await this.subProgramRepository.findOne({
                 where: { 
                     spName: createSubProgramDto.spName,
@@ -71,7 +67,6 @@ export class ProgramsService {
                 throw new ConflictException('A sub-program with this name already exists for this program');
             }
 
-            // Create new sub-program
             const newSubProgram = new SubProgram(
                 undefined,
                 createSubProgramDto.spName,
