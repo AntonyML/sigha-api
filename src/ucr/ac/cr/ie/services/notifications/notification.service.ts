@@ -19,7 +19,7 @@ export class NotificationService {
      * Crear una nueva notificación
      */
     async create(createNotificationDto: CreateNotificationDto, userId: number): Promise<Notification> {
-        const { nTitle, nMessage, nSendDate, attachments } = createNotificationDto;
+        const { nTitle, nMessage, nSendDate, nSent, attachments } = createNotificationDto;
 
         // Validar tamaño de archivos adjuntos (máximo 5MB total)
         if (attachments && attachments.length > 0) {
@@ -37,7 +37,7 @@ export class NotificationService {
             nTitle,
             nMessage,
             nSendDate: sendDate,
-            nSent: false,
+            nSent: nSent ?? false,
             idSender: userId,
         });
 

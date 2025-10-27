@@ -3,7 +3,7 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@ne
 import { NotificationService } from '../../services/notifications';
 import { CreateNotificationDto, UpdateNotificationDto, SearchNotificationDto } from '../../dto/notifications';
 import { JwtAuthGuard, RolesGuard } from '../../common/guards';
-import { Roles } from '../../common/decorators';
+import { Roles, Public } from '../../common/decorators';
 import { RoleType } from '../../domain/auth/core/role.entity';
 
 @ApiTags('Notificaciones')
@@ -14,7 +14,7 @@ export class NotificationController {
     constructor(private readonly notificationService: NotificationService) { }
 
     @Post()
-    @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.DIRECTOR)
+    @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.DIRECTOR, RoleType.NURSE, RoleType.PHYSIOTHERAPIST, RoleType.PSYCHOLOGIST, RoleType.SOCIAL_WORKER)
     @ApiOperation({
         summary: 'Crear nueva notificación',
         description: 'Crea una nueva notificación con posibles archivos adjuntos.'

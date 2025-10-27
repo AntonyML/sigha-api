@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsDateString, MaxLength, IsArray, ValidateNested } from 'class-validator';
+import { IsString, IsOptional, IsDateString, MaxLength, IsArray, ValidateNested, IsBoolean } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 
@@ -57,6 +57,14 @@ export class CreateNotificationDto {
     @IsOptional()
     @IsDateString({}, { message: 'La fecha de envío debe estar en formato ISO 8601' })
     nSendDate?: string;
+
+    @ApiPropertyOptional({
+        description: 'Estado de envío',
+        example: false
+    })
+    @IsOptional()
+    @IsBoolean({ message: 'El estado de envío debe ser un booleano' })
+    nSent?: boolean;
 
     @ApiPropertyOptional({
         description: 'Archivos adjuntos',

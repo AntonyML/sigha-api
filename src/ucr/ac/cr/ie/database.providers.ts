@@ -21,6 +21,7 @@ import {
     OlderAdultSubprogram, 
     EmergencyContact 
 } from './domain/virtual-records';
+import { Notification, NotificationAttachment } from './domain/notifications';
 
 export const databaseProviders = [
     {
@@ -56,6 +57,8 @@ export const databaseProviders = [
                     VaccinesAndClinicalHistory,
                     OlderAdultSubprogram,
                     EmergencyContact,
+                    Notification,
+                    NotificationAttachment,
                 ],
                 synchronize: false,
                 logging: process.env.NODE_ENV === 'development',
