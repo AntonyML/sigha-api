@@ -2,8 +2,8 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsArray, IsNotEmpty, IsObject, IsString } from 'class-validator';
 import { ContactDto } from './contact.dto';
 
-class NotificationBody6CodesDto {
-  @ApiProperty({ example: '6_codes_2fa_email' })
+class NotificationBody8CodesDto {
+  @ApiProperty({ example: '8_codes_2fa_email' })
   @IsString()
   id: string;
 
@@ -24,6 +24,8 @@ class NotificationBody6CodesDto {
     codigo_4?: string;
     codigo_5?: string;
     codigo_6?: string;
+    codigo_7?: string;
+    codigo_8?: string;
     url_accion?: string;
     texto_boton?: string;
     tiempo_expiracion?: string;
@@ -43,12 +45,12 @@ class NotificationBody6CodesDto {
   email_options?: Record<string, any>;
 }
 
-export class Send6Codes2FADto {
+export class Send8Codes2FADto {
   @ApiProperty({ example: 'proyectoanalisis' })
   @IsString()
   workspace_id: string;
 
-  @ApiProperty({ type: NotificationBody6CodesDto })
+  @ApiProperty({ type: NotificationBody8CodesDto })
   @IsObject()
-  notification: NotificationBody6CodesDto;
+  notification: NotificationBody8CodesDto;
 }

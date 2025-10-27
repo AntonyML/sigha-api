@@ -11,9 +11,9 @@ export class NotifuseService {
   ) {}
 
   /**
-   * Facade method used by controllers to send the 6-codes 2FA template
+   * Facade method used by controllers to send the 8-codes 2FA template
    */
-  async send6Codes2FA(userId: number | null, payload: any): Promise<any> {
+  async send8Codes2FA(userId: number | null, payload: any): Promise<any> {
     const normalized = this.normalizePayload(payload);
     const res = await this.notifuseHttp.sendTransactional(normalized);
 
@@ -22,7 +22,7 @@ export class NotifuseService {
       await this.auditService.createDigitalRecord(userId || 0, {
         action: AuditAction.CREATE,
         tableName: 'notifications',
-        description: `Send 6_codes_2fa id=${payload?.notification?.id || 'unknown'}`,
+        description: `Send 8_codes_2fa id=${payload?.notification?.id || 'unknown'}`,
       });
     } catch (e) {
       // swallow
