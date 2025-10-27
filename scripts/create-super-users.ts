@@ -100,7 +100,7 @@ async function createSystemRoles(roleRepository: any) {
             await roleRepository.save(role);
             console.log(`[OK] Rol creado: ${roleName}`);
         } else {
-            console.log(`ℹ️  Rol ya existe: ${roleName}`);
+            console.log(`Rol ya existe: ${roleName}`);
         }
     }
 }
@@ -175,7 +175,7 @@ async function createOrVerifyUser(adminData: any, userRepository: any, twoFactor
         console.log(`   [LOCK] 2FA: DESHABILITADO (se activa manualmente desde la app)`);
         console.log(`   [WARNING] IMPORTANTE: Cambiar la contraseña después del primer login!`);
     } else {
-        console.log(`ℹ️  Super administrador ya existe: ${adminData.email}`);
+        console.log(`Super administrador ya existe: ${adminData.email}`);
 
         const twoFactor = await twoFactorRepository.findOne({ where: { userId: existingUser.id } });
 

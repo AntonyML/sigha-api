@@ -15,4 +15,4 @@ import { DatabaseModule } from './database.module';
     ],
     exports: [AuditService, AuditLogInterceptor],
 })
-export class AuditModule { }
+export class AuditModule { } 
