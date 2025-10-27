@@ -4,7 +4,7 @@ import { AuditAction } from '../../domain/audit';
 import { NotifuseHttpService } from './notifuse-http.service';
 
 @Injectable()
-export class NotificationsService {
+export class NotifuseService {
   constructor(
     private readonly notifuseHttp: NotifuseHttpService,
     private readonly auditService: AuditService,
@@ -27,7 +27,7 @@ export class NotificationsService {
     } catch (e) {
       // swallow
       // eslint-disable-next-line no-console
-      console.error('Audit error (notifications):', e);
+      console.error('Audit error (notifuse):', e);
     }
 
     return res;
@@ -48,7 +48,7 @@ export class NotificationsService {
       });
     } catch (e) {
       // eslint-disable-next-line no-console
-      console.error('Audit error (notifications):', e);
+      console.error('Audit error (notifuse):', e);
     }
 
     return res;

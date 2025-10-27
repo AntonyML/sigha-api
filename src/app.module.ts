@@ -11,6 +11,7 @@ import { VirtualRecordsModule } from './ucr/ac/cr/ie/virtual-records.module';
 import { ProgramsModule } from './ucr/ac/cr/ie/programs.module';
 import { ClinicalConditionsModule } from './ucr/ac/cr/ie/clinical-conditions.module';
 import { VaccinesModule } from './ucr/ac/cr/ie/vaccines.module';
+import { NotifuseModule } from './ucr/ac/cr/ie/notifuse.module';
 import { NotificationsModule } from './ucr/ac/cr/ie/notifications.module';
 import { JwtAuthGuard } from './ucr/ac/cr/ie/common/guards/jwt-auth.guard';
 
@@ -29,6 +30,7 @@ import { JwtAuthGuard } from './ucr/ac/cr/ie/common/guards/jwt-auth.guard';
     ProgramsModule,
     ClinicalConditionsModule,
     VaccinesModule,
+    NotifuseModule,
     NotificationsModule,
   ],
   providers: [

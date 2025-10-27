@@ -24,3 +24,9 @@ export * from './clinical-conditions';
 
 // Vaccines DTOs
 export * from './vaccines';
+
+// Notifuse DTOs
+export * from './notifuse';
+
+// Notifications DTOs
+export * from './notifications';
