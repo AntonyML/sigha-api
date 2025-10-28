@@ -3,6 +3,7 @@ import { User } from '../../domain/auth/core/user.entity';
 import { Role } from '../../domain/auth/core/role.entity';
 import { UserSession } from '../../domain/auth/sessions/user-session.entity';
 import { UserTwoFactor } from '../../domain/auth/security/user-two-factor.entity';
+import { PasswordResetToken } from '../../domain/auth/tokens/password-reset-token.entity';
 
 export const authProviders = [
     {
@@ -23,6 +24,11 @@ export const authProviders = [
     {
         provide: 'UserTwoFactorRepository',
         useFactory: (dataSource: DataSource) => dataSource.getRepository(UserTwoFactor),
+        inject: ['DataSource'],
+    },
+    {
+        provide: 'PasswordResetTokenRepository',
+        useFactory: (dataSource: DataSource) => dataSource.getRepository(PasswordResetToken),
         inject: ['DataSource'],
     },
 ];

@@ -7,11 +7,13 @@ import { AuthController } from './controller/auth/auth.controller';
 import { authProviders } from './repository/auth/auth.providers';
 import { DatabaseModule } from './database.module';
 import { StartupService } from './services/startup.service';
+import { NotifuseModule } from './notifuse.module';
 
 @Global()
 @Module({
     imports: [
         DatabaseModule,
+        NotifuseModule,
         PassportModule,
         JwtModule.registerAsync({
             useFactory: (configService: ConfigService) => ({

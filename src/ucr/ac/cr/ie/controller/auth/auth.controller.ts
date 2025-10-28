@@ -3,6 +3,7 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagg
 import { AuthService, LoginDto } from '../../services/auth/auth.service';
 import { JwtAuthGuard, TwoFactorGuard } from '../../common/guards';
 import { Public, Require2FA } from '../../common/decorators';
+import { ForgotPasswordDto, ResetPasswordDto } from '../../dto/auth';
 
 @ApiTags('Autenticación')
 @Controller('auth')
@@ -159,5 +160,37 @@ export class AuthController {
     @ApiResponse({ status: 401, description: 'No autenticado' })
     async get2FAStatus(@Request() req) {
         return await this.authService.get2FAStatus(req.user.userId);
+    }
+
+    @Public()
+    @Post('forgot-password')
+    @HttpCode(200)
+    @ApiOperation({
+        summary: 'Solicitar recuperación de contraseña',
+        description: 'Envía un código temporal de 18 caracteres al email para recuperar la contraseña.'
+    })
+    @ApiResponse({
+        status: 200,
+        description: 'Código enviado si el email existe'
+    })
+    @ApiResponse({ status: 400, description: 'Datos inválidos' })
+    async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+        return await this.authService.forgotPassword(forgotPasswordDto);
+    }
+
+    @Public()
+    @Post('reset-password')
+    @HttpCode(200)
+    @ApiOperation({
+        summary: 'Resetear contraseña con código temporal',
+        description: 'Valida el código de 18 caracteres y actualiza la contraseña.'
+    })
+    @ApiResponse({
+        status: 200,
+        description: 'Contraseña actualizada exitosamente'
+    })
+    @ApiResponse({ status: 400, description: 'Token inválido o expirado' })
+    async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+        return await this.authService.resetPassword(resetPasswordDto);
     }
 }

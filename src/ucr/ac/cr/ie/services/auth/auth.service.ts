@@ -1,15 +1,17 @@
-import { Injectable, UnauthorizedException, BadRequestException, Inject } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException, Inject, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { Repository } from 'typeorm';
 import { User } from '../../domain/auth/core/user.entity';
 import { UserSession } from '../../domain/auth/sessions/user-session.entity';
 import { UserTwoFactor } from '../../domain/auth/security/user-two-factor.entity';
+import { PasswordResetToken } from '../../domain/auth/tokens/password-reset-token.entity';
 import { PasswordUtil, DateUtil, TwoFactorUtil } from '../../common/utils';
-import { LoginDto } from '../../dto/auth';
+import { LoginDto, ForgotPasswordDto, ResetPasswordDto } from '../../dto/auth';
 import { LoginResponse, Setup2FAResponse, Enable2FAResponse, TwoFactorStatusResponse } from '../../interfaces/auth';
-import { SuccessResponse } from '../../interfaces';
+import { SuccessResponse, MessageResponse } from '../../interfaces';
 import * as crypto from 'crypto';
+import { NotifuseService } from '../notifuse/notifuse.service';
 
 @Injectable()
 export class AuthService {
@@ -22,6 +24,9 @@ export class AuthService {
         private sessionRepository: Repository<UserSession>,
         @Inject('UserTwoFactorRepository')
         private twoFactorRepository: Repository<UserTwoFactor>,
+        @Inject('PasswordResetTokenRepository')
+        private passwordResetTokenRepository: Repository<PasswordResetToken>,
+        private readonly notifuseService: NotifuseService,
     ) { }
 
     /**
@@ -327,6 +332,112 @@ export class AuthService {
                 role: user.role.rName,
             },
         };
+    }
+
+    /**
+     * Solicitar recuperación de contraseña
+     */
+    async forgotPassword(forgotPasswordDto: ForgotPasswordDto): Promise<MessageResponse> {
+        const { email } = forgotPasswordDto;
+
+        // Buscar usuario por email
+        const user = await this.userRepository.findOne({
+            where: { uEmail: email, uIsActive: true },
+        });
+
+        if (!user) {
+            // No revelar si el email existe o no por seguridad
+            return { message: 'Si el email existe, se ha enviado un código de recuperación' };
+        }
+
+        // Generar token de 18 caracteres base64
+        const token = crypto.randomBytes(18).toString('base64').slice(0, 18);
+
+        // Hashear el token
+        const tokenHash = await PasswordUtil.hash(token);
+
+        // Expiración: 15 minutos
+        const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
+        // Guardar en BD
+        const resetToken = this.passwordResetTokenRepository.create({
+            userId: user.id,
+            token: tokenHash,
+            expiresAt,
+        });
+        await this.passwordResetTokenRepository.save(resetToken);
+
+        // Enviar email con el token usando notifuse
+        try {
+            await this.notifuseService.sendCodeVerifyEmail(user.id, {
+                workspace_id: 'proyectoanalisis',
+                notification: {
+                    id: 'code_verifiy_email',
+                    contact: {
+                        email: user.uEmail,
+                        first_name: user.uName,
+                        last_name: '', // Asumir no hay apellido
+                    },
+                    data: {
+                        titulo_principal: 'Recuperación de Contraseña',
+                        nombre_usuario: user.uName,
+                        mensaje_contexto: 'Usa este código para resetear tu contraseña.',
+                        codigo_verificacion: token, // El token sin hashear
+                        tiempo_expiracion: '15 minutos',
+                        ubicacion: 'Sistema Hogar de Ancianos',
+                        fecha_hora: new Date().toISOString(),
+                        url_privacidad: 'https://tuapp.com/privacidad',
+                        url_terminos: 'https://tuapp.com/terminos',
+                        url_soporte: 'https://tuapp.com/soporte',
+                    },
+                },
+            });
+        } catch (error) {
+            // Log error but don't fail the request
+            console.error('Error sending reset email:', error);
+        }
+
+        return { message: 'Código de recuperación enviado al email' };
+    }
+
+    /**
+     * Resetear contraseña con token
+     */
+    async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<MessageResponse> {
+        const { token, newPassword } = resetPasswordDto;
+
+        // Buscar token válido (no usado, no expirado)
+        const resetToken = await this.passwordResetTokenRepository.findOne({
+            where: {
+                token: await PasswordUtil.hash(token), // Comparar hash
+                used: false,
+                expiresAt: new Date(Date.now()), // TypeORM maneja > en query
+            },
+            relations: ['user'],
+        });
+
+        if (!resetToken || resetToken.expiresAt < new Date()) {
+            throw new BadRequestException('Token inválido o expirado');
+        }
+
+        // Hashear nueva contraseña
+        const hashedPassword = await PasswordUtil.hash(newPassword);
+
+        // Actualizar contraseña del usuario
+        await this.userRepository.update(resetToken.userId, { uPassword: hashedPassword });
+
+        // Marcar token como usado
+        resetToken.used = true;
+        resetToken.usedAt = new Date();
+        await this.passwordResetTokenRepository.save(resetToken);
+
+        // Opcional: Invalidar sesiones activas del usuario
+        await this.sessionRepository.update(
+            { userId: resetToken.userId, isActive: true },
+            { isActive: false }
+        );
+
+        return { message: 'Contraseña actualizada exitosamente' };
     }
 }
 

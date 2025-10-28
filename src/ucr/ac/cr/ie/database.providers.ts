@@ -4,6 +4,7 @@ import { Role } from './domain/auth/core/role.entity';
 import { UserSession } from './domain/auth/sessions/user-session.entity';
 import { UserTwoFactor } from './domain/auth/security/user-two-factor.entity';
 import { LoginAttempt } from './domain/auth/security/login-attempt.entity';
+import { PasswordResetToken } from './domain/auth/tokens/password-reset-token.entity';
 import { EntranceExit } from './domain/entrances-exits/entrance-exit.entity';
 import { RoleChange } from './domain/roles/role-change.entity';
 import { AuditReport, DigitalRecord, OlderAdultUpdate } from './domain/audit';
@@ -40,6 +41,7 @@ export const databaseProviders = [
                     UserSession,
                     UserTwoFactor,
                     LoginAttempt,
+                    PasswordResetToken,
                     EntranceExit,
                     RoleChange,
                     AuditReport,
