@@ -56,18 +56,12 @@ export class NotificationService {
 
         // Auditoría
         try {
-            await this.auditService.logActionWithSP(
-                userId,
-                AuditReportType.NOTIFICATIONS,
-                AuditAction.CREATE,
-                'notification',
-                savedNotification.id,
-                null,
-                `Notificación "${savedNotification.nTitle}" creada`,
-                null,
-                null,
-                `Creación de nueva notificación`
-            );
+            await this.auditService.createDigitalRecord(userId, {
+                action: AuditAction.CREATE,
+                tableName: 'notification',
+                recordId: savedNotification.id,
+                description: `Notificación "${savedNotification.nTitle}" creada`,
+            });
         } catch (e) {
             console.error('Audit error (notifications):', e);
         }
@@ -164,18 +158,12 @@ export class NotificationService {
 
         // Auditoría
         try {
-            await this.auditService.logActionWithSP(
-                userId,
-                AuditReportType.NOTIFICATIONS,
-                AuditAction.UPDATE,
-                'notification',
-                id,
-                JSON.stringify({ nTitle: notification.nTitle, nMessage: notification.nMessage }),
-                JSON.stringify({ nTitle: updated.nTitle, nMessage: updated.nMessage }),
-                null,
-                null,
-                `Actualización de notificación "${updated.nTitle}"`
-            );
+            await this.auditService.createDigitalRecord(userId, {
+                action: AuditAction.DELETE,
+                tableName: 'notification',
+                recordId: id,
+                description: `Notificación "${notification.nTitle}" eliminada`,
+            });
         } catch (e) {
             console.error('Audit error (notifications):', e);
         }
@@ -197,18 +185,12 @@ export class NotificationService {
 
         // Auditoría
         try {
-            await this.auditService.logActionWithSP(
-                userId,
-                AuditReportType.NOTIFICATIONS,
-                AuditAction.DELETE,
-                'notification',
-                id,
-                `nTitle: ${notification.nTitle}`,
-                null,
-                null,
-                null,
-                `Notificación "${notification.nTitle}" eliminada`
-            );
+            await this.auditService.createDigitalRecord(userId, {
+                action: AuditAction.DELETE,
+                tableName: 'notification',
+                recordId: id,
+                description: `Notificación "${notification.nTitle}" eliminada`,
+            });
         } catch (e) {
             console.error('Audit error (notifications):', e);
         }

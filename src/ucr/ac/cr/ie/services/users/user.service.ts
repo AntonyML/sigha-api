@@ -74,17 +74,14 @@ export class UserService {
 
         // Registrar auditoría de creación de usuario
         // Nota: Aquí no tenemos el ID del usuario que crea, asumiremos que es un admin del sistema
-        await this.auditService.logActionWithSP(
+        await this.auditService.createDigitalRecord(
             1, // Super admin por defecto para creación inicial
-            AuditReportType.GENERAL_ACTIONS,
-            AuditAction.CREATE,
-            'user',
-            savedUser.id,
-            null,
-            `Usuario ${savedUser.uName} ${savedUser.uFLastName} creado`,
-            null,
-            null,
-            `Creación de nuevo usuario con rol ${role.rName}`
+            {
+                action: AuditAction.CREATE,
+                tableName: 'user',
+                recordId: savedUser.id,
+                description: `Usuario ${savedUser.uName} ${savedUser.uFLastName} creado`
+            }
         );
 
         return savedUser;
@@ -201,17 +198,14 @@ export class UserService {
         const savedUser = await this.userRepository.save(user);
 
         // Registrar auditoría de actualización de usuario
-        await this.auditService.logActionWithSP(
+        await this.auditService.createDigitalRecord(
             changedBy || 1, // Usuario que hace el cambio
-            AuditReportType.GENERAL_ACTIONS,
-            AuditAction.UPDATE,
-            'user',
-            savedUser.id,
-            JSON.stringify({ roleId: user.roleId, uEmail: user.uEmail }), // Valores anteriores
-            JSON.stringify({ roleId: savedUser.roleId, uEmail: savedUser.uEmail }), // Valores nuevos
-            null,
-            null,
-            `Actualización de usuario ${savedUser.uName} ${savedUser.uFLastName}`
+            {
+                action: AuditAction.UPDATE,
+                tableName: 'user',
+                recordId: savedUser.id,
+                description: `Actualización de usuario ${savedUser.uName} ${savedUser.uFLastName}`
+            }
         );
 
         return savedUser;
@@ -250,17 +244,14 @@ export class UserService {
         await this.userRepository.update(userId, { uPassword: hashedNewPassword });
 
         // Registrar auditoría de cambio de contraseña
-        await this.auditService.logActionWithSP(
+        await this.auditService.createDigitalRecord(
             userId,
-            AuditReportType.PASSWORD_RESETS,
-            AuditAction.UPDATE,
-            'user',
-            userId,
-            null,
-            'Contraseña actualizada',
-            null,
-            null,
-            'Cambio de contraseña realizado por el usuario'
+            {
+                action: AuditAction.UPDATE,
+                tableName: 'user',
+                recordId: userId,
+                description: 'Cambio de contraseña realizado por el usuario'
+            }
         );
 
         return { success: true };
@@ -276,17 +267,14 @@ export class UserService {
         const savedUser = await this.userRepository.save(user);
 
         // Registrar auditoría de cambio de estado
-        await this.auditService.logActionWithSP(
+        await this.auditService.createDigitalRecord(
             changedBy || 1,
-            AuditReportType.GENERAL_ACTIONS,
-            AuditAction.UPDATE,
-            'user',
-            savedUser.id,
-            `uIsActive: ${oldStatus}`,
-            `uIsActive: ${savedUser.uIsActive}`,
-            null,
-            null,
-            `Usuario ${savedUser.uIsActive ? 'activado' : 'desactivado'}`
+            {
+                action: AuditAction.UPDATE,
+                tableName: 'user',
+                recordId: savedUser.id,
+                description: `Usuario ${savedUser.uIsActive ? 'activado' : 'desactivado'}`
+            }
         );
 
         return savedUser;
@@ -301,17 +289,14 @@ export class UserService {
         await this.userRepository.save(user);
 
         // Registrar auditoría de eliminación de usuario
-        await this.auditService.logActionWithSP(
+        await this.auditService.createDigitalRecord(
             changedBy || 1,
-            AuditReportType.GENERAL_ACTIONS,
-            AuditAction.DELETE,
-            'user',
-            id,
-            'uIsActive: true',
-            'uIsActive: false',
-            null,
-            null,
-            `Usuario ${user.uName} ${user.uFLastName} eliminado (soft delete)`
+            {
+                action: AuditAction.DELETE,
+                tableName: 'user',
+                recordId: id,
+                description: `Usuario ${user.uName} ${user.uFLastName} eliminado (soft delete)`
+            }
         );
 
         return { success: true };

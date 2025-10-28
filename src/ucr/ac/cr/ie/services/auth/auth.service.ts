@@ -147,17 +147,14 @@ export class AuthService {
             const result = await this.generateTokens(user, ipAddress, userAgent);
 
             // Registrar auditoría de login exitoso con 2FA
-            await this.auditService.logActionWithSP(
+            await this.auditService.createDigitalRecord(
                 user.id,
-                AuditReportType.SYSTEM_ACCESS,
-                AuditAction.LOGIN,
-                'user',
-                user.id,
-                null,
-                `Login exitoso con 2FA desde IP: ${ipAddress || 'unknown'}`,
-                ipAddress,
-                userAgent,
-                'Login completado con autenticación de dos factores'
+                {
+                    action: AuditAction.LOGIN,
+                    tableName: 'user',
+                    recordId: user.id,
+                    description: `Login exitoso con 2FA desde IP: ${ipAddress || 'unknown'}`
+                }
             );
 
             return result;
@@ -246,17 +243,14 @@ export class AuthService {
         const backupCodes = JSON.parse(twoFactor.tfaBackupCodes || '[]');
 
         // Registrar auditoría de habilitación de 2FA
-        await this.auditService.logActionWithSP(
+        await this.auditService.createDigitalRecord(
             userId,
-            AuditReportType.SYSTEM_ACCESS,
-            AuditAction.UPDATE,
-            'user_two_factor',
-            userId,
-            null,
-            '2FA habilitado exitosamente',
-            null,
-            null,
-            'Autenticación de dos factores activada para el usuario'
+            {
+                action: AuditAction.UPDATE,
+                tableName: 'user_two_factor',
+                recordId: userId,
+                description: '2FA habilitado exitosamente'
+            }
         );
 
         return {
@@ -281,17 +275,14 @@ export class AuthService {
         await this.twoFactorRepository.remove(twoFactor);
 
         // Registrar auditoría de deshabilitación de 2FA
-        await this.auditService.logActionWithSP(
+        await this.auditService.createDigitalRecord(
             userId,
-            AuditReportType.SYSTEM_ACCESS,
-            AuditAction.DELETE,
-            'user_two_factor',
-            userId,
-            '2FA habilitado',
-            '2FA deshabilitado',
-            null,
-            null,
-            'Autenticación de dos factores desactivada para el usuario'
+            {
+                action: AuditAction.DELETE,
+                tableName: 'user_two_factor',
+                recordId: userId,
+                description: '2FA deshabilitado'
+            }
         );
 
         return { success: true };
@@ -337,17 +328,14 @@ export class AuthService {
             await this.sessionRepository.save(session);
 
             // Registrar auditoría de logout
-            await this.auditService.logActionWithSP(
+            await this.auditService.createDigitalRecord(
                 session.userId,
-                AuditReportType.SYSTEM_ACCESS,
-                AuditAction.LOGOUT,
-                'user',
-                session.userId,
-                null,
-                `Logout desde IP: ${ipAddress || session.ipAddress || 'unknown'}`,
-                ipAddress || session.ipAddress,
-                userAgent || session.userAgent,
-                'Cierre de sesión exitoso'
+                {
+                    action: AuditAction.LOGOUT,
+                    tableName: 'user',
+                    recordId: session.userId,
+                    description: `Logout desde IP: ${ipAddress || session.ipAddress || 'unknown'}`
+                }
             );
         }
 
@@ -384,17 +372,14 @@ export class AuthService {
         await this.sessionRepository.save(session);
 
         // Registrar auditoría de login exitoso
-        await this.auditService.logActionWithSP(
+        await this.auditService.createDigitalRecord(
             user.id,
-            AuditReportType.SYSTEM_ACCESS,
-            AuditAction.LOGIN,
-            'user',
-            user.id,
-            null,
-            `Login exitoso desde IP: ${ipAddress || 'unknown'}`,
-            ipAddress,
-            userAgent,
-            'Inicio de sesión exitoso'
+            {
+                action: AuditAction.LOGIN,
+                tableName: 'user',
+                recordId: user.id,
+                description: `Login exitoso desde IP: ${ipAddress || 'unknown'}`
+            }
         );
 
         return {
@@ -473,17 +458,14 @@ export class AuthService {
         }
 
         // Registrar auditoría de solicitud de recuperación de contraseña
-        await this.auditService.logActionWithSP(
+        await this.auditService.createDigitalRecord(
             user.id,
-            AuditReportType.PASSWORD_RESETS,
-            AuditAction.CREATE,
-            'password_reset_token',
-            user.id,
-            null,
-            'Token de recuperación de contraseña generado',
-            null,
-            null,
-            'Solicitud de recuperación de contraseña iniciada'
+            {
+                action: AuditAction.CREATE,
+                tableName: 'password_reset_token',
+                recordId: user.id,
+                description: 'Token de recuperación de contraseña generado'
+            }
         );
 
         return { message: 'Código de recuperación enviado al email' };
@@ -538,17 +520,14 @@ export class AuthService {
         );
 
         // Registrar auditoría de cambio de contraseña
-        await this.auditService.logActionWithSP(
+        await this.auditService.createDigitalRecord(
             validToken.userId,
-            AuditReportType.PASSWORD_RESETS,
-            AuditAction.UPDATE,
-            'user',
-            validToken.userId,
-            null,
-            'Contraseña reseteada exitosamente',
-            null,
-            null,
-            'Reset de contraseña completado usando token de recuperación'
+            {
+                action: AuditAction.UPDATE,
+                tableName: 'user',
+                recordId: validToken.userId,
+                description: 'Contraseña reseteada exitosamente'
+            }
         );
 
         return { message: 'Contraseña actualizada exitosamente' };

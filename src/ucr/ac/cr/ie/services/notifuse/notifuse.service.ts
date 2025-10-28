@@ -19,17 +19,14 @@ export class NotifuseService {
 
     // best-effort audit
     try {
-      await this.auditService.logActionWithSP(
+      await this.auditService.createDigitalRecord(
         userId || 1,
-        AuditReportType.NOTIFICATIONS,
-        AuditAction.CREATE,
-        'notification',
-        payload?.notification?.id || 0,
-        null,
-        `Código 2FA enviado`,
-        null,
-        null,
-        `Envío de código 2FA al usuario`
+        {
+          action: AuditAction.CREATE,
+          tableName: 'notification',
+          recordId: payload?.notification?.id || 0,
+          description: `Envío de código 2FA`
+        }
       );
     } catch (e) {
       // swallow
@@ -48,17 +45,14 @@ export class NotifuseService {
     const res = await this.notifuseHttp.sendTransactional(normalized);
 
     try {
-      await this.auditService.logActionWithSP(
+      await this.auditService.createDigitalRecord(
         userId || 1,
-        AuditReportType.NOTIFICATIONS,
-        AuditAction.CREATE,
-        'notification',
-        payload?.notification?.id || 0,
-        null,
-        `Código de verificación enviado`,
-        null,
-        null,
-        `Envío de código de verificación de email`
+        {
+          action: AuditAction.CREATE,
+          tableName: 'notification',
+          recordId: payload?.notification?.id || 0,
+          description: `Envío de código de verificación de email`
+        }
       );
     } catch (e) {
       // eslint-disable-next-line no-console

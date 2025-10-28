@@ -33,17 +33,14 @@ export class RoleService {
         const savedRole = await this.roleRepository.save(role);
 
         // Registrar auditoría de creación de rol
-        await this.auditService.logActionWithSP(
+        await this.auditService.createDigitalRecord(
             changedBy || 1,
-            AuditReportType.GENERAL_ACTIONS,
-            AuditAction.CREATE,
-            'role',
-            savedRole.id,
-            null,
-            `Rol ${savedRole.rName} creado`,
-            null,
-            null,
-            `Creación de nuevo rol en el sistema`
+            {
+                action: AuditAction.CREATE,
+                tableName: 'role',
+                recordId: savedRole.id,
+                description: `Rol ${savedRole.rName} creado`
+            }
         );
 
         return savedRole;
@@ -109,17 +106,14 @@ export class RoleService {
         const savedRole = await this.roleRepository.save(role);
 
         // Registrar auditoría de actualización de rol
-        await this.auditService.logActionWithSP(
+        await this.auditService.createDigitalRecord(
             changedBy || 1,
-            AuditReportType.GENERAL_ACTIONS,
-            AuditAction.UPDATE,
-            'role',
-            savedRole.id,
-            `rName: ${oldName}`,
-            `rName: ${savedRole.rName}`,
-            null,
-            null,
-            `Actualización de rol ${savedRole.rName}`
+            {
+                action: AuditAction.UPDATE,
+                tableName: 'role',
+                recordId: savedRole.id,
+                description: `Actualización de rol ${savedRole.rName}`
+            }
         );
 
         return savedRole;
@@ -140,17 +134,14 @@ export class RoleService {
         await this.roleRepository.remove(role);
 
         // Registrar auditoría de eliminación de rol
-        await this.auditService.logActionWithSP(
+        await this.auditService.createDigitalRecord(
             changedBy || 1,
-            AuditReportType.GENERAL_ACTIONS,
-            AuditAction.DELETE,
-            'role',
-            id,
-            `rName: ${role.rName}`,
-            null,
-            null,
-            null,
-            `Rol ${role.rName} eliminado del sistema`
+            {
+                action: AuditAction.DELETE,
+                tableName: 'role',
+                recordId: id,
+                description: `Rol ${role.rName} eliminado del sistema`
+            }
         );
 
         return { success: true };
