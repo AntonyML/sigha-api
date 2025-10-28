@@ -1,34 +1,92 @@
-<testsuites id="" name="" tests="16" failures="2" skipped="6" errors="0" time="17.680466">
-<testsuite name="black-box\AuthTest\auth-black-box.spec.ts" timestamp="2025-10-25T02:18:23.946Z" hostname="auth-black-box" tests="16" failures="2" skipped="6" time="0.977" errors="0">
-<testcase name="AUTH MODULE - BLACK BOX TESTING › Login - Equivalence Partitioning › TC_BB_AUTH_001: Login válido sin 2FA debería retornar tokens" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.315">
-</testcase>
-<testcase name="AUTH MODULE - BLACK BOX TESTING › Login - Equivalence Partitioning › TC_BB_AUTH_002: Login con credenciales inválidas debería fallar" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.02">
-</testcase>
-<testcase name="AUTH MODULE - BLACK BOX TESTING › Login - Equivalence Partitioning › TC_BB_AUTH_003: Login con usuario inactivo debería fallar" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.015">
-</testcase>
-<testcase name="AUTH MODULE - BLACK BOX TESTING › 2FA - State Transition Testing › TC_BB_AUTH_004: Login con 2FA habilitado debería requerir verificación" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.245">
-</testcase>
-<testcase name="AUTH MODULE - BLACK BOX TESTING › 2FA - State Transition Testing › TC_BB_AUTH_005: Verificación 2FA con código válido debería completar login" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.012">
-<failure message="auth-black-box.spec.ts:97:13 TC_BB_AUTH_005: Verificación 2FA con código válido debería completar login" type="FAILURE">
-<![CDATA[  [auth-black-box] › black-box\AuthTest\auth-black-box.spec.ts:97:13 › AUTH MODULE - BLACK BOX TESTING › 2FA - State Transition Testing › TC_BB_AUTH_005: Verificación 2FA con código válido debería completar login 
+<testsuites id="" name="" tests="40" failures="17" skipped="13" errors="0" time="46.111270999999995">
+<testsuite name="black-box\AuditTest\audit-simple.spec.ts" timestamp="2025-10-28T01:37:11.445Z" hostname="auth-all" tests="2" failures="2" skipped="0" time="0.888" errors="0">
+<testcase name="AUDIT MODULE - SIMPLE TESTS › Listar registros de auditoría" classname="black-box\AuditTest\audit-simple.spec.ts" time="0.469">
+<failure message="audit-simple.spec.ts:28:9 Listar registros de auditoría" type="FAILURE">
+<![CDATA[  [auth-all] › black-box\AuditTest\audit-simple.spec.ts:28:9 › AUDIT MODULE - SIMPLE TESTS › Listar registros de auditoría 
 
     Error: expect(received).toBe(expected) // Object.is equality
 
     Expected: 200
     Received: 401
 
-      100 |             // Arrange: Setup 2FA y obtener código válido
-      101 |             const setupResponse = await authUtils.setup2FA(tempToken);
-    > 102 |             expect(setupResponse.status()).toBe(200);
-          |                                            ^
-      103 |             const setupData = await setupResponse.json();
-      104 |             const validCode = authUtils.generateValidTOTP(setupData.secret);
-      105 |
-        at D:\Ano_2025_UCR\Analisis\Proyecto\backend_nest_js_hogar_de_ancianos\tests\black-box\AuthTest\auth-black-box.spec.ts:102:44
+      21 |             TestUsers.SUPER_ADMIN.password
+      22 |         );
+    > 23 |         expect(loginResponse.status()).toBe(200);
+         |                                        ^
+      24 |         const loginData = await loginResponse.json();
+      25 |         accessToken = loginData.accessToken;
+      26 |     });
+        at C:\UCR_2025\Segundo_Semestre\Analisis\Proyecto\backend_nest_js_hogar_de_ancianos\tests\black-box\AuditTest\audit-simple.spec.ts:23:40
 ]]>
 </failure>
 </testcase>
-<testcase name="AUTH MODULE - BLACK BOX TESTING › 2FA - State Transition Testing › TC_BB_AUTH_006: Verificación 2FA con código inválido debería fallar" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.018">
+<testcase name="AUDIT MODULE - SIMPLE TESTS › Obtener estadísticas de auditoría" classname="black-box\AuditTest\audit-simple.spec.ts" time="0.419">
+<failure message="audit-simple.spec.ts:43:9 Obtener estadísticas de auditoría" type="FAILURE">
+<![CDATA[  [auth-all] › black-box\AuditTest\audit-simple.spec.ts:43:9 › AUDIT MODULE - SIMPLE TESTS › Obtener estadísticas de auditoría 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 401
+
+      21 |             TestUsers.SUPER_ADMIN.password
+      22 |         );
+    > 23 |         expect(loginResponse.status()).toBe(200);
+         |                                        ^
+      24 |         const loginData = await loginResponse.json();
+      25 |         accessToken = loginData.accessToken;
+      26 |     });
+        at C:\UCR_2025\Segundo_Semestre\Analisis\Proyecto\backend_nest_js_hogar_de_ancianos\tests\black-box\AuditTest\audit-simple.spec.ts:23:40
+]]>
+</failure>
+</testcase>
+</testsuite>
+<testsuite name="black-box\AuthTest\auth-black-box.spec.ts" timestamp="2025-10-28T01:37:11.445Z" hostname="auth-all" tests="16" failures="3" skipped="7" time="1.778" errors="0">
+<testcase name="AUTH MODULE - BLACK BOX TESTING › Login - Equivalence Partitioning › TC_BB_AUTH_001: Login válido sin 2FA debería retornar tokens" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.555">
+<failure message="auth-black-box.spec.ts:34:13 TC_BB_AUTH_001: Login válido sin 2FA debería retornar tokens" type="FAILURE">
+<![CDATA[  [auth-all] › black-box\AuthTest\auth-black-box.spec.ts:34:13 › AUTH MODULE - BLACK BOX TESTING › Login - Equivalence Partitioning › TC_BB_AUTH_001: Login válido sin 2FA debería retornar tokens 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 401
+
+      40 |
+      41 |             // Assert
+    > 42 |             expect(response.status()).toBe(200);
+         |                                       ^
+      43 |             const data = await response.json();
+      44 |
+      45 |             expect(data).toHaveProperty('user');
+        at C:\UCR_2025\Segundo_Semestre\Analisis\Proyecto\backend_nest_js_hogar_de_ancianos\tests\black-box\AuthTest\auth-black-box.spec.ts:42:39
+]]>
+</failure>
+</testcase>
+<testcase name="AUTH MODULE - BLACK BOX TESTING › Login - Equivalence Partitioning › TC_BB_AUTH_002: Login con credenciales inválidas debería fallar" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.421">
+</testcase>
+<testcase name="AUTH MODULE - BLACK BOX TESTING › Login - Equivalence Partitioning › TC_BB_AUTH_003: Login con usuario inactivo debería fallar" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.035">
+</testcase>
+<testcase name="AUTH MODULE - BLACK BOX TESTING › 2FA - State Transition Testing › TC_BB_AUTH_004: Login con 2FA habilitado debería requerir verificación" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.048">
+<failure message="auth-black-box.spec.ts:74:13 TC_BB_AUTH_004: Login con 2FA habilitado debería requerir verificación" type="FAILURE">
+<![CDATA[  [auth-all] › black-box\AuthTest\auth-black-box.spec.ts:74:13 › AUTH MODULE - BLACK BOX TESTING › 2FA - State Transition Testing › TC_BB_AUTH_004: Login con 2FA habilitado debería requerir verificación 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 401
+
+      80 |
+      81 |             // Assert
+    > 82 |             expect(response.status()).toBe(200);
+         |                                       ^
+      83 |             const data = await response.json();
+      84 |
+      85 |             if (data.requiresTwoFactor) {
+        at C:\UCR_2025\Segundo_Semestre\Analisis\Proyecto\backend_nest_js_hogar_de_ancianos\tests\black-box\AuthTest\auth-black-box.spec.ts:82:39
+]]>
+</failure>
+</testcase>
+<testcase name="AUTH MODULE - BLACK BOX TESTING › 2FA - State Transition Testing › TC_BB_AUTH_005: Verificación 2FA con código válido debería completar login" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.045">
 <properties>
 <property name="skip" value="Requiere tempToken de prueba anterior">
 </property>
@@ -36,7 +94,7 @@
 <skipped>
 </skipped>
 </testcase>
-<testcase name="AUTH MODULE - BLACK BOX TESTING › 2FA - State Transition Testing › TC_BB_AUTH_007: Verificación 2FA con token expirado debería fallar" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.005">
+<testcase name="AUTH MODULE - BLACK BOX TESTING › 2FA - State Transition Testing › TC_BB_AUTH_006: Verificación 2FA con código inválido debería fallar" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.02">
 <properties>
 <property name="skip" value="Requiere tempToken de prueba anterior">
 </property>
@@ -44,7 +102,7 @@
 <skipped>
 </skipped>
 </testcase>
-<testcase name="AUTH MODULE - BLACK BOX TESTING › Backup Codes - Decision Table Testing › TC_BB_AUTH_008: Código de respaldo válido debería funcionar" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.004">
+<testcase name="AUTH MODULE - BLACK BOX TESTING › 2FA - State Transition Testing › TC_BB_AUTH_007: Verificación 2FA con token expirado debería fallar" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.025">
 <properties>
 <property name="skip" value="Requiere tempToken de prueba anterior">
 </property>
@@ -52,7 +110,7 @@
 <skipped>
 </skipped>
 </testcase>
-<testcase name="AUTH MODULE - BLACK BOX TESTING › Backup Codes - Decision Table Testing › TC_BB_AUTH_009: Código de respaldo inválido debería fallar" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.006">
+<testcase name="AUTH MODULE - BLACK BOX TESTING › Backup Codes - Decision Table Testing › TC_BB_AUTH_008: Código de respaldo válido debería funcionar" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.014">
 <properties>
 <property name="skip" value="Requiere tempToken de prueba anterior">
 </property>
@@ -60,7 +118,15 @@
 <skipped>
 </skipped>
 </testcase>
-<testcase name="AUTH MODULE - BLACK BOX TESTING › Session Management - Boundary Value Analysis › TC_BB_AUTH_010: Logout con token válido debería cerrar sesión" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.005">
+<testcase name="AUTH MODULE - BLACK BOX TESTING › Backup Codes - Decision Table Testing › TC_BB_AUTH_009: Código de respaldo inválido debería fallar" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.013">
+<properties>
+<property name="skip" value="Requiere tempToken de prueba anterior">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="AUTH MODULE - BLACK BOX TESTING › Session Management - Boundary Value Analysis › TC_BB_AUTH_010: Logout con token válido debería cerrar sesión" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.013">
 <properties>
 <property name="skip" value="Requiere accessToken de pruebas anteriores">
 </property>
@@ -68,9 +134,9 @@
 <skipped>
 </skipped>
 </testcase>
-<testcase name="AUTH MODULE - BLACK BOX TESTING › Session Management - Boundary Value Analysis › TC_BB_AUTH_011: Acceso a perfil sin token debería fallar" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.029">
+<testcase name="AUTH MODULE - BLACK BOX TESTING › Session Management - Boundary Value Analysis › TC_BB_AUTH_011: Acceso a perfil sin token debería fallar" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.43">
 </testcase>
-<testcase name="AUTH MODULE - BLACK BOX TESTING › Session Management - Boundary Value Analysis › TC_BB_AUTH_012: Acceso a perfil con token válido debería retornar datos" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.003">
+<testcase name="AUTH MODULE - BLACK BOX TESTING › Session Management - Boundary Value Analysis › TC_BB_AUTH_012: Acceso a perfil con token válido debería retornar datos" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.015">
 <properties>
 <property name="skip" value="Requiere accessToken válido">
 </property>
@@ -78,31 +144,335 @@
 <skipped>
 </skipped>
 </testcase>
-<testcase name="AUTH MODULE - BLACK BOX TESTING › Time Synchronization - Critical Path Testing › TC_BB_AUTH_013: Servidor debe tener hora sincronizada para TOTP" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.006">
+<testcase name="AUTH MODULE - BLACK BOX TESTING › Time Synchronization - Critical Path Testing › TC_BB_AUTH_013: Servidor debe tener hora sincronizada para TOTP" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.021">
 </testcase>
-<testcase name="AUTH MODULE - BLACK BOX TESTING › Security - Negative Testing › TC_BB_AUTH_014: Ataque de fuerza bruta debería ser mitigado" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.035">
+<testcase name="AUTH MODULE - BLACK BOX TESTING › Security - Negative Testing › TC_BB_AUTH_014: Ataque de fuerza bruta debería ser mitigado" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.069">
 </testcase>
-<testcase name="AUTH MODULE - BLACK BOX TESTING › Security - Negative Testing › TC_BB_AUTH_015: SQL Injection debería ser prevenido" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.01">
+<testcase name="AUTH MODULE - BLACK BOX TESTING › Security - Negative Testing › TC_BB_AUTH_015: SQL Injection debería ser prevenido" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.024">
 </testcase>
-<testcase name="AUTH MODULE - BLACK BOX TESTING › TOTP Server Time Synchronization › TC_BB_AUTH_999: El servidor acepta TOTP generado localmente (sincronización horaria)" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.249">
+<testcase name="AUTH MODULE - BLACK BOX TESTING › TOTP Server Time Synchronization › TC_BB_AUTH_999: El servidor acepta TOTP generado localmente (sincronización horaria)" classname="black-box\AuthTest\auth-black-box.spec.ts" time="0.03">
 <failure message="auth-black-box.spec.ts:264:13 TC_BB_AUTH_999: El servidor acepta TOTP generado localmente (sincronización horaria)" type="FAILURE">
-<![CDATA[  [auth-black-box] › black-box\AuthTest\auth-black-box.spec.ts:264:13 › AUTH MODULE - BLACK BOX TESTING › TOTP Server Time Synchronization › TC_BB_AUTH_999: El servidor acepta TOTP generado localmente (sincronización horaria) 
+<![CDATA[  [auth-all] › black-box\AuthTest\auth-black-box.spec.ts:264:13 › AUTH MODULE - BLACK BOX TESTING › TOTP Server Time Synchronization › TC_BB_AUTH_999: El servidor acepta TOTP generado localmente (sincronización horaria) 
 
     Error: expect(received).toBe(expected) // Object.is equality
 
     Expected: 200
     Received: 401
 
-      277 |             // 2. Setup 2FA para obtener el secret
-      278 |             const setupResponse = await authUtils.setup2FA(tempToken);
-    > 279 |             expect(setupResponse.status()).toBe(200);
+      268 |                 TestUsers.SUPER_ADMIN.password
+      269 |             );
+    > 270 |             expect(loginResponse.status()).toBe(200);
           |                                            ^
-      280 |             const setupData = await setupResponse.json();
-      281 |             const secret = setupData.secret;
-      282 |
-        at D:\Ano_2025_UCR\Analisis\Proyecto\backend_nest_js_hogar_de_ancianos\tests\black-box\AuthTest\auth-black-box.spec.ts:279:44
+      271 |             const loginData = await loginResponse.json();
+      272 |             if (!loginData.requiresTwoFactor) {
+      273 |                 test.skip(true, 'El usuario no requiere 2FA para esta prueba');
+        at C:\UCR_2025\Segundo_Semestre\Analisis\Proyecto\backend_nest_js_hogar_de_ancianos\tests\black-box\AuthTest\auth-black-box.spec.ts:270:44
 ]]>
 </failure>
+</testcase>
+</testsuite>
+<testsuite name="black-box\NotificationsTest\notifications-simple.spec.ts" timestamp="2025-10-28T01:37:11.445Z" hostname="auth-all" tests="2" failures="2" skipped="0" time="0.843" errors="0">
+<testcase name="NOTIFICATIONS MODULE - SIMPLE TESTS › Crear notificación simple" classname="black-box\NotificationsTest\notifications-simple.spec.ts" time="0.432">
+<failure message="notifications-simple.spec.ts:28:9 Crear notificación simple" type="FAILURE">
+<![CDATA[  [auth-all] › black-box\NotificationsTest\notifications-simple.spec.ts:28:9 › NOTIFICATIONS MODULE - SIMPLE TESTS › Crear notificación simple 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 401
+
+      21 |             TestUsers.SUPER_ADMIN.password
+      22 |         );
+    > 23 |         expect(loginResponse.status()).toBe(200);
+         |                                        ^
+      24 |         const loginData = await loginResponse.json();
+      25 |         accessToken = loginData.accessToken;
+      26 |     });
+        at C:\UCR_2025\Segundo_Semestre\Analisis\Proyecto\backend_nest_js_hogar_de_ancianos\tests\black-box\NotificationsTest\notifications-simple.spec.ts:23:40
+]]>
+</failure>
+</testcase>
+<testcase name="NOTIFICATIONS MODULE - SIMPLE TESTS › Listar notificaciones" classname="black-box\NotificationsTest\notifications-simple.spec.ts" time="0.411">
+<failure message="notifications-simple.spec.ts:49:9 Listar notificaciones" type="FAILURE">
+<![CDATA[  [auth-all] › black-box\NotificationsTest\notifications-simple.spec.ts:49:9 › NOTIFICATIONS MODULE - SIMPLE TESTS › Listar notificaciones 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 401
+
+      21 |             TestUsers.SUPER_ADMIN.password
+      22 |         );
+    > 23 |         expect(loginResponse.status()).toBe(200);
+         |                                        ^
+      24 |         const loginData = await loginResponse.json();
+      25 |         accessToken = loginData.accessToken;
+      26 |     });
+        at C:\UCR_2025\Segundo_Semestre\Analisis\Proyecto\backend_nest_js_hogar_de_ancianos\tests\black-box\NotificationsTest\notifications-simple.spec.ts:23:40
+]]>
+</failure>
+</testcase>
+</testsuite>
+<testsuite name="black-box\RolesTest\roles-simple.spec.ts" timestamp="2025-10-28T01:37:11.445Z" hostname="auth-all" tests="1" failures="1" skipped="0" time="0.424" errors="0">
+<testcase name="ROLES MODULE - SIMPLE TESTS › Listar roles" classname="black-box\RolesTest\roles-simple.spec.ts" time="0.424">
+<failure message="roles-simple.spec.ts:28:9 Listar roles" type="FAILURE">
+<![CDATA[  [auth-all] › black-box\RolesTest\roles-simple.spec.ts:28:9 › ROLES MODULE - SIMPLE TESTS › Listar roles 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 401
+
+      21 |             TestUsers.SUPER_ADMIN.password
+      22 |         );
+    > 23 |         expect(loginResponse.status()).toBe(200);
+         |                                        ^
+      24 |         const loginData = await loginResponse.json();
+      25 |         accessToken = loginData.accessToken;
+      26 |     });
+        at C:\UCR_2025\Segundo_Semestre\Analisis\Proyecto\backend_nest_js_hogar_de_ancianos\tests\black-box\RolesTest\roles-simple.spec.ts:23:40
+]]>
+</failure>
+</testcase>
+</testsuite>
+<testsuite name="black-box\UsersTest\users-simple.spec.ts" timestamp="2025-10-28T01:37:11.445Z" hostname="auth-all" tests="2" failures="2" skipped="0" time="0.865" errors="0">
+<testcase name="USERS MODULE - SIMPLE TESTS › Listar usuarios" classname="black-box\UsersTest\users-simple.spec.ts" time="0.446">
+<failure message="users-simple.spec.ts:28:9 Listar usuarios" type="FAILURE">
+<![CDATA[  [auth-all] › black-box\UsersTest\users-simple.spec.ts:28:9 › USERS MODULE - SIMPLE TESTS › Listar usuarios 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 401
+
+      21 |             TestUsers.SUPER_ADMIN.password
+      22 |         );
+    > 23 |         expect(loginResponse.status()).toBe(200);
+         |                                        ^
+      24 |         const loginData = await loginResponse.json();
+      25 |         accessToken = loginData.accessToken;
+      26 |     });
+        at C:\UCR_2025\Segundo_Semestre\Analisis\Proyecto\backend_nest_js_hogar_de_ancianos\tests\black-box\UsersTest\users-simple.spec.ts:23:40
+]]>
+</failure>
+</testcase>
+<testcase name="USERS MODULE - SIMPLE TESTS › Obtener perfil propio" classname="black-box\UsersTest\users-simple.spec.ts" time="0.419">
+<failure message="users-simple.spec.ts:45:9 Obtener perfil propio" type="FAILURE">
+<![CDATA[  [auth-all] › black-box\UsersTest\users-simple.spec.ts:45:9 › USERS MODULE - SIMPLE TESTS › Obtener perfil propio 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 401
+
+      21 |             TestUsers.SUPER_ADMIN.password
+      22 |         );
+    > 23 |         expect(loginResponse.status()).toBe(200);
+         |                                        ^
+      24 |         const loginData = await loginResponse.json();
+      25 |         accessToken = loginData.accessToken;
+      26 |     });
+        at C:\UCR_2025\Segundo_Semestre\Analisis\Proyecto\backend_nest_js_hogar_de_ancianos\tests\black-box\UsersTest\users-simple.spec.ts:23:40
+]]>
+</failure>
+</testcase>
+</testsuite>
+<testsuite name="white-box\AuthTest\auth-white-box.spec.ts" timestamp="2025-10-28T01:37:11.445Z" hostname="auth-all" tests="17" failures="7" skipped="6" time="3.039" errors="0">
+<testcase name="AUTH MODULE - WHITE BOX TESTING › JWT Token Generation - Path Coverage › TC_WB_AUTH_001: Token temporal debe expirar exactamente en 5 minutos" classname="white-box\AuthTest\auth-white-box.spec.ts" time="0.417">
+</testcase>
+<testcase name="AUTH MODULE - WHITE BOX TESTING › JWT Token Generation - Path Coverage › TC_WB_AUTH_002: Token de acceso debe expirar en 1 hora" classname="white-box\AuthTest\auth-white-box.spec.ts" time="0.068">
+<failure message="auth-white-box.spec.ts:70:13 TC_WB_AUTH_002: Token de acceso debe expirar en 1 hora" type="FAILURE">
+<![CDATA[  [auth-all] › white-box\AuthTest\auth-white-box.spec.ts:70:13 › AUTH MODULE - WHITE BOX TESTING › JWT Token Generation - Path Coverage › TC_WB_AUTH_002: Token de acceso debe expirar en 1 hora 
+
+    Error: expect(received).toHaveProperty(path)
+
+    Matcher error: received value must not be null nor undefined
+
+    Received has value: null
+
+      81 |                 const decoded = jwt.decode(data.accessToken) as jwt.JwtPayload;
+      82 |
+    > 83 |                 expect(decoded).toHaveProperty('sub');
+         |                                 ^
+      84 |                 expect(decoded).toHaveProperty('email');
+      85 |                 expect(decoded).toHaveProperty('roleId');
+      86 |                 expect(decoded).toHaveProperty('role');
+        at C:\UCR_2025\Segundo_Semestre\Analisis\Proyecto\backend_nest_js_hogar_de_ancianos\tests\white-box\AuthTest\auth-white-box.spec.ts:83:33
+]]>
+</failure>
+</testcase>
+<testcase name="AUTH MODULE - WHITE BOX TESTING › 2FA Logic - Branch Coverage › TC_WB_AUTH_003: Rama sin 2FA debe retornar tokens directamente" classname="white-box\AuthTest\auth-white-box.spec.ts" time="0.374">
+<failure message="auth-white-box.spec.ts:99:13 TC_WB_AUTH_003: Rama sin 2FA debe retornar tokens directamente" type="FAILURE">
+<![CDATA[  [auth-all] › white-box\AuthTest\auth-white-box.spec.ts:99:13 › AUTH MODULE - WHITE BOX TESTING › 2FA Logic - Branch Coverage › TC_WB_AUTH_003: Rama sin 2FA debe retornar tokens directamente 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 401
+
+      105 |
+      106 |             // Assert: Debe tomar la rama sin 2FA
+    > 107 |             expect(response.status()).toBe(200);
+          |                                       ^
+      108 |             const data = await response.json();
+      109 |
+      110 |             expect(data.requiresTwoFactor).toBeFalsy();
+        at C:\UCR_2025\Segundo_Semestre\Analisis\Proyecto\backend_nest_js_hogar_de_ancianos\tests\white-box\AuthTest\auth-white-box.spec.ts:107:39
+]]>
+</failure>
+</testcase>
+<testcase name="AUTH MODULE - WHITE BOX TESTING › 2FA Logic - Branch Coverage › TC_WB_AUTH_004: Rama con 2FA debe retornar tempToken" classname="white-box\AuthTest\auth-white-box.spec.ts" time="0.38">
+<failure message="auth-white-box.spec.ts:116:13 TC_WB_AUTH_004: Rama con 2FA debe retornar tempToken" type="FAILURE">
+<![CDATA[  [auth-all] › white-box\AuthTest\auth-white-box.spec.ts:116:13 › AUTH MODULE - WHITE BOX TESTING › 2FA Logic - Branch Coverage › TC_WB_AUTH_004: Rama con 2FA debe retornar tempToken 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 401
+
+      122 |
+      123 |             // Assert: Debe tomar la rama con 2FA
+    > 124 |             expect(response.status()).toBe(200);
+          |                                       ^
+      125 |             const data = await response.json();
+      126 |
+      127 |             if (data.requiresTwoFactor) {
+        at C:\UCR_2025\Segundo_Semestre\Analisis\Proyecto\backend_nest_js_hogar_de_ancianos\tests\white-box\AuthTest\auth-white-box.spec.ts:124:39
+]]>
+</failure>
+</testcase>
+<testcase name="AUTH MODULE - WHITE BOX TESTING › 2FA Logic - Branch Coverage › TC_WB_AUTH_005: Rama con 2FA + código debe validar y retornar tokens" classname="white-box\AuthTest\auth-white-box.spec.ts" time="0.451">
+<failure message="auth-white-box.spec.ts:134:13 TC_WB_AUTH_005: Rama con 2FA + código debe validar y retornar tokens" type="FAILURE">
+<![CDATA[  [auth-all] › white-box\AuthTest\auth-white-box.spec.ts:134:13 › AUTH MODULE - WHITE BOX TESTING › 2FA Logic - Branch Coverage › TC_WB_AUTH_005: Rama con 2FA + código debe validar y retornar tokens 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 401
+
+      143 |
+      144 |             // Assert: Debe tomar la rama con código 2FA
+    > 145 |             expect(response.status()).toBe(200);
+          |                                       ^
+      146 |             const data = await response.json();
+      147 |
+      148 |             expect(data.accessToken).toBeDefined();
+        at C:\UCR_2025\Segundo_Semestre\Analisis\Proyecto\backend_nest_js_hogar_de_ancianos\tests\white-box\AuthTest\auth-white-box.spec.ts:145:39
+]]>
+</failure>
+</testcase>
+<testcase name="AUTH MODULE - WHITE BOX TESTING › TOTP Validation - Condition Coverage › TC_WB_AUTH_006: Código TOTP válido debe ser aceptado" classname="white-box\AuthTest\auth-white-box.spec.ts" time="0.008">
+<properties>
+<property name="skip" value="Requiere setup de 2FA">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="AUTH MODULE - WHITE BOX TESTING › TOTP Validation - Condition Coverage › TC_WB_AUTH_007: Código TOTP expirado debe ser rechazado" classname="white-box\AuthTest\auth-white-box.spec.ts" time="0.005">
+<properties>
+<property name="skip" value="Requiere setup de 2FA">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="AUTH MODULE - WHITE BOX TESTING › TOTP Validation - Condition Coverage › TC_WB_AUTH_008: Código TOTP futuro debe ser rechazado" classname="white-box\AuthTest\auth-white-box.spec.ts" time="0.006">
+<properties>
+<property name="skip" value="Requiere setup de 2FA">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="AUTH MODULE - WHITE BOX TESTING › TOTP Validation - Condition Coverage › TC_WB_AUTH_009: Time window de TOTP debe ser exactamente 30 segundos" classname="white-box\AuthTest\auth-white-box.spec.ts" time="0.011">
+<properties>
+<property name="skip" value="Requiere secret de 2FA">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="AUTH MODULE - WHITE BOX TESTING › Backup Code Logic - Multiple Condition Coverage › TC_WB_AUTH_010: Código de respaldo válido debe ser aceptado y removido" classname="white-box\AuthTest\auth-white-box.spec.ts" time="0.004">
+<properties>
+<property name="skip" value="Requiere códigos de respaldo">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="AUTH MODULE - WHITE BOX TESTING › Backup Code Logic - Multiple Condition Coverage › TC_WB_AUTH_011: Código de respaldo usado no debe funcionar nuevamente" classname="white-box\AuthTest\auth-white-box.spec.ts" time="0.005">
+<properties>
+<property name="skip" value="Requiere códigos de respaldo">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="AUTH MODULE - WHITE BOX TESTING › Password Validation - Statement Coverage › TC_WB_AUTH_012: PasswordUtil.verify debe ser llamado correctamente" classname="white-box\AuthTest\auth-white-box.spec.ts" time="0.023">
+<failure message="auth-white-box.spec.ts:288:13 TC_WB_AUTH_012: PasswordUtil.verify debe ser llamado correctamente" type="FAILURE">
+<![CDATA[  [auth-all] › white-box\AuthTest\auth-white-box.spec.ts:288:13 › AUTH MODULE - WHITE BOX TESTING › Password Validation - Statement Coverage › TC_WB_AUTH_012: PasswordUtil.verify debe ser llamado correctamente 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 401
+
+      294 |
+      295 |             // Assert: Si el login es exitoso, significa que PasswordUtil.verify funcionó
+    > 296 |             expect(response.status()).toBe(200);
+          |                                       ^
+      297 |
+      298 |             // Verificar que la respuesta tenga la estructura esperada
+      299 |             const data = await response.json();
+        at C:\UCR_2025\Segundo_Semestre\Analisis\Proyecto\backend_nest_js_hogar_de_ancianos\tests\white-box\AuthTest\auth-white-box.spec.ts:296:39
+]]>
+</failure>
+</testcase>
+<testcase name="AUTH MODULE - WHITE BOX TESTING › Password Validation - Statement Coverage › TC_WB_AUTH_013: Password incorrecto debe fallar antes de 2FA" classname="white-box\AuthTest\auth-white-box.spec.ts" time="0.425">
+</testcase>
+<testcase name="AUTH MODULE - WHITE BOX TESTING › Session Management - Path Coverage › TC_WB_AUTH_014: generateTokens debe crear sesión con hash correcto" classname="white-box\AuthTest\auth-white-box.spec.ts" time="0.023">
+<failure message="auth-white-box.spec.ts:319:13 TC_WB_AUTH_014: generateTokens debe crear sesión con hash correcto" type="FAILURE">
+<![CDATA[  [auth-all] › white-box\AuthTest\auth-white-box.spec.ts:319:13 › AUTH MODULE - WHITE BOX TESTING › Session Management - Path Coverage › TC_WB_AUTH_014: generateTokens debe crear sesión con hash correcto 
+
+    Error: expect(received).toBeDefined()
+
+    Received: undefined
+
+      328 |             if (!data.requiresTwoFactor) {
+      329 |                 // Assert: Verificar que se creó una sesión (conocimiento interno)
+    > 330 |                 expect(data.accessToken).toBeDefined();
+          |                                          ^
+      331 |                 expect(data.refreshToken).toBeDefined();
+      332 |
+      333 |                 // Verificar estructura del token
+        at C:\UCR_2025\Segundo_Semestre\Analisis\Proyecto\backend_nest_js_hogar_de_ancianos\tests\white-box\AuthTest\auth-white-box.spec.ts:330:42
+]]>
+</failure>
+</testcase>
+<testcase name="AUTH MODULE - WHITE BOX TESTING › Session Management - Path Coverage › TC_WB_AUTH_015: Logout debe invalidar token hash en BD" classname="white-box\AuthTest\auth-white-box.spec.ts" time="0.403">
+<failure message="auth-white-box.spec.ts:343:13 TC_WB_AUTH_015: Logout debe invalidar token hash en BD" type="FAILURE">
+<![CDATA[  [auth-all] › white-box\AuthTest\auth-white-box.spec.ts:343:13 › AUTH MODULE - WHITE BOX TESTING › Session Management - Path Coverage › TC_WB_AUTH_015: Logout debe invalidar token hash en BD 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 401
+
+      355 |
+      356 |                 // Assert
+    > 357 |                 expect(logoutResponse.status()).toBe(200);
+          |                                                 ^
+      358 |
+      359 |                 // Verificar que el token ya no funcione
+      360 |                 const profileResponse = await authUtils.getProfile(loginData.accessToken);
+        at C:\UCR_2025\Segundo_Semestre\Analisis\Proyecto\backend_nest_js_hogar_de_ancianos\tests\white-box\AuthTest\auth-white-box.spec.ts:357:49
+]]>
+</failure>
+</testcase>
+<testcase name="AUTH MODULE - WHITE BOX TESTING › Error Handling - Exception Coverage › TC_WB_AUTH_016: completeTwoFactorLogin debe manejar token inválido" classname="white-box\AuthTest\auth-white-box.spec.ts" time="0.393">
+</testcase>
+<testcase name="AUTH MODULE - WHITE BOX TESTING › Error Handling - Exception Coverage › TC_WB_AUTH_017: completeTwoFactorLogin debe manejar token expirado" classname="white-box\AuthTest\auth-white-box.spec.ts" time="0.043">
 </testcase>
 </testsuite>
 </testsuites>

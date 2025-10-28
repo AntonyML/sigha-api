@@ -47,8 +47,8 @@ export default defineConfig({
       },
     },
     {
-      name: 'auth-white-box',
-      testDir: './tests/white-box',
+      name: 'notifications-simple',
+      testDir: './tests/black-box/NotificationsTest',
       testMatch: '**/*.spec.ts',
       use: {
         ...devices['Desktop Chrome'],
@@ -56,8 +56,26 @@ export default defineConfig({
       },
     },
     {
-      name: 'auth-all',
-      testDir: './tests',
+      name: 'roles-simple',
+      testDir: './tests/black-box/RolesTest',
+      testMatch: '**/*.spec.ts',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: process.env.BASE_URL || 'http://localhost:3000',
+      },
+    },
+    {
+      name: 'users-simple',
+      testDir: './tests/black-box/UsersTest',
+      testMatch: '**/*.spec.ts',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: process.env.BASE_URL || 'http://localhost:3000',
+      },
+    },
+    {
+      name: 'audit-simple',
+      testDir: './tests/black-box/AuditTest',
       testMatch: '**/*.spec.ts',
       use: {
         ...devices['Desktop Chrome'],

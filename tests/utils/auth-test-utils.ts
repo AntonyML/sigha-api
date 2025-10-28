@@ -165,9 +165,9 @@ export class AuthAPITestUtils {
  */
 export const TestUsers = {
     SUPER_ADMIN: {
-        email: 'superadmin@hogarancianos.com',
-        password: 'SuperAdmin123!',
-        name: 'Super Admin',
+        email: 'luis.riveralopez@ucr.ac.cr',
+        password: '***REMOVED***',
+        name: 'Luis Rivera',
         role: 'superadmin'
     },
     ADMIN: {
