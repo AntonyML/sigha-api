@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException, BadRequestException, Inject, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { Repository } from 'typeorm';
+import { Repository, MoreThan } from 'typeorm';
 import { User } from '../../domain/auth/core/user.entity';
 import { UserSession } from '../../domain/auth/sessions/user-session.entity';
 import { UserTwoFactor } from '../../domain/auth/security/user-two-factor.entity';
@@ -350,8 +350,8 @@ export class AuthService {
             return { message: 'Si el email existe, se ha enviado un código de recuperación' };
         }
 
-        // Generar token de 18 caracteres base64
-        const token = crypto.randomBytes(18).toString('base64').slice(0, 18);
+        // Generar código de 8 dígitos
+        const token = Math.floor(10000000 + Math.random() * 90000000).toString();
 
         // Hashear el token
         const tokenHash = await PasswordUtil.hash(token);
@@ -382,7 +382,7 @@ export class AuthService {
                         titulo_principal: 'Recuperación de Contraseña',
                         nombre_usuario: user.uName,
                         mensaje_contexto: 'Usa este código para resetear tu contraseña.',
-                        codigo_verificacion: token, // El token sin hashear
+                        codigo_verificacion: token.slice(0, 4) + ' ' + token.slice(4), // Formateado con espacio
                         tiempo_expiracion: '15 minutos',
                         ubicacion: 'Sistema Hogar de Ancianos',
                         fecha_hora: new Date().toISOString(),
@@ -406,17 +406,28 @@ export class AuthService {
     async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<MessageResponse> {
         const { token, newPassword } = resetPasswordDto;
 
-        // Buscar token válido (no usado, no expirado)
-        const resetToken = await this.passwordResetTokenRepository.findOne({
+        // Remover espacios del token si los tiene
+        const cleanToken = token.replace(/\s/g, '');
+
+        // Buscar tokens válidos (no usados, no expirados)
+        const resetTokens = await this.passwordResetTokenRepository.find({
             where: {
-                token: await PasswordUtil.hash(token), // Comparar hash
                 used: false,
-                expiresAt: new Date(Date.now()), // TypeORM maneja > en query
+                expiresAt: MoreThan(new Date()),
             },
             relations: ['user'],
         });
 
-        if (!resetToken || resetToken.expiresAt < new Date()) {
+        let validToken: PasswordResetToken | null = null;
+        for (const resetToken of resetTokens) {
+            const isValid = await PasswordUtil.verify(cleanToken, resetToken.token);
+            if (isValid) {
+                validToken = resetToken;
+                break;
+            }
+        }
+
+        if (!validToken) {
             throw new BadRequestException('Token inválido o expirado');
         }
 
@@ -424,16 +435,16 @@ export class AuthService {
         const hashedPassword = await PasswordUtil.hash(newPassword);
 
         // Actualizar contraseña del usuario
-        await this.userRepository.update(resetToken.userId, { uPassword: hashedPassword });
+        await this.userRepository.update(validToken.userId, { uPassword: hashedPassword });
 
         // Marcar token como usado
-        resetToken.used = true;
-        resetToken.usedAt = new Date();
-        await this.passwordResetTokenRepository.save(resetToken);
+        validToken.used = true;
+        validToken.usedAt = new Date();
+        await this.passwordResetTokenRepository.save(validToken);
 
         // Opcional: Invalidar sesiones activas del usuario
         await this.sessionRepository.update(
-            { userId: resetToken.userId, isActive: true },
+            { userId: validToken.userId, isActive: true },
             { isActive: false }
         );
 
