@@ -78,7 +78,7 @@ export class UserService {
             1, // Super admin por defecto para creación inicial
             {
                 action: AuditAction.CREATE,
-                tableName: 'user',
+                tableName: 'users',
                 recordId: savedUser.id,
                 description: `Usuario ${savedUser.uName} ${savedUser.uFLastName} creado`
             }
@@ -202,7 +202,7 @@ export class UserService {
             changedBy || 1, // Usuario que hace el cambio
             {
                 action: AuditAction.UPDATE,
-                tableName: 'user',
+                tableName: 'users',
                 recordId: savedUser.id,
                 description: `Actualización de usuario ${savedUser.uName} ${savedUser.uFLastName}`
             }
@@ -248,7 +248,7 @@ export class UserService {
             userId,
             {
                 action: AuditAction.UPDATE,
-                tableName: 'user',
+                tableName: 'users',
                 recordId: userId,
                 description: 'Cambio de contraseña realizado por el usuario'
             }
@@ -271,7 +271,7 @@ export class UserService {
             changedBy || 1,
             {
                 action: AuditAction.UPDATE,
-                tableName: 'user',
+                tableName: 'users',
                 recordId: savedUser.id,
                 description: `Usuario ${savedUser.uIsActive ? 'activado' : 'desactivado'}`
             }
@@ -293,7 +293,7 @@ export class UserService {
             changedBy || 1,
             {
                 action: AuditAction.DELETE,
-                tableName: 'user',
+                tableName: 'users',
                 recordId: id,
                 description: `Usuario ${user.uName} ${user.uFLastName} eliminado (soft delete)`
             }

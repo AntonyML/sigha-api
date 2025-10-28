@@ -58,7 +58,7 @@ export class NotificationService {
         try {
             await this.auditService.createDigitalRecord(userId, {
                 action: AuditAction.CREATE,
-                tableName: 'notification',
+                tableName: 'notifications',
                 recordId: savedNotification.id,
                 description: `Notificación "${savedNotification.nTitle}" creada`,
             });
@@ -160,7 +160,7 @@ export class NotificationService {
         try {
             await this.auditService.createDigitalRecord(userId, {
                 action: AuditAction.DELETE,
-                tableName: 'notification',
+                tableName: 'notifications',
                 recordId: id,
                 description: `Notificación "${notification.nTitle}" eliminada`,
             });
@@ -187,7 +187,7 @@ export class NotificationService {
         try {
             await this.auditService.createDigitalRecord(userId, {
                 action: AuditAction.DELETE,
-                tableName: 'notification',
+                tableName: 'notifications',
                 recordId: id,
                 description: `Notificación "${notification.nTitle}" eliminada`,
             });

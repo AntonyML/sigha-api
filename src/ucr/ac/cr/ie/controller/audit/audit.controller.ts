@@ -27,8 +27,6 @@ import {
   SearchDigitalRecordsDto,
   SearchOlderAdultUpdatesDto,
   AuditReportFilterDto,
-  LogAuditDto,
-  AuditHistoryQueryDto,
 } from '../../dto/audit';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -276,104 +274,6 @@ export class AuditController {
   })
   async deleteAuditReport(@Param('id', ParseIntPipe) id: number) {
     await this.auditService.deleteAuditReport(id);
-  }
-
-  @Post('log')
-  @Roles('super admin', 'admin', 'director', 'nurse', 'physiotherapist', 'psychologist', 'social worker')
-  @ApiOperation({
-    summary: 'Log audit action using stored procedure',
-    description: 'Create an audit log entry using the sp_log_audit stored procedure. This is the recommended method for centralized audit logging.',
-  })
-  @ApiResponse({
-    status: 201,
-    description: 'Audit action logged successfully',
-    schema: {
-      example: {
-        success: true,
-        message: 'Audit log created successfully via stored procedure',
-      },
-    },
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'Bad request - Invalid parameters',
-  })
-  @ApiResponse({
-    status: 401,
-    description: 'Unauthorized - Invalid or missing JWT token',
-  })
-  @ApiResponse({
-    status: 403,
-    description: 'Forbidden - Insufficient permissions',
-  })
-  async logAudit(@Req() req: any, @Body() logDto: LogAuditDto) {
-    return this.auditService.logAuditWithStoredProcedure(req.user.userId, logDto);
-  }
-
-  @Get('digital-records/:recordId/history')
-  @Roles('super admin', 'admin', 'director', 'nurse')
-  @ApiOperation({
-    summary: 'Get audit history for a digital record',
-    description: 'Retrieve paginated audit history for a specific digital record with user information and filtering.',
-  })
-  @ApiParam({
-    name: 'recordId',
-    description: 'Digital record ID',
-    example: '123',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Audit history retrieved successfully',
-    schema: {
-      example: {
-        success: true,
-        data: {
-          records: [
-            {
-              id: 1,
-              recordId: '123',
-              entityType: 'digital_record',
-              action: 'update',
-              timestamp: '2024-01-15T10:30:00Z',
-              user: {
-                userId: 5,
-                userName: 'Juan Pérez',
-                userEmail: 'juan.perez@example.com',
-              },
-              changes: {
-                before: { status: 'draft' },
-                after: { status: 'published' },
-              },
-              metadata: {
-                ipAddress: '192.168.1.100',
-                userAgent: 'Mozilla/5.0...',
-              },
-              observations: 'Updated document status',
-            },
-          ],
-          pagination: {
-            currentPage: 1,
-            totalPages: 5,
-            totalRecords: 100,
-            limit: 50,
-          },
-        },
-      },
-    },
-  })
-  @ApiResponse({
-    status: 401,
-    description: 'Unauthorized - Invalid or missing JWT token',
-  })
-  @ApiResponse({
-    status: 403,
-    description: 'Forbidden - Insufficient permissions',
-  })
-  async getDigitalRecordHistory(
-    @Param('recordId') recordId: string,
-    @Query() queryDto: AuditHistoryQueryDto,
-  ) {
-    return this.auditService.getDigitalRecordAuditHistory(recordId, queryDto);
   }
 }
 

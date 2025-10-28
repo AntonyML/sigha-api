@@ -23,7 +23,7 @@ export class NotifuseService {
         userId || 1,
         {
           action: AuditAction.CREATE,
-          tableName: 'notification',
+          tableName: 'notifications',
           recordId: payload?.notification?.id || 0,
           description: `Envío de código 2FA`
         }
@@ -49,7 +49,7 @@ export class NotifuseService {
         userId || 1,
         {
           action: AuditAction.CREATE,
-          tableName: 'notification',
+          tableName: 'notifications',
           recordId: payload?.notification?.id || 0,
           description: `Envío de código de verificación de email`
         }

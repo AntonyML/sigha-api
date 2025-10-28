@@ -37,7 +37,7 @@ export class RoleService {
             changedBy || 1,
             {
                 action: AuditAction.CREATE,
-                tableName: 'role',
+                tableName: 'roles',
                 recordId: savedRole.id,
                 description: `Rol ${savedRole.rName} creado`
             }
@@ -110,7 +110,7 @@ export class RoleService {
             changedBy || 1,
             {
                 action: AuditAction.UPDATE,
-                tableName: 'role',
+                tableName: 'roles',
                 recordId: savedRole.id,
                 description: `Actualización de rol ${savedRole.rName}`
             }
@@ -138,7 +138,7 @@ export class RoleService {
             changedBy || 1,
             {
                 action: AuditAction.DELETE,
-                tableName: 'role',
+                tableName: 'roles',
                 recordId: id,
                 description: `Rol ${role.rName} eliminado del sistema`
             }

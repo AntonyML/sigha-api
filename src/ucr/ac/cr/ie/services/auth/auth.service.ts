@@ -151,7 +151,7 @@ export class AuthService {
                 user.id,
                 {
                     action: AuditAction.LOGIN,
-                    tableName: 'user',
+                    tableName: 'users',
                     recordId: user.id,
                     description: `Login exitoso con 2FA desde IP: ${ipAddress || 'unknown'}`
                 }
@@ -247,7 +247,7 @@ export class AuthService {
             userId,
             {
                 action: AuditAction.UPDATE,
-                tableName: 'user_two_factor',
+                tableName: 'user_two_factors',
                 recordId: userId,
                 description: '2FA habilitado exitosamente'
             }
@@ -279,7 +279,7 @@ export class AuthService {
             userId,
             {
                 action: AuditAction.DELETE,
-                tableName: 'user_two_factor',
+                tableName: 'user_two_factors',
                 recordId: userId,
                 description: '2FA deshabilitado'
             }
@@ -332,7 +332,7 @@ export class AuthService {
                 session.userId,
                 {
                     action: AuditAction.LOGOUT,
-                    tableName: 'user',
+                    tableName: 'users',
                     recordId: session.userId,
                     description: `Logout desde IP: ${ipAddress || session.ipAddress || 'unknown'}`
                 }
@@ -376,7 +376,7 @@ export class AuthService {
             user.id,
             {
                 action: AuditAction.LOGIN,
-                tableName: 'user',
+                tableName: 'users',
                 recordId: user.id,
                 description: `Login exitoso desde IP: ${ipAddress || 'unknown'}`
             }
@@ -462,7 +462,7 @@ export class AuthService {
             user.id,
             {
                 action: AuditAction.CREATE,
-                tableName: 'password_reset_token',
+                tableName: 'password_reset_tokens',
                 recordId: user.id,
                 description: 'Token de recuperación de contraseña generado'
             }
@@ -524,7 +524,7 @@ export class AuthService {
             validToken.userId,
             {
                 action: AuditAction.UPDATE,
-                tableName: 'user',
+                tableName: 'users',
                 recordId: validToken.userId,
                 description: 'Contraseña reseteada exitosamente'
             }
