@@ -6,6 +6,8 @@ import { PasswordUtil } from '../../common/utils';
 import { CreateUserDto, UpdateUserDto, ChangePasswordDto } from '../../dto/users';
 import { SuccessResponse } from '../../interfaces';
 import { RoleChangesService } from '../role-changes/role-changes.service';
+import { AuditService } from '../audit/audit.service';
+import { AuditReportType, AuditAction } from '../../domain/audit';
 
 @Injectable()
 export class UserService {
@@ -15,6 +17,7 @@ export class UserService {
         @Inject('RoleRepository')
         private roleRepository: Repository<Role>,
         private roleChangesService: RoleChangesService,
+        private auditService: AuditService,
     ) { }
 
     /**
@@ -67,7 +70,24 @@ export class UserService {
             userData.uSLastName
         );
 
-        return await this.userRepository.save(user);
+        const savedUser = await this.userRepository.save(user);
+
+        // Registrar auditoría de creación de usuario
+        // Nota: Aquí no tenemos el ID del usuario que crea, asumiremos que es un admin del sistema
+        await this.auditService.logActionWithSP(
+            1, // Super admin por defecto para creación inicial
+            AuditReportType.GENERAL_ACTIONS,
+            AuditAction.CREATE,
+            'user',
+            savedUser.id,
+            null,
+            `Usuario ${savedUser.uName} ${savedUser.uFLastName} creado`,
+            null,
+            null,
+            `Creación de nuevo usuario con rol ${role.rName}`
+        );
+
+        return savedUser;
     }
 
     /**
@@ -178,7 +198,23 @@ export class UserService {
         // Actualizar propiedades
         Object.assign(user, updateUserDto);
 
-        return await this.userRepository.save(user);
+        const savedUser = await this.userRepository.save(user);
+
+        // Registrar auditoría de actualización de usuario
+        await this.auditService.logActionWithSP(
+            changedBy || 1, // Usuario que hace el cambio
+            AuditReportType.GENERAL_ACTIONS,
+            AuditAction.UPDATE,
+            'user',
+            savedUser.id,
+            JSON.stringify({ roleId: user.roleId, uEmail: user.uEmail }), // Valores anteriores
+            JSON.stringify({ roleId: savedUser.roleId, uEmail: savedUser.uEmail }), // Valores nuevos
+            null,
+            null,
+            `Actualización de usuario ${savedUser.uName} ${savedUser.uFLastName}`
+        );
+
+        return savedUser;
     }
 
     /**
@@ -213,25 +249,71 @@ export class UserService {
         const hashedNewPassword = await PasswordUtil.hash(newPassword);
         await this.userRepository.update(userId, { uPassword: hashedNewPassword });
 
+        // Registrar auditoría de cambio de contraseña
+        await this.auditService.logActionWithSP(
+            userId,
+            AuditReportType.PASSWORD_RESETS,
+            AuditAction.UPDATE,
+            'user',
+            userId,
+            null,
+            'Contraseña actualizada',
+            null,
+            null,
+            'Cambio de contraseña realizado por el usuario'
+        );
+
         return { success: true };
     }
 
     /**
      * Activar/Desactivar usuario
      */
-    async toggleUserStatus(id: number): Promise<User> {
+    async toggleUserStatus(id: number, changedBy?: number): Promise<User> {
         const user = await this.findById(id);
+        const oldStatus = user.uIsActive;
         user.uIsActive = !user.uIsActive;
-        return await this.userRepository.save(user);
+        const savedUser = await this.userRepository.save(user);
+
+        // Registrar auditoría de cambio de estado
+        await this.auditService.logActionWithSP(
+            changedBy || 1,
+            AuditReportType.GENERAL_ACTIONS,
+            AuditAction.UPDATE,
+            'user',
+            savedUser.id,
+            `uIsActive: ${oldStatus}`,
+            `uIsActive: ${savedUser.uIsActive}`,
+            null,
+            null,
+            `Usuario ${savedUser.uIsActive ? 'activado' : 'desactivado'}`
+        );
+
+        return savedUser;
     }
 
     /**
      * Eliminar usuario (soft delete)
      */
-    async deleteUser(id: number): Promise<SuccessResponse> {
+    async deleteUser(id: number, changedBy?: number): Promise<SuccessResponse> {
         const user = await this.findById(id);
         user.uIsActive = false;
         await this.userRepository.save(user);
+
+        // Registrar auditoría de eliminación de usuario
+        await this.auditService.logActionWithSP(
+            changedBy || 1,
+            AuditReportType.GENERAL_ACTIONS,
+            AuditAction.DELETE,
+            'user',
+            id,
+            'uIsActive: true',
+            'uIsActive: false',
+            null,
+            null,
+            `Usuario ${user.uName} ${user.uFLastName} eliminado (soft delete)`
+        );
+
         return { success: true };
     }
 

@@ -3,7 +3,7 @@ import { Repository } from 'typeorm';
 import { Notification, NotificationAttachment } from '../../domain/notifications';
 import { CreateNotificationDto, UpdateNotificationDto, SearchNotificationDto } from '../../dto/notifications';
 import { AuditService } from '../audit/audit.service';
-import { AuditAction } from '../../domain/audit';
+import { AuditAction, AuditReportType } from '../../domain/audit';
 
 @Injectable()
 export class NotificationService {
@@ -56,11 +56,18 @@ export class NotificationService {
 
         // Auditoría
         try {
-            await this.auditService.createDigitalRecord(userId, {
-                action: AuditAction.CREATE,
-                tableName: 'notifications',
-                description: `Created notification id=${savedNotification.id}`,
-            });
+            await this.auditService.logActionWithSP(
+                userId,
+                AuditReportType.NOTIFICATIONS,
+                AuditAction.CREATE,
+                'notification',
+                savedNotification.id,
+                null,
+                `Notificación "${savedNotification.nTitle}" creada`,
+                null,
+                null,
+                `Creación de nueva notificación`
+            );
         } catch (e) {
             console.error('Audit error (notifications):', e);
         }
@@ -157,11 +164,18 @@ export class NotificationService {
 
         // Auditoría
         try {
-            await this.auditService.createDigitalRecord(userId, {
-                action: AuditAction.UPDATE,
-                tableName: 'notifications',
-                description: `Updated notification id=${id}`,
-            });
+            await this.auditService.logActionWithSP(
+                userId,
+                AuditReportType.NOTIFICATIONS,
+                AuditAction.UPDATE,
+                'notification',
+                id,
+                JSON.stringify({ nTitle: notification.nTitle, nMessage: notification.nMessage }),
+                JSON.stringify({ nTitle: updated.nTitle, nMessage: updated.nMessage }),
+                null,
+                null,
+                `Actualización de notificación "${updated.nTitle}"`
+            );
         } catch (e) {
             console.error('Audit error (notifications):', e);
         }
@@ -183,11 +197,18 @@ export class NotificationService {
 
         // Auditoría
         try {
-            await this.auditService.createDigitalRecord(userId, {
-                action: AuditAction.DELETE,
-                tableName: 'notifications',
-                description: `Deleted notification id=${id}`,
-            });
+            await this.auditService.logActionWithSP(
+                userId,
+                AuditReportType.NOTIFICATIONS,
+                AuditAction.DELETE,
+                'notification',
+                id,
+                `nTitle: ${notification.nTitle}`,
+                null,
+                null,
+                null,
+                `Notificación "${notification.nTitle}" eliminada`
+            );
         } catch (e) {
             console.error('Audit error (notifications):', e);
         }

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { AuditService } from '../audit/audit.service';
-import { AuditAction } from '../../domain/audit';
+import { AuditAction, AuditReportType } from '../../domain/audit';
 import { NotifuseHttpService } from './notifuse-http.service';
 
 @Injectable()
@@ -19,11 +19,18 @@ export class NotifuseService {
 
     // best-effort audit
     try {
-      await this.auditService.createDigitalRecord(userId || 0, {
-        action: AuditAction.CREATE,
-        tableName: 'notifications',
-        description: `Send 8_codes_2fa id=${payload?.notification?.id || 'unknown'}`,
-      });
+      await this.auditService.logActionWithSP(
+        userId || 1,
+        AuditReportType.NOTIFICATIONS,
+        AuditAction.CREATE,
+        'notification',
+        payload?.notification?.id || 0,
+        null,
+        `Código 2FA enviado`,
+        null,
+        null,
+        `Envío de código 2FA al usuario`
+      );
     } catch (e) {
       // swallow
       // eslint-disable-next-line no-console
@@ -41,11 +48,18 @@ export class NotifuseService {
     const res = await this.notifuseHttp.sendTransactional(normalized);
 
     try {
-      await this.auditService.createDigitalRecord(userId || 0, {
-        action: AuditAction.CREATE,
-        tableName: 'notifications',
-        description: `Send code_verify id=${payload?.notification?.id || 'unknown'}`,
-      });
+      await this.auditService.logActionWithSP(
+        userId || 1,
+        AuditReportType.NOTIFICATIONS,
+        AuditAction.CREATE,
+        'notification',
+        payload?.notification?.id || 0,
+        null,
+        `Código de verificación enviado`,
+        null,
+        null,
+        `Envío de código de verificación de email`
+      );
     } catch (e) {
       // eslint-disable-next-line no-console
       console.error('Audit error (notifuse):', e);

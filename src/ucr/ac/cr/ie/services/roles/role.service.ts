@@ -3,18 +3,21 @@ import { Repository } from 'typeorm';
 import { Role, RoleType } from '../../domain/auth/core/role.entity';
 import { CreateRoleDto, UpdateRoleDto } from '../../dto/roles';
 import { SuccessResponse } from '../../interfaces';
+import { AuditService } from '../audit/audit.service';
+import { AuditReportType, AuditAction } from '../../domain/audit';
 
 @Injectable()
 export class RoleService {
     constructor(
         @Inject('RoleRepository')
         private roleRepository: Repository<Role>,
+        private auditService: AuditService,
     ) { }
 
     /**
      * Crear un nuevo rol
      */
-    async createRole(createRoleDto: CreateRoleDto): Promise<Role> {
+    async createRole(createRoleDto: CreateRoleDto, changedBy?: number): Promise<Role> {
         const { rName } = createRoleDto;
 
         // Verificar que el nombre no esté en uso
@@ -27,7 +30,23 @@ export class RoleService {
         }
 
         const role = new Role(0, rName); // ID se auto-genera
-        return await this.roleRepository.save(role);
+        const savedRole = await this.roleRepository.save(role);
+
+        // Registrar auditoría de creación de rol
+        await this.auditService.logActionWithSP(
+            changedBy || 1,
+            AuditReportType.GENERAL_ACTIONS,
+            AuditAction.CREATE,
+            'role',
+            savedRole.id,
+            null,
+            `Rol ${savedRole.rName} creado`,
+            null,
+            null,
+            `Creación de nuevo rol en el sistema`
+        );
+
+        return savedRole;
     }
 
     /**
@@ -72,8 +91,9 @@ export class RoleService {
     /**
      * Actualizar rol
      */
-    async updateRole(id: number, updateRoleDto: UpdateRoleDto): Promise<Role> {
+    async updateRole(id: number, updateRoleDto: UpdateRoleDto, changedBy?: number): Promise<Role> {
         const role = await this.findById(id);
+        const oldName = role.rName;
 
         // Si se está actualizando el nombre, verificar que no esté en uso
         if (updateRoleDto.rName && updateRoleDto.rName !== role.rName) {
@@ -86,13 +106,29 @@ export class RoleService {
         }
 
         Object.assign(role, updateRoleDto);
-        return await this.roleRepository.save(role);
+        const savedRole = await this.roleRepository.save(role);
+
+        // Registrar auditoría de actualización de rol
+        await this.auditService.logActionWithSP(
+            changedBy || 1,
+            AuditReportType.GENERAL_ACTIONS,
+            AuditAction.UPDATE,
+            'role',
+            savedRole.id,
+            `rName: ${oldName}`,
+            `rName: ${savedRole.rName}`,
+            null,
+            null,
+            `Actualización de rol ${savedRole.rName}`
+        );
+
+        return savedRole;
     }
 
     /**
      * Eliminar rol
      */
-    async deleteRole(id: number): Promise<SuccessResponse> {
+    async deleteRole(id: number, changedBy?: number): Promise<SuccessResponse> {
         const role = await this.findById(id);
 
         // Verificar que no sea un rol del sistema
@@ -102,6 +138,21 @@ export class RoleService {
         }
 
         await this.roleRepository.remove(role);
+
+        // Registrar auditoría de eliminación de rol
+        await this.auditService.logActionWithSP(
+            changedBy || 1,
+            AuditReportType.GENERAL_ACTIONS,
+            AuditAction.DELETE,
+            'role',
+            id,
+            `rName: ${role.rName}`,
+            null,
+            null,
+            null,
+            `Rol ${role.rName} eliminado del sistema`
+        );
+
         return { success: true };
     }
 

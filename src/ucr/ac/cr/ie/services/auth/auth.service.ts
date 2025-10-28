@@ -12,6 +12,8 @@ import { LoginResponse, Setup2FAResponse, Enable2FAResponse, TwoFactorStatusResp
 import { SuccessResponse, MessageResponse } from '../../interfaces';
 import * as crypto from 'crypto';
 import { NotifuseService } from '../notifuse/notifuse.service';
+import { AuditService } from '../audit/audit.service';
+import { AuditReportType, AuditAction } from '../../domain/audit';
 
 @Injectable()
 export class AuthService {
@@ -27,6 +29,7 @@ export class AuthService {
         @Inject('PasswordResetTokenRepository')
         private passwordResetTokenRepository: Repository<PasswordResetToken>,
         private readonly notifuseService: NotifuseService,
+        private readonly auditService: AuditService,
     ) { }
 
     /**
@@ -141,7 +144,23 @@ export class AuthService {
             twoFactor.tfaLastUsed = new Date();
             await this.twoFactorRepository.save(twoFactor);
 
-            return this.generateTokens(user, ipAddress, userAgent);
+            const result = await this.generateTokens(user, ipAddress, userAgent);
+
+            // Registrar auditoría de login exitoso con 2FA
+            await this.auditService.logActionWithSP(
+                user.id,
+                AuditReportType.SYSTEM_ACCESS,
+                AuditAction.LOGIN,
+                'user',
+                user.id,
+                null,
+                `Login exitoso con 2FA desde IP: ${ipAddress || 'unknown'}`,
+                ipAddress,
+                userAgent,
+                'Login completado con autenticación de dos factores'
+            );
+
+            return result;
         } catch (error) {
             throw new UnauthorizedException('Token temporal inválido o expirado');
         }
@@ -226,6 +245,20 @@ export class AuthService {
 
         const backupCodes = JSON.parse(twoFactor.tfaBackupCodes || '[]');
 
+        // Registrar auditoría de habilitación de 2FA
+        await this.auditService.logActionWithSP(
+            userId,
+            AuditReportType.SYSTEM_ACCESS,
+            AuditAction.UPDATE,
+            'user_two_factor',
+            userId,
+            null,
+            '2FA habilitado exitosamente',
+            null,
+            null,
+            'Autenticación de dos factores activada para el usuario'
+        );
+
         return {
             success: true,
             backupCodes,
@@ -246,6 +279,20 @@ export class AuthService {
 
         // Eliminar configuración 2FA
         await this.twoFactorRepository.remove(twoFactor);
+
+        // Registrar auditoría de deshabilitación de 2FA
+        await this.auditService.logActionWithSP(
+            userId,
+            AuditReportType.SYSTEM_ACCESS,
+            AuditAction.DELETE,
+            'user_two_factor',
+            userId,
+            '2FA habilitado',
+            '2FA deshabilitado',
+            null,
+            null,
+            'Autenticación de dos factores desactivada para el usuario'
+        );
 
         return { success: true };
     }
@@ -278,7 +325,7 @@ export class AuthService {
     /**
      * Cierra sesión
      */
-    async logout(token: string): Promise<SuccessResponse> {
+    async logout(token: string, userId?: number, ipAddress?: string, userAgent?: string): Promise<SuccessResponse> {
         const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
 
         const session = await this.sessionRepository.findOne({
@@ -288,6 +335,20 @@ export class AuthService {
         if (session) {
             session.isActive = false;
             await this.sessionRepository.save(session);
+
+            // Registrar auditoría de logout
+            await this.auditService.logActionWithSP(
+                session.userId,
+                AuditReportType.SYSTEM_ACCESS,
+                AuditAction.LOGOUT,
+                'user',
+                session.userId,
+                null,
+                `Logout desde IP: ${ipAddress || session.ipAddress || 'unknown'}`,
+                ipAddress || session.ipAddress,
+                userAgent || session.userAgent,
+                'Cierre de sesión exitoso'
+            );
         }
 
         return { success: true };
@@ -321,6 +382,20 @@ export class AuthService {
         session.expiresAt = DateUtil.addHours(new Date(), 1); // Expira en 1 hora (igual que JWT)
 
         await this.sessionRepository.save(session);
+
+        // Registrar auditoría de login exitoso
+        await this.auditService.logActionWithSP(
+            user.id,
+            AuditReportType.SYSTEM_ACCESS,
+            AuditAction.LOGIN,
+            'user',
+            user.id,
+            null,
+            `Login exitoso desde IP: ${ipAddress || 'unknown'}`,
+            ipAddress,
+            userAgent,
+            'Inicio de sesión exitoso'
+        );
 
         return {
             accessToken,
@@ -397,6 +472,20 @@ export class AuthService {
             console.error('Error sending reset email:', error);
         }
 
+        // Registrar auditoría de solicitud de recuperación de contraseña
+        await this.auditService.logActionWithSP(
+            user.id,
+            AuditReportType.PASSWORD_RESETS,
+            AuditAction.CREATE,
+            'password_reset_token',
+            user.id,
+            null,
+            'Token de recuperación de contraseña generado',
+            null,
+            null,
+            'Solicitud de recuperación de contraseña iniciada'
+        );
+
         return { message: 'Código de recuperación enviado al email' };
     }
 
@@ -446,6 +535,20 @@ export class AuthService {
         await this.sessionRepository.update(
             { userId: validToken.userId, isActive: true },
             { isActive: false }
+        );
+
+        // Registrar auditoría de cambio de contraseña
+        await this.auditService.logActionWithSP(
+            validToken.userId,
+            AuditReportType.PASSWORD_RESETS,
+            AuditAction.UPDATE,
+            'user',
+            validToken.userId,
+            null,
+            'Contraseña reseteada exitosamente',
+            null,
+            null,
+            'Reset de contraseña completado usando token de recuperación'
         );
 
         return { message: 'Contraseña actualizada exitosamente' };
