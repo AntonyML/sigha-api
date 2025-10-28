@@ -419,7 +419,7 @@ export class AuditService {
       .addSelect('COUNT(*)', 'count')
       .where(whereConditions.drTimestamp ? 'record.drTimestamp BETWEEN :start AND :end' : '1=1', {
         start: startDate,
-        end: endDate,
+        endDate,
       })
       .groupBy('record.drAction')
       .getRawMany();
@@ -430,7 +430,7 @@ export class AuditService {
       .addSelect('COUNT(*)', 'count')
       .where(whereConditions.drTimestamp ? 'record.drTimestamp BETWEEN :start AND :end' : '1=1', {
         start: startDate,
-        end: endDate,
+        endDate,
       })
       .andWhere('record.drTableName IS NOT NULL')
       .groupBy('record.drTableName')
@@ -444,7 +444,7 @@ export class AuditService {
       .addSelect('COUNT(*)', 'actionCount')
       .where(whereConditions.drTimestamp ? 'record.drTimestamp BETWEEN :start AND :end' : '1=1', {
         start: startDate,
-        end: endDate,
+        endDate,
       })
       .groupBy('user.id')
       .orderBy('actionCount', 'DESC')

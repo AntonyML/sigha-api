@@ -73,16 +73,21 @@ export class UserService {
         const savedUser = await this.userRepository.save(user);
 
         // Registrar auditoría de creación de usuario
-        // Nota: Aquí no tenemos el ID del usuario que crea, asumiremos que es un admin del sistema
-        await this.auditService.createDigitalRecord(
-            1, // Super admin por defecto para creación inicial
-            {
-                action: AuditAction.CREATE,
-                tableName: 'users',
-                recordId: savedUser.id,
-                description: `Usuario ${savedUser.uName} ${savedUser.uFLastName} creado`
-            }
-        );
+        // Nota: Para creación inicial, usamos el ID del usuario que se está creando o un valor por defecto
+        try {
+            await this.auditService.createDigitalRecord(
+                savedUser.id, // Usar el ID del usuario recién creado
+                {
+                    action: AuditAction.CREATE,
+                    tableName: 'users',
+                    recordId: savedUser.id,
+                    description: `Usuario ${savedUser.uName} ${savedUser.uFLastName} creado`
+                }
+            );
+        } catch (error) {
+            // Si hay error en la auditoría, loguearlo pero no fallar la creación del usuario
+            console.error('Error creating audit record for user creation:', error);
+        }
 
         return savedUser;
     }

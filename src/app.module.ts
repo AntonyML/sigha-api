@@ -14,6 +14,9 @@ import { VaccinesModule } from './ucr/ac/cr/ie/vaccines.module';
 import { NotifuseModule } from './ucr/ac/cr/ie/notifuse.module';
 import { NotificationsModule } from './ucr/ac/cr/ie/notifications.module';
 import { RoleChangesModule } from './ucr/ac/cr/ie/role-changes.module';
+import { AuditLogsModule } from './ucr/ac/cr/ie/modules/audit-logs/audit-logs.module';
+import { AuditReportsModule } from './ucr/ac/cr/ie/modules/audit-reports/audit-reports.module';
+import { SecurityAuditModule } from './ucr/ac/cr/ie/modules/security-audit/security-audit.module';
 import { JwtAuthGuard } from './ucr/ac/cr/ie/common/guards/jwt-auth.guard';
 
 @Module({
@@ -34,6 +37,9 @@ import { JwtAuthGuard } from './ucr/ac/cr/ie/common/guards/jwt-auth.guard';
     NotifuseModule,
     NotificationsModule,
     RoleChangesModule,
+    AuditLogsModule,
+    AuditReportsModule,
+    SecurityAuditModule,
   ],
   providers: [
     {
