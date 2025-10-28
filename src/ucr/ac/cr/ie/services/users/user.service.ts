@@ -5,6 +5,7 @@ import { Role } from '../../domain/auth/core/role.entity';
 import { PasswordUtil } from '../../common/utils';
 import { CreateUserDto, UpdateUserDto, ChangePasswordDto } from '../../dto/users';
 import { SuccessResponse } from '../../interfaces';
+import { RoleChangesService } from '../role-changes/role-changes.service';
 
 @Injectable()
 export class UserService {
@@ -13,6 +14,7 @@ export class UserService {
         private userRepository: Repository<User>,
         @Inject('RoleRepository')
         private roleRepository: Repository<Role>,
+        private roleChangesService: RoleChangesService,
     ) { }
 
     /**
@@ -137,8 +139,23 @@ export class UserService {
     /**
      * Actualizar usuario
      */
-    async updateUser(id: number, updateUserDto: UpdateUserDto): Promise<User> {
+    async updateUser(id: number, updateUserDto: UpdateUserDto, changedBy?: number): Promise<User> {
         const user = await this.findById(id);
+
+        // Si se está actualizando el rol, registrar el cambio
+        if (updateUserDto.roleId && updateUserDto.roleId !== user.roleId) {
+            const oldRole = await this.roleRepository.findOne({ where: { id: user.roleId } });
+            const newRole = await this.roleRepository.findOne({ where: { id: updateUserDto.roleId } });
+
+            if (oldRole && newRole) {
+                await this.roleChangesService.createRoleChange({
+                    rcOldRole: oldRole.rName,
+                    rcNewRole: newRole.rName,
+                    idUser: id,
+                    changedBy,
+                });
+            }
+        }
 
         // Si se está actualizando el email, verificar que no esté en uso
         if (updateUserDto.uEmail && updateUserDto.uEmail !== user.uEmail) {

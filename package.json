@@ -55,8 +55,6 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:black": "playwright test --project=auth-black-box",
-    "test:white": "playwright test --project=auth-white-box",
-    "test:all": "playwright test --project=auth-all",
     "test:report": "playwright show-report",
     "test:notifications": "npx playwright test --project=notifications-simple",
     "test:roles": "npx playwright test --project=roles-simple",

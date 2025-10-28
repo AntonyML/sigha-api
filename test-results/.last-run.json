@@ -1,22 +1,4 @@
 {
-  "status": "failed",
-  "failedTests": [
-    "f4be54ab9c842da9d7bf-05047550322f0a7f4085",
-    "f4be54ab9c842da9d7bf-50e96ed9df23d16fc02a",
-    "e7ce7b6ebb0aa3ef1f5c-48f9a9393b572e1c9a1a",
-    "e7ce7b6ebb0aa3ef1f5c-f2b5feec450fe00f7a97",
-    "e7ce7b6ebb0aa3ef1f5c-aed0ea224072c0aa1263",
-    "acebfecee2427b7c2eb4-7db4cc5c09f8711d1921",
-    "acebfecee2427b7c2eb4-9a459a006df20b43002c",
-    "c2adf81b7612dcae5367-6f14b20a69f5ef5c43f9",
-    "3cb1ca42382b8ac4ca45-8906b7f3cef3acb5a1ae",
-    "3cb1ca42382b8ac4ca45-18272331acb7811a55f7",
-    "af646df09f72be43fa95-4ef4f486c3869300af28",
-    "af646df09f72be43fa95-a0a506d0e9144ac853c5",
-    "af646df09f72be43fa95-68f7be81d765b7bb49cd",
-    "af646df09f72be43fa95-badb6dfce5fa2cc6db07",
-    "af646df09f72be43fa95-d92ba3e7ba77c02922a6",
-    "af646df09f72be43fa95-6b429ddc85208220117c",
-    "af646df09f72be43fa95-a21ecb0487a1cc561a0c"
-  ]
+  "status": "passed",
+  "failedTests": []
 }

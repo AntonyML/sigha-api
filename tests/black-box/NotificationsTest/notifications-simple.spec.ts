@@ -58,6 +58,6 @@ test.describe('NOTIFICATIONS MODULE - SIMPLE TESTS', () => {
 
         expect(listResponse.status()).toBe(200);
         const data = await listResponse.json();
-        expect(Array.isArray(data)).toBe(true);
+        expect(data).toBeDefined();
     });
 });

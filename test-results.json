@@ -61,22 +61,6 @@
         "metadata": {
           "actualWorkers": 4
         },
-        "id": "auth-white-box",
-        "name": "auth-white-box",
-        "testDir": "C:/UCR_2025/Segundo_Semestre/Analisis/Proyecto/backend_nest_js_hogar_de_ancianos/tests/white-box",
-        "testIgnore": [],
-        "testMatch": [
-          "**/*.spec.ts"
-        ],
-        "timeout": 60000
-      },
-      {
-        "outputDir": "C:/UCR_2025/Segundo_Semestre/Analisis/Proyecto/backend_nest_js_hogar_de_ancianos/test-results",
-        "repeatEach": 1,
-        "retries": 0,
-        "metadata": {
-          "actualWorkers": 4
-        },
         "id": "notifications-simple",
         "name": "notifications-simple",
         "testDir": "C:/UCR_2025/Segundo_Semestre/Analisis/Proyecto/backend_nest_js_hogar_de_ancianos/tests/black-box/NotificationsTest",
@@ -133,22 +117,6 @@
           "**/*.spec.ts"
         ],
         "timeout": 60000
-      },
-      {
-        "outputDir": "C:/UCR_2025/Segundo_Semestre/Analisis/Proyecto/backend_nest_js_hogar_de_ancianos/test-results",
-        "repeatEach": 1,
-        "retries": 0,
-        "metadata": {
-          "actualWorkers": 4
-        },
-        "id": "auth-all",
-        "name": "auth-all",
-        "testDir": "C:/UCR_2025/Segundo_Semestre/Analisis/Proyecto/backend_nest_js_hogar_de_ancianos/tests",
-        "testIgnore": [],
-        "testMatch": [
-          "**/*.spec.ts"
-        ],
-        "timeout": 60000
       }
     ],
     "shard": null,
@@ -165,969 +133,6 @@
   },
   "suites": [
     {
-      "title": "black-box\\AuditTest\\audit-simple.spec.ts",
-      "file": "black-box/AuditTest/audit-simple.spec.ts",
-      "column": 0,
-      "line": 0,
-      "specs": [],
-      "suites": [
-        {
-          "title": "AUDIT MODULE - SIMPLE TESTS",
-          "file": "black-box/AuditTest/audit-simple.spec.ts",
-          "line": 10,
-          "column": 6,
-          "specs": [
-            {
-              "title": "Listar registros de auditoría",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "auth-all",
-                  "projectName": "auth-all",
-                  "results": [
-                    {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
-                      "status": "failed",
-                      "duration": 469,
-                      "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m\n    at C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuditTest\\audit-simple.spec.ts:23:40",
-                        "location": {
-                          "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuditTest\\audit-simple.spec.ts",
-                          "column": 40,
-                          "line": 23
-                        },
-                        "snippet": "\u001b[0m \u001b[90m 21 |\u001b[39m             \u001b[33mTestUsers\u001b[39m\u001b[33m.\u001b[39m\u001b[33mSUPER_ADMIN\u001b[39m\u001b[33m.\u001b[39mpassword\n \u001b[90m 22 |\u001b[39m         )\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 23 |\u001b[39m         expect(loginResponse\u001b[33m.\u001b[39mstatus())\u001b[33m.\u001b[39mtoBe(\u001b[35m200\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 24 |\u001b[39m         \u001b[36mconst\u001b[39m loginData \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m loginResponse\u001b[33m.\u001b[39mjson()\u001b[33m;\u001b[39m\n \u001b[90m 25 |\u001b[39m         accessToken \u001b[33m=\u001b[39m loginData\u001b[33m.\u001b[39maccessToken\u001b[33m;\u001b[39m\n \u001b[90m 26 |\u001b[39m     })\u001b[33m;\u001b[39m\u001b[0m"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuditTest\\audit-simple.spec.ts",
-                            "column": 40,
-                            "line": 23
-                          },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m\n\n\u001b[0m \u001b[90m 21 |\u001b[39m             \u001b[33mTestUsers\u001b[39m\u001b[33m.\u001b[39m\u001b[33mSUPER_ADMIN\u001b[39m\u001b[33m.\u001b[39mpassword\n \u001b[90m 22 |\u001b[39m         )\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 23 |\u001b[39m         expect(loginResponse\u001b[33m.\u001b[39mstatus())\u001b[33m.\u001b[39mtoBe(\u001b[35m200\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 24 |\u001b[39m         \u001b[36mconst\u001b[39m loginData \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m loginResponse\u001b[33m.\u001b[39mjson()\u001b[33m;\u001b[39m\n \u001b[90m 25 |\u001b[39m         accessToken \u001b[33m=\u001b[39m loginData\u001b[33m.\u001b[39maccessToken\u001b[33m;\u001b[39m\n \u001b[90m 26 |\u001b[39m     })\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuditTest\\audit-simple.spec.ts:23:40\u001b[22m"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-10-28T01:37:17.991Z",
-                      "annotations": [],
-                      "attachments": [],
-                      "errorLocation": {
-                        "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuditTest\\audit-simple.spec.ts",
-                        "column": 40,
-                        "line": 23
-                      }
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "f4be54ab9c842da9d7bf-05047550322f0a7f4085",
-              "file": "black-box/AuditTest/audit-simple.spec.ts",
-              "line": 28,
-              "column": 9
-            },
-            {
-              "title": "Obtener estadísticas de auditoría",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "auth-all",
-                  "projectName": "auth-all",
-                  "results": [
-                    {
-                      "workerIndex": 5,
-                      "parallelIndex": 0,
-                      "status": "failed",
-                      "duration": 419,
-                      "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m\n    at C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuditTest\\audit-simple.spec.ts:23:40",
-                        "location": {
-                          "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuditTest\\audit-simple.spec.ts",
-                          "column": 40,
-                          "line": 23
-                        },
-                        "snippet": "\u001b[0m \u001b[90m 21 |\u001b[39m             \u001b[33mTestUsers\u001b[39m\u001b[33m.\u001b[39m\u001b[33mSUPER_ADMIN\u001b[39m\u001b[33m.\u001b[39mpassword\n \u001b[90m 22 |\u001b[39m         )\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 23 |\u001b[39m         expect(loginResponse\u001b[33m.\u001b[39mstatus())\u001b[33m.\u001b[39mtoBe(\u001b[35m200\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 24 |\u001b[39m         \u001b[36mconst\u001b[39m loginData \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m loginResponse\u001b[33m.\u001b[39mjson()\u001b[33m;\u001b[39m\n \u001b[90m 25 |\u001b[39m         accessToken \u001b[33m=\u001b[39m loginData\u001b[33m.\u001b[39maccessToken\u001b[33m;\u001b[39m\n \u001b[90m 26 |\u001b[39m     })\u001b[33m;\u001b[39m\u001b[0m"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuditTest\\audit-simple.spec.ts",
-                            "column": 40,
-                            "line": 23
-                          },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m\n\n\u001b[0m \u001b[90m 21 |\u001b[39m             \u001b[33mTestUsers\u001b[39m\u001b[33m.\u001b[39m\u001b[33mSUPER_ADMIN\u001b[39m\u001b[33m.\u001b[39mpassword\n \u001b[90m 22 |\u001b[39m         )\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 23 |\u001b[39m         expect(loginResponse\u001b[33m.\u001b[39mstatus())\u001b[33m.\u001b[39mtoBe(\u001b[35m200\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 24 |\u001b[39m         \u001b[36mconst\u001b[39m loginData \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m loginResponse\u001b[33m.\u001b[39mjson()\u001b[33m;\u001b[39m\n \u001b[90m 25 |\u001b[39m         accessToken \u001b[33m=\u001b[39m loginData\u001b[33m.\u001b[39maccessToken\u001b[33m;\u001b[39m\n \u001b[90m 26 |\u001b[39m     })\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuditTest\\audit-simple.spec.ts:23:40\u001b[22m"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-10-28T01:37:25.098Z",
-                      "annotations": [],
-                      "attachments": [],
-                      "errorLocation": {
-                        "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuditTest\\audit-simple.spec.ts",
-                        "column": 40,
-                        "line": 23
-                      }
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "f4be54ab9c842da9d7bf-50e96ed9df23d16fc02a",
-              "file": "black-box/AuditTest/audit-simple.spec.ts",
-              "line": 43,
-              "column": 9
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "title": "black-box\\AuthTest\\auth-black-box.spec.ts",
-      "file": "black-box/AuthTest/auth-black-box.spec.ts",
-      "column": 0,
-      "line": 0,
-      "specs": [],
-      "suites": [
-        {
-          "title": "AUTH MODULE - BLACK BOX TESTING",
-          "file": "black-box/AuthTest/auth-black-box.spec.ts",
-          "line": 18,
-          "column": 6,
-          "specs": [],
-          "suites": [
-            {
-              "title": "Login - Equivalence Partitioning",
-              "file": "black-box/AuthTest/auth-black-box.spec.ts",
-              "line": 33,
-              "column": 10,
-              "specs": [
-                {
-                  "title": "TC_BB_AUTH_001: Login válido sin 2FA debería retornar tokens",
-                  "ok": false,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 60000,
-                      "annotations": [],
-                      "expectedStatus": "passed",
-                      "projectId": "auth-all",
-                      "projectName": "auth-all",
-                      "results": [
-                        {
-                          "workerIndex": 1,
-                          "parallelIndex": 1,
-                          "status": "failed",
-                          "duration": 555,
-                          "error": {
-                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m",
-                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m\n    at C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts:42:39",
-                            "location": {
-                              "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts",
-                              "column": 39,
-                              "line": 42
-                            },
-                            "snippet": "\u001b[0m \u001b[90m 40 |\u001b[39m\n \u001b[90m 41 |\u001b[39m             \u001b[90m// Assert\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 42 |\u001b[39m             expect(response\u001b[33m.\u001b[39mstatus())\u001b[33m.\u001b[39mtoBe(\u001b[35m200\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                       \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 43 |\u001b[39m             \u001b[36mconst\u001b[39m data \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m response\u001b[33m.\u001b[39mjson()\u001b[33m;\u001b[39m\n \u001b[90m 44 |\u001b[39m\n \u001b[90m 45 |\u001b[39m             expect(data)\u001b[33m.\u001b[39mtoHaveProperty(\u001b[32m'user'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
-                          },
-                          "errors": [
-                            {
-                              "location": {
-                                "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts",
-                                "column": 39,
-                                "line": 42
-                              },
-                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m\n\n\u001b[0m \u001b[90m 40 |\u001b[39m\n \u001b[90m 41 |\u001b[39m             \u001b[90m// Assert\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 42 |\u001b[39m             expect(response\u001b[33m.\u001b[39mstatus())\u001b[33m.\u001b[39mtoBe(\u001b[35m200\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                       \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 43 |\u001b[39m             \u001b[36mconst\u001b[39m data \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m response\u001b[33m.\u001b[39mjson()\u001b[33m;\u001b[39m\n \u001b[90m 44 |\u001b[39m\n \u001b[90m 45 |\u001b[39m             expect(data)\u001b[33m.\u001b[39mtoHaveProperty(\u001b[32m'user'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts:42:39\u001b[22m"
-                            }
-                          ],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2025-10-28T01:37:17.545Z",
-                          "annotations": [],
-                          "attachments": [],
-                          "errorLocation": {
-                            "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts",
-                            "column": 39,
-                            "line": 42
-                          }
-                        }
-                      ],
-                      "status": "unexpected"
-                    }
-                  ],
-                  "id": "e7ce7b6ebb0aa3ef1f5c-48f9a9393b572e1c9a1a",
-                  "file": "black-box/AuthTest/auth-black-box.spec.ts",
-                  "line": 34,
-                  "column": 13
-                },
-                {
-                  "title": "TC_BB_AUTH_002: Login con credenciales inválidas debería fallar",
-                  "ok": true,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 60000,
-                      "annotations": [],
-                      "expectedStatus": "passed",
-                      "projectId": "auth-all",
-                      "projectName": "auth-all",
-                      "results": [
-                        {
-                          "workerIndex": 4,
-                          "parallelIndex": 1,
-                          "status": "passed",
-                          "duration": 421,
-                          "errors": [],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2025-10-28T01:37:24.790Z",
-                          "annotations": [],
-                          "attachments": []
-                        }
-                      ],
-                      "status": "expected"
-                    }
-                  ],
-                  "id": "e7ce7b6ebb0aa3ef1f5c-24ea349d24cabb601848",
-                  "file": "black-box/AuthTest/auth-black-box.spec.ts",
-                  "line": 52,
-                  "column": 13
-                },
-                {
-                  "title": "TC_BB_AUTH_003: Login con usuario inactivo debería fallar",
-                  "ok": true,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 60000,
-                      "annotations": [],
-                      "expectedStatus": "passed",
-                      "projectId": "auth-all",
-                      "projectName": "auth-all",
-                      "results": [
-                        {
-                          "workerIndex": 4,
-                          "parallelIndex": 1,
-                          "status": "passed",
-                          "duration": 35,
-                          "errors": [],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2025-10-28T01:37:25.291Z",
-                          "annotations": [],
-                          "attachments": []
-                        }
-                      ],
-                      "status": "expected"
-                    }
-                  ],
-                  "id": "e7ce7b6ebb0aa3ef1f5c-74e7eee6503a245d2a1a",
-                  "file": "black-box/AuthTest/auth-black-box.spec.ts",
-                  "line": 62,
-                  "column": 13
-                }
-              ]
-            },
-            {
-              "title": "2FA - State Transition Testing",
-              "file": "black-box/AuthTest/auth-black-box.spec.ts",
-              "line": 72,
-              "column": 10,
-              "specs": [
-                {
-                  "title": "TC_BB_AUTH_004: Login con 2FA habilitado debería requerir verificación",
-                  "ok": false,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 60000,
-                      "annotations": [],
-                      "expectedStatus": "passed",
-                      "projectId": "auth-all",
-                      "projectName": "auth-all",
-                      "results": [
-                        {
-                          "workerIndex": 4,
-                          "parallelIndex": 1,
-                          "status": "failed",
-                          "duration": 48,
-                          "error": {
-                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m",
-                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m\n    at C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts:82:39",
-                            "location": {
-                              "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts",
-                              "column": 39,
-                              "line": 82
-                            },
-                            "snippet": "\u001b[0m \u001b[90m 80 |\u001b[39m\n \u001b[90m 81 |\u001b[39m             \u001b[90m// Assert\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 82 |\u001b[39m             expect(response\u001b[33m.\u001b[39mstatus())\u001b[33m.\u001b[39mtoBe(\u001b[35m200\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                       \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 83 |\u001b[39m             \u001b[36mconst\u001b[39m data \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m response\u001b[33m.\u001b[39mjson()\u001b[33m;\u001b[39m\n \u001b[90m 84 |\u001b[39m\n \u001b[90m 85 |\u001b[39m             \u001b[36mif\u001b[39m (data\u001b[33m.\u001b[39mrequiresTwoFactor) {\u001b[0m"
-                          },
-                          "errors": [
-                            {
-                              "location": {
-                                "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts",
-                                "column": 39,
-                                "line": 82
-                              },
-                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m\n\n\u001b[0m \u001b[90m 80 |\u001b[39m\n \u001b[90m 81 |\u001b[39m             \u001b[90m// Assert\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 82 |\u001b[39m             expect(response\u001b[33m.\u001b[39mstatus())\u001b[33m.\u001b[39mtoBe(\u001b[35m200\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                       \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 83 |\u001b[39m             \u001b[36mconst\u001b[39m data \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m response\u001b[33m.\u001b[39mjson()\u001b[33m;\u001b[39m\n \u001b[90m 84 |\u001b[39m\n \u001b[90m 85 |\u001b[39m             \u001b[36mif\u001b[39m (data\u001b[33m.\u001b[39mrequiresTwoFactor) {\u001b[0m\n\u001b[2m    at C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts:82:39\u001b[22m"
-                            }
-                          ],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2025-10-28T01:37:25.387Z",
-                          "annotations": [],
-                          "attachments": [],
-                          "errorLocation": {
-                            "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts",
-                            "column": 39,
-                            "line": 82
-                          }
-                        }
-                      ],
-                      "status": "unexpected"
-                    }
-                  ],
-                  "id": "e7ce7b6ebb0aa3ef1f5c-f2b5feec450fe00f7a97",
-                  "file": "black-box/AuthTest/auth-black-box.spec.ts",
-                  "line": 74,
-                  "column": 13
-                },
-                {
-                  "title": "TC_BB_AUTH_005: Verificación 2FA con código válido debería completar login",
-                  "ok": true,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 60000,
-                      "annotations": [
-                        {
-                          "type": "skip",
-                          "description": "Requiere tempToken de prueba anterior",
-                          "location": {
-                            "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts",
-                            "line": 98,
-                            "column": 18
-                          }
-                        }
-                      ],
-                      "expectedStatus": "skipped",
-                      "projectId": "auth-all",
-                      "projectName": "auth-all",
-                      "results": [
-                        {
-                          "workerIndex": 9,
-                          "parallelIndex": 1,
-                          "status": "skipped",
-                          "duration": 45,
-                          "errors": [],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2025-10-28T01:37:30.763Z",
-                          "annotations": [
-                            {
-                              "type": "skip",
-                              "description": "Requiere tempToken de prueba anterior",
-                              "location": {
-                                "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts",
-                                "line": 98,
-                                "column": 18
-                              }
-                            }
-                          ],
-                          "attachments": []
-                        }
-                      ],
-                      "status": "skipped"
-                    }
-                  ],
-                  "id": "e7ce7b6ebb0aa3ef1f5c-37a9f2b67010e87fee4a",
-                  "file": "black-box/AuthTest/auth-black-box.spec.ts",
-                  "line": 97,
-                  "column": 13
-                },
-                {
-                  "title": "TC_BB_AUTH_006: Verificación 2FA con código inválido debería fallar",
-                  "ok": true,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 60000,
-                      "annotations": [
-                        {
-                          "type": "skip",
-                          "description": "Requiere tempToken de prueba anterior",
-                          "location": {
-                            "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts",
-                            "line": 119,
-                            "column": 18
-                          }
-                        }
-                      ],
-                      "expectedStatus": "skipped",
-                      "projectId": "auth-all",
-                      "projectName": "auth-all",
-                      "results": [
-                        {
-                          "workerIndex": 9,
-                          "parallelIndex": 1,
-                          "status": "skipped",
-                          "duration": 20,
-                          "errors": [],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2025-10-28T01:37:30.888Z",
-                          "annotations": [
-                            {
-                              "type": "skip",
-                              "description": "Requiere tempToken de prueba anterior",
-                              "location": {
-                                "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts",
-                                "line": 119,
-                                "column": 18
-                              }
-                            }
-                          ],
-                          "attachments": []
-                        }
-                      ],
-                      "status": "skipped"
-                    }
-                  ],
-                  "id": "e7ce7b6ebb0aa3ef1f5c-3b0d687a0d801ad2455b",
-                  "file": "black-box/AuthTest/auth-black-box.spec.ts",
-                  "line": 118,
-                  "column": 13
-                },
-                {
-                  "title": "TC_BB_AUTH_007: Verificación 2FA con token expirado debería fallar",
-                  "ok": true,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 60000,
-                      "annotations": [
-                        {
-                          "type": "skip",
-                          "description": "Requiere tempToken de prueba anterior",
-                          "location": {
-                            "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts",
-                            "line": 131,
-                            "column": 18
-                          }
-                        }
-                      ],
-                      "expectedStatus": "skipped",
-                      "projectId": "auth-all",
-                      "projectName": "auth-all",
-                      "results": [
-                        {
-                          "workerIndex": 9,
-                          "parallelIndex": 1,
-                          "status": "skipped",
-                          "duration": 25,
-                          "errors": [],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2025-10-28T01:37:30.968Z",
-                          "annotations": [
-                            {
-                              "type": "skip",
-                              "description": "Requiere tempToken de prueba anterior",
-                              "location": {
-                                "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts",
-                                "line": 131,
-                                "column": 18
-                              }
-                            }
-                          ],
-                          "attachments": []
-                        }
-                      ],
-                      "status": "skipped"
-                    }
-                  ],
-                  "id": "e7ce7b6ebb0aa3ef1f5c-1431d56280f14987b56f",
-                  "file": "black-box/AuthTest/auth-black-box.spec.ts",
-                  "line": 130,
-                  "column": 13
-                }
-              ]
-            },
-            {
-              "title": "Backup Codes - Decision Table Testing",
-              "file": "black-box/AuthTest/auth-black-box.spec.ts",
-              "line": 153,
-              "column": 10,
-              "specs": [
-                {
-                  "title": "TC_BB_AUTH_008: Código de respaldo válido debería funcionar",
-                  "ok": true,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 60000,
-                      "annotations": [
-                        {
-                          "type": "skip",
-                          "description": "Requiere tempToken de prueba anterior",
-                          "location": {
-                            "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts",
-                            "line": 155,
-                            "column": 18
-                          }
-                        }
-                      ],
-                      "expectedStatus": "skipped",
-                      "projectId": "auth-all",
-                      "projectName": "auth-all",
-                      "results": [
-                        {
-                          "workerIndex": 9,
-                          "parallelIndex": 1,
-                          "status": "skipped",
-                          "duration": 14,
-                          "errors": [],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2025-10-28T01:37:31.052Z",
-                          "annotations": [
-                            {
-                              "type": "skip",
-                              "description": "Requiere tempToken de prueba anterior",
-                              "location": {
-                                "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts",
-                                "line": 155,
-                                "column": 18
-                              }
-                            }
-                          ],
-                          "attachments": []
-                        }
-                      ],
-                      "status": "skipped"
-                    }
-                  ],
-                  "id": "e7ce7b6ebb0aa3ef1f5c-b72221340b1023d92ce1",
-                  "file": "black-box/AuthTest/auth-black-box.spec.ts",
-                  "line": 154,
-                  "column": 13
-                },
-                {
-                  "title": "TC_BB_AUTH_009: Código de respaldo inválido debería fallar",
-                  "ok": true,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 60000,
-                      "annotations": [
-                        {
-                          "type": "skip",
-                          "description": "Requiere tempToken de prueba anterior",
-                          "location": {
-                            "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts",
-                            "line": 170,
-                            "column": 18
-                          }
-                        }
-                      ],
-                      "expectedStatus": "skipped",
-                      "projectId": "auth-all",
-                      "projectName": "auth-all",
-                      "results": [
-                        {
-                          "workerIndex": 9,
-                          "parallelIndex": 1,
-                          "status": "skipped",
-                          "duration": 13,
-                          "errors": [],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2025-10-28T01:37:31.131Z",
-                          "annotations": [
-                            {
-                              "type": "skip",
-                              "description": "Requiere tempToken de prueba anterior",
-                              "location": {
-                                "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts",
-                                "line": 170,
-                                "column": 18
-                              }
-                            }
-                          ],
-                          "attachments": []
-                        }
-                      ],
-                      "status": "skipped"
-                    }
-                  ],
-                  "id": "e7ce7b6ebb0aa3ef1f5c-19ae757738c75bdc2fba",
-                  "file": "black-box/AuthTest/auth-black-box.spec.ts",
-                  "line": 169,
-                  "column": 13
-                }
-              ]
-            },
-            {
-              "title": "Session Management - Boundary Value Analysis",
-              "file": "black-box/AuthTest/auth-black-box.spec.ts",
-              "line": 181,
-              "column": 10,
-              "specs": [
-                {
-                  "title": "TC_BB_AUTH_010: Logout con token válido debería cerrar sesión",
-                  "ok": true,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 60000,
-                      "annotations": [
-                        {
-                          "type": "skip",
-                          "description": "Requiere accessToken de pruebas anteriores",
-                          "location": {
-                            "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts",
-                            "line": 183,
-                            "column": 18
-                          }
-                        }
-                      ],
-                      "expectedStatus": "skipped",
-                      "projectId": "auth-all",
-                      "projectName": "auth-all",
-                      "results": [
-                        {
-                          "workerIndex": 9,
-                          "parallelIndex": 1,
-                          "status": "skipped",
-                          "duration": 13,
-                          "errors": [],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2025-10-28T01:37:31.196Z",
-                          "annotations": [
-                            {
-                              "type": "skip",
-                              "description": "Requiere accessToken de pruebas anteriores",
-                              "location": {
-                                "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts",
-                                "line": 183,
-                                "column": 18
-                              }
-                            }
-                          ],
-                          "attachments": []
-                        }
-                      ],
-                      "status": "skipped"
-                    }
-                  ],
-                  "id": "e7ce7b6ebb0aa3ef1f5c-27f8a8e5f2a08395fa51",
-                  "file": "black-box/AuthTest/auth-black-box.spec.ts",
-                  "line": 182,
-                  "column": 13
-                },
-                {
-                  "title": "TC_BB_AUTH_011: Acceso a perfil sin token debería fallar",
-                  "ok": true,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 60000,
-                      "annotations": [],
-                      "expectedStatus": "passed",
-                      "projectId": "auth-all",
-                      "projectName": "auth-all",
-                      "results": [
-                        {
-                          "workerIndex": 9,
-                          "parallelIndex": 1,
-                          "status": "passed",
-                          "duration": 430,
-                          "errors": [],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2025-10-28T01:37:31.265Z",
-                          "annotations": [],
-                          "attachments": []
-                        }
-                      ],
-                      "status": "expected"
-                    }
-                  ],
-                  "id": "e7ce7b6ebb0aa3ef1f5c-38e8b284ef3117b22c2a",
-                  "file": "black-box/AuthTest/auth-black-box.spec.ts",
-                  "line": 194,
-                  "column": 13
-                },
-                {
-                  "title": "TC_BB_AUTH_012: Acceso a perfil con token válido debería retornar datos",
-                  "ok": true,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 60000,
-                      "annotations": [
-                        {
-                          "type": "skip",
-                          "description": "Requiere accessToken válido",
-                          "location": {
-                            "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts",
-                            "line": 203,
-                            "column": 18
-                          }
-                        }
-                      ],
-                      "expectedStatus": "skipped",
-                      "projectId": "auth-all",
-                      "projectName": "auth-all",
-                      "results": [
-                        {
-                          "workerIndex": 9,
-                          "parallelIndex": 1,
-                          "status": "skipped",
-                          "duration": 15,
-                          "errors": [],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2025-10-28T01:37:31.796Z",
-                          "annotations": [
-                            {
-                              "type": "skip",
-                              "description": "Requiere accessToken válido",
-                              "location": {
-                                "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts",
-                                "line": 203,
-                                "column": 18
-                              }
-                            }
-                          ],
-                          "attachments": []
-                        }
-                      ],
-                      "status": "skipped"
-                    }
-                  ],
-                  "id": "e7ce7b6ebb0aa3ef1f5c-b96ad13dccd167768ec4",
-                  "file": "black-box/AuthTest/auth-black-box.spec.ts",
-                  "line": 202,
-                  "column": 13
-                }
-              ]
-            },
-            {
-              "title": "Time Synchronization - Critical Path Testing",
-              "file": "black-box/AuthTest/auth-black-box.spec.ts",
-              "line": 217,
-              "column": 10,
-              "specs": [
-                {
-                  "title": "TC_BB_AUTH_013: Servidor debe tener hora sincronizada para TOTP",
-                  "ok": true,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 60000,
-                      "annotations": [],
-                      "expectedStatus": "passed",
-                      "projectId": "auth-all",
-                      "projectName": "auth-all",
-                      "results": [
-                        {
-                          "workerIndex": 9,
-                          "parallelIndex": 1,
-                          "status": "passed",
-                          "duration": 21,
-                          "errors": [],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2025-10-28T01:37:31.859Z",
-                          "annotations": [],
-                          "attachments": []
-                        }
-                      ],
-                      "status": "expected"
-                    }
-                  ],
-                  "id": "e7ce7b6ebb0aa3ef1f5c-274e7ad7bb6dc539fb79",
-                  "file": "black-box/AuthTest/auth-black-box.spec.ts",
-                  "line": 218,
-                  "column": 13
-                }
-              ]
-            },
-            {
-              "title": "Security - Negative Testing",
-              "file": "black-box/AuthTest/auth-black-box.spec.ts",
-              "line": 232,
-              "column": 10,
-              "specs": [
-                {
-                  "title": "TC_BB_AUTH_014: Ataque de fuerza bruta debería ser mitigado",
-                  "ok": true,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 60000,
-                      "annotations": [],
-                      "expectedStatus": "passed",
-                      "projectId": "auth-all",
-                      "projectName": "auth-all",
-                      "results": [
-                        {
-                          "workerIndex": 9,
-                          "parallelIndex": 1,
-                          "status": "passed",
-                          "duration": 69,
-                          "errors": [],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2025-10-28T01:37:31.933Z",
-                          "annotations": [],
-                          "attachments": []
-                        }
-                      ],
-                      "status": "expected"
-                    }
-                  ],
-                  "id": "e7ce7b6ebb0aa3ef1f5c-e5338d26ed83ba6cc9da",
-                  "file": "black-box/AuthTest/auth-black-box.spec.ts",
-                  "line": 233,
-                  "column": 13
-                },
-                {
-                  "title": "TC_BB_AUTH_015: SQL Injection debería ser prevenido",
-                  "ok": true,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 60000,
-                      "annotations": [],
-                      "expectedStatus": "passed",
-                      "projectId": "auth-all",
-                      "projectName": "auth-all",
-                      "results": [
-                        {
-                          "workerIndex": 9,
-                          "parallelIndex": 1,
-                          "status": "passed",
-                          "duration": 24,
-                          "errors": [],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2025-10-28T01:37:32.035Z",
-                          "annotations": [],
-                          "attachments": []
-                        }
-                      ],
-                      "status": "expected"
-                    }
-                  ],
-                  "id": "e7ce7b6ebb0aa3ef1f5c-a12645af7f19b5a8655e",
-                  "file": "black-box/AuthTest/auth-black-box.spec.ts",
-                  "line": 249,
-                  "column": 13
-                }
-              ]
-            },
-            {
-              "title": "TOTP Server Time Synchronization",
-              "file": "black-box/AuthTest/auth-black-box.spec.ts",
-              "line": 263,
-              "column": 10,
-              "specs": [
-                {
-                  "title": "TC_BB_AUTH_999: El servidor acepta TOTP generado localmente (sincronización horaria)",
-                  "ok": false,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 60000,
-                      "annotations": [],
-                      "expectedStatus": "passed",
-                      "projectId": "auth-all",
-                      "projectName": "auth-all",
-                      "results": [
-                        {
-                          "workerIndex": 9,
-                          "parallelIndex": 1,
-                          "status": "failed",
-                          "duration": 30,
-                          "error": {
-                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m",
-                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m\n    at C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts:270:44",
-                            "location": {
-                              "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts",
-                              "column": 44,
-                              "line": 270
-                            },
-                            "snippet": "\u001b[0m \u001b[90m 268 |\u001b[39m                 \u001b[33mTestUsers\u001b[39m\u001b[33m.\u001b[39m\u001b[33mSUPER_ADMIN\u001b[39m\u001b[33m.\u001b[39mpassword\n \u001b[90m 269 |\u001b[39m             )\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 270 |\u001b[39m             expect(loginResponse\u001b[33m.\u001b[39mstatus())\u001b[33m.\u001b[39mtoBe(\u001b[35m200\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                            \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 271 |\u001b[39m             \u001b[36mconst\u001b[39m loginData \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m loginResponse\u001b[33m.\u001b[39mjson()\u001b[33m;\u001b[39m\n \u001b[90m 272 |\u001b[39m             \u001b[36mif\u001b[39m (\u001b[33m!\u001b[39mloginData\u001b[33m.\u001b[39mrequiresTwoFactor) {\n \u001b[90m 273 |\u001b[39m                 test\u001b[33m.\u001b[39mskip(\u001b[36mtrue\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'El usuario no requiere 2FA para esta prueba'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
-                          },
-                          "errors": [
-                            {
-                              "location": {
-                                "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts",
-                                "column": 44,
-                                "line": 270
-                              },
-                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m\n\n\u001b[0m \u001b[90m 268 |\u001b[39m                 \u001b[33mTestUsers\u001b[39m\u001b[33m.\u001b[39m\u001b[33mSUPER_ADMIN\u001b[39m\u001b[33m.\u001b[39mpassword\n \u001b[90m 269 |\u001b[39m             )\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 270 |\u001b[39m             expect(loginResponse\u001b[33m.\u001b[39mstatus())\u001b[33m.\u001b[39mtoBe(\u001b[35m200\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                            \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 271 |\u001b[39m             \u001b[36mconst\u001b[39m loginData \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m loginResponse\u001b[33m.\u001b[39mjson()\u001b[33m;\u001b[39m\n \u001b[90m 272 |\u001b[39m             \u001b[36mif\u001b[39m (\u001b[33m!\u001b[39mloginData\u001b[33m.\u001b[39mrequiresTwoFactor) {\n \u001b[90m 273 |\u001b[39m                 test\u001b[33m.\u001b[39mskip(\u001b[36mtrue\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'El usuario no requiere 2FA para esta prueba'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts:270:44\u001b[22m"
-                            }
-                          ],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2025-10-28T01:37:32.103Z",
-                          "annotations": [],
-                          "attachments": [],
-                          "errorLocation": {
-                            "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\AuthTest\\auth-black-box.spec.ts",
-                            "column": 44,
-                            "line": 270
-                          }
-                        }
-                      ],
-                      "status": "unexpected"
-                    }
-                  ],
-                  "id": "e7ce7b6ebb0aa3ef1f5c-aed0ea224072c0aa1263",
-                  "file": "black-box/AuthTest/auth-black-box.spec.ts",
-                  "line": 264,
-                  "column": 13
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
       "title": "black-box\\NotificationsTest\\notifications-simple.spec.ts",
       "file": "black-box/NotificationsTest/notifications-simple.spec.ts",
       "column": 0,
@@ -1142,116 +147,68 @@
           "specs": [
             {
               "title": "Crear notificación simple",
-              "ok": false,
+              "ok": true,
               "tags": [],
               "tests": [
                 {
                   "timeout": 60000,
                   "annotations": [],
                   "expectedStatus": "passed",
-                  "projectId": "auth-all",
-                  "projectName": "auth-all",
+                  "projectId": "notifications-simple",
+                  "projectName": "notifications-simple",
                   "results": [
                     {
-                      "workerIndex": 2,
-                      "parallelIndex": 2,
-                      "status": "failed",
-                      "duration": 432,
-                      "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m\n    at C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\NotificationsTest\\notifications-simple.spec.ts:23:40",
-                        "location": {
-                          "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\NotificationsTest\\notifications-simple.spec.ts",
-                          "column": 40,
-                          "line": 23
-                        },
-                        "snippet": "\u001b[0m \u001b[90m 21 |\u001b[39m             \u001b[33mTestUsers\u001b[39m\u001b[33m.\u001b[39m\u001b[33mSUPER_ADMIN\u001b[39m\u001b[33m.\u001b[39mpassword\n \u001b[90m 22 |\u001b[39m         )\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 23 |\u001b[39m         expect(loginResponse\u001b[33m.\u001b[39mstatus())\u001b[33m.\u001b[39mtoBe(\u001b[35m200\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 24 |\u001b[39m         \u001b[36mconst\u001b[39m loginData \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m loginResponse\u001b[33m.\u001b[39mjson()\u001b[33m;\u001b[39m\n \u001b[90m 25 |\u001b[39m         accessToken \u001b[33m=\u001b[39m loginData\u001b[33m.\u001b[39maccessToken\u001b[33m;\u001b[39m\n \u001b[90m 26 |\u001b[39m     })\u001b[33m;\u001b[39m\u001b[0m"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\NotificationsTest\\notifications-simple.spec.ts",
-                            "column": 40,
-                            "line": 23
-                          },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m\n\n\u001b[0m \u001b[90m 21 |\u001b[39m             \u001b[33mTestUsers\u001b[39m\u001b[33m.\u001b[39m\u001b[33mSUPER_ADMIN\u001b[39m\u001b[33m.\u001b[39mpassword\n \u001b[90m 22 |\u001b[39m         )\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 23 |\u001b[39m         expect(loginResponse\u001b[33m.\u001b[39mstatus())\u001b[33m.\u001b[39mtoBe(\u001b[35m200\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 24 |\u001b[39m         \u001b[36mconst\u001b[39m loginData \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m loginResponse\u001b[33m.\u001b[39mjson()\u001b[33m;\u001b[39m\n \u001b[90m 25 |\u001b[39m         accessToken \u001b[33m=\u001b[39m loginData\u001b[33m.\u001b[39maccessToken\u001b[33m;\u001b[39m\n \u001b[90m 26 |\u001b[39m     })\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\NotificationsTest\\notifications-simple.spec.ts:23:40\u001b[22m"
-                        }
-                      ],
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1425,
+                      "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-10-28T01:37:18.347Z",
+                      "startTime": "2025-10-28T02:09:24.789Z",
                       "annotations": [],
-                      "attachments": [],
-                      "errorLocation": {
-                        "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\NotificationsTest\\notifications-simple.spec.ts",
-                        "column": 40,
-                        "line": 23
-                      }
+                      "attachments": []
                     }
                   ],
-                  "status": "unexpected"
+                  "status": "expected"
                 }
               ],
-              "id": "acebfecee2427b7c2eb4-7db4cc5c09f8711d1921",
+              "id": "01329d1169fa6b550dad-7ea700c9bbd906492201",
               "file": "black-box/NotificationsTest/notifications-simple.spec.ts",
               "line": 28,
               "column": 9
             },
             {
               "title": "Listar notificaciones",
-              "ok": false,
+              "ok": true,
               "tags": [],
               "tests": [
                 {
                   "timeout": 60000,
                   "annotations": [],
                   "expectedStatus": "passed",
-                  "projectId": "auth-all",
-                  "projectName": "auth-all",
+                  "projectId": "notifications-simple",
+                  "projectName": "notifications-simple",
                   "results": [
                     {
-                      "workerIndex": 6,
-                      "parallelIndex": 2,
-                      "status": "failed",
-                      "duration": 411,
-                      "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m\n    at C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\NotificationsTest\\notifications-simple.spec.ts:23:40",
-                        "location": {
-                          "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\NotificationsTest\\notifications-simple.spec.ts",
-                          "column": 40,
-                          "line": 23
-                        },
-                        "snippet": "\u001b[0m \u001b[90m 21 |\u001b[39m             \u001b[33mTestUsers\u001b[39m\u001b[33m.\u001b[39m\u001b[33mSUPER_ADMIN\u001b[39m\u001b[33m.\u001b[39mpassword\n \u001b[90m 22 |\u001b[39m         )\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 23 |\u001b[39m         expect(loginResponse\u001b[33m.\u001b[39mstatus())\u001b[33m.\u001b[39mtoBe(\u001b[35m200\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 24 |\u001b[39m         \u001b[36mconst\u001b[39m loginData \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m loginResponse\u001b[33m.\u001b[39mjson()\u001b[33m;\u001b[39m\n \u001b[90m 25 |\u001b[39m         accessToken \u001b[33m=\u001b[39m loginData\u001b[33m.\u001b[39maccessToken\u001b[33m;\u001b[39m\n \u001b[90m 26 |\u001b[39m     })\u001b[33m;\u001b[39m\u001b[0m"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\NotificationsTest\\notifications-simple.spec.ts",
-                            "column": 40,
-                            "line": 23
-                          },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m\n\n\u001b[0m \u001b[90m 21 |\u001b[39m             \u001b[33mTestUsers\u001b[39m\u001b[33m.\u001b[39m\u001b[33mSUPER_ADMIN\u001b[39m\u001b[33m.\u001b[39mpassword\n \u001b[90m 22 |\u001b[39m         )\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 23 |\u001b[39m         expect(loginResponse\u001b[33m.\u001b[39mstatus())\u001b[33m.\u001b[39mtoBe(\u001b[35m200\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 24 |\u001b[39m         \u001b[36mconst\u001b[39m loginData \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m loginResponse\u001b[33m.\u001b[39mjson()\u001b[33m;\u001b[39m\n \u001b[90m 25 |\u001b[39m         accessToken \u001b[33m=\u001b[39m loginData\u001b[33m.\u001b[39maccessToken\u001b[33m;\u001b[39m\n \u001b[90m 26 |\u001b[39m     })\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\NotificationsTest\\notifications-simple.spec.ts:23:40\u001b[22m"
-                        }
-                      ],
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 653,
+                      "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-10-28T01:37:25.140Z",
+                      "startTime": "2025-10-28T02:09:26.285Z",
                       "annotations": [],
-                      "attachments": [],
-                      "errorLocation": {
-                        "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\NotificationsTest\\notifications-simple.spec.ts",
-                        "column": 40,
-                        "line": 23
-                      }
+                      "attachments": []
                     }
                   ],
-                  "status": "unexpected"
+                  "status": "expected"
                 }
               ],
-              "id": "acebfecee2427b7c2eb4-9a459a006df20b43002c",
+              "id": "01329d1169fa6b550dad-1ec887004b87c65c239b",
               "file": "black-box/NotificationsTest/notifications-simple.spec.ts",
               "line": 49,
               "column": 9
@@ -1275,58 +232,34 @@
           "specs": [
             {
               "title": "Listar roles",
-              "ok": false,
+              "ok": true,
               "tags": [],
               "tests": [
                 {
                   "timeout": 60000,
                   "annotations": [],
                   "expectedStatus": "passed",
-                  "projectId": "auth-all",
-                  "projectName": "auth-all",
+                  "projectId": "roles-simple",
+                  "projectName": "roles-simple",
                   "results": [
                     {
-                      "workerIndex": 3,
-                      "parallelIndex": 3,
-                      "status": "failed",
-                      "duration": 424,
-                      "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m\n    at C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\RolesTest\\roles-simple.spec.ts:23:40",
-                        "location": {
-                          "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\RolesTest\\roles-simple.spec.ts",
-                          "column": 40,
-                          "line": 23
-                        },
-                        "snippet": "\u001b[0m \u001b[90m 21 |\u001b[39m             \u001b[33mTestUsers\u001b[39m\u001b[33m.\u001b[39m\u001b[33mSUPER_ADMIN\u001b[39m\u001b[33m.\u001b[39mpassword\n \u001b[90m 22 |\u001b[39m         )\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 23 |\u001b[39m         expect(loginResponse\u001b[33m.\u001b[39mstatus())\u001b[33m.\u001b[39mtoBe(\u001b[35m200\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 24 |\u001b[39m         \u001b[36mconst\u001b[39m loginData \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m loginResponse\u001b[33m.\u001b[39mjson()\u001b[33m;\u001b[39m\n \u001b[90m 25 |\u001b[39m         accessToken \u001b[33m=\u001b[39m loginData\u001b[33m.\u001b[39maccessToken\u001b[33m;\u001b[39m\n \u001b[90m 26 |\u001b[39m     })\u001b[33m;\u001b[39m\u001b[0m"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\RolesTest\\roles-simple.spec.ts",
-                            "column": 40,
-                            "line": 23
-                          },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m\n\n\u001b[0m \u001b[90m 21 |\u001b[39m             \u001b[33mTestUsers\u001b[39m\u001b[33m.\u001b[39m\u001b[33mSUPER_ADMIN\u001b[39m\u001b[33m.\u001b[39mpassword\n \u001b[90m 22 |\u001b[39m         )\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 23 |\u001b[39m         expect(loginResponse\u001b[33m.\u001b[39mstatus())\u001b[33m.\u001b[39mtoBe(\u001b[35m200\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 24 |\u001b[39m         \u001b[36mconst\u001b[39m loginData \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m loginResponse\u001b[33m.\u001b[39mjson()\u001b[33m;\u001b[39m\n \u001b[90m 25 |\u001b[39m         accessToken \u001b[33m=\u001b[39m loginData\u001b[33m.\u001b[39maccessToken\u001b[33m;\u001b[39m\n \u001b[90m 26 |\u001b[39m     })\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\RolesTest\\roles-simple.spec.ts:23:40\u001b[22m"
-                        }
-                      ],
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1006,
+                      "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-10-28T01:37:18.444Z",
+                      "startTime": "2025-10-28T02:09:24.762Z",
                       "annotations": [],
-                      "attachments": [],
-                      "errorLocation": {
-                        "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\RolesTest\\roles-simple.spec.ts",
-                        "column": 40,
-                        "line": 23
-                      }
+                      "attachments": []
                     }
                   ],
-                  "status": "unexpected"
+                  "status": "expected"
                 }
               ],
-              "id": "c2adf81b7612dcae5367-6f14b20a69f5ef5c43f9",
+              "id": "4c788b21760c5ae63623-cd0d0590ea98753af69b",
               "file": "black-box/RolesTest/roles-simple.spec.ts",
               "line": 28,
               "column": 9
@@ -1350,116 +283,68 @@
           "specs": [
             {
               "title": "Listar usuarios",
-              "ok": false,
+              "ok": true,
               "tags": [],
               "tests": [
                 {
                   "timeout": 60000,
                   "annotations": [],
                   "expectedStatus": "passed",
-                  "projectId": "auth-all",
-                  "projectName": "auth-all",
+                  "projectId": "users-simple",
+                  "projectName": "users-simple",
                   "results": [
                     {
-                      "workerIndex": 7,
-                      "parallelIndex": 3,
-                      "status": "failed",
-                      "duration": 446,
-                      "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m\n    at C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\UsersTest\\users-simple.spec.ts:23:40",
-                        "location": {
-                          "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\UsersTest\\users-simple.spec.ts",
-                          "column": 40,
-                          "line": 23
-                        },
-                        "snippet": "\u001b[0m \u001b[90m 21 |\u001b[39m             \u001b[33mTestUsers\u001b[39m\u001b[33m.\u001b[39m\u001b[33mSUPER_ADMIN\u001b[39m\u001b[33m.\u001b[39mpassword\n \u001b[90m 22 |\u001b[39m         )\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 23 |\u001b[39m         expect(loginResponse\u001b[33m.\u001b[39mstatus())\u001b[33m.\u001b[39mtoBe(\u001b[35m200\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 24 |\u001b[39m         \u001b[36mconst\u001b[39m loginData \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m loginResponse\u001b[33m.\u001b[39mjson()\u001b[33m;\u001b[39m\n \u001b[90m 25 |\u001b[39m         accessToken \u001b[33m=\u001b[39m loginData\u001b[33m.\u001b[39maccessToken\u001b[33m;\u001b[39m\n \u001b[90m 26 |\u001b[39m     })\u001b[33m;\u001b[39m\u001b[0m"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\UsersTest\\users-simple.spec.ts",
-                            "column": 40,
-                            "line": 23
-                          },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m\n\n\u001b[0m \u001b[90m 21 |\u001b[39m             \u001b[33mTestUsers\u001b[39m\u001b[33m.\u001b[39m\u001b[33mSUPER_ADMIN\u001b[39m\u001b[33m.\u001b[39mpassword\n \u001b[90m 22 |\u001b[39m         )\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 23 |\u001b[39m         expect(loginResponse\u001b[33m.\u001b[39mstatus())\u001b[33m.\u001b[39mtoBe(\u001b[35m200\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 24 |\u001b[39m         \u001b[36mconst\u001b[39m loginData \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m loginResponse\u001b[33m.\u001b[39mjson()\u001b[33m;\u001b[39m\n \u001b[90m 25 |\u001b[39m         accessToken \u001b[33m=\u001b[39m loginData\u001b[33m.\u001b[39maccessToken\u001b[33m;\u001b[39m\n \u001b[90m 26 |\u001b[39m     })\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\UsersTest\\users-simple.spec.ts:23:40\u001b[22m"
-                        }
-                      ],
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 1281,
+                      "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-10-28T01:37:24.774Z",
+                      "startTime": "2025-10-28T02:09:24.795Z",
                       "annotations": [],
-                      "attachments": [],
-                      "errorLocation": {
-                        "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\UsersTest\\users-simple.spec.ts",
-                        "column": 40,
-                        "line": 23
-                      }
+                      "attachments": []
                     }
                   ],
-                  "status": "unexpected"
+                  "status": "expected"
                 }
               ],
-              "id": "3cb1ca42382b8ac4ca45-8906b7f3cef3acb5a1ae",
+              "id": "ce03f46b38e5c8885bb8-7d6aa5bf0e705d4ac587",
               "file": "black-box/UsersTest/users-simple.spec.ts",
               "line": 28,
               "column": 9
             },
             {
               "title": "Obtener perfil propio",
-              "ok": false,
+              "ok": true,
               "tags": [],
               "tests": [
                 {
                   "timeout": 60000,
                   "annotations": [],
                   "expectedStatus": "passed",
-                  "projectId": "auth-all",
-                  "projectName": "auth-all",
+                  "projectId": "users-simple",
+                  "projectName": "users-simple",
                   "results": [
                     {
-                      "workerIndex": 8,
-                      "parallelIndex": 3,
-                      "status": "failed",
-                      "duration": 419,
-                      "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m\n    at C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\UsersTest\\users-simple.spec.ts:23:40",
-                        "location": {
-                          "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\UsersTest\\users-simple.spec.ts",
-                          "column": 40,
-                          "line": 23
-                        },
-                        "snippet": "\u001b[0m \u001b[90m 21 |\u001b[39m             \u001b[33mTestUsers\u001b[39m\u001b[33m.\u001b[39m\u001b[33mSUPER_ADMIN\u001b[39m\u001b[33m.\u001b[39mpassword\n \u001b[90m 22 |\u001b[39m         )\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 23 |\u001b[39m         expect(loginResponse\u001b[33m.\u001b[39mstatus())\u001b[33m.\u001b[39mtoBe(\u001b[35m200\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 24 |\u001b[39m         \u001b[36mconst\u001b[39m loginData \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m loginResponse\u001b[33m.\u001b[39mjson()\u001b[33m;\u001b[39m\n \u001b[90m 25 |\u001b[39m         accessToken \u001b[33m=\u001b[39m loginData\u001b[33m.\u001b[39maccessToken\u001b[33m;\u001b[39m\n \u001b[90m 26 |\u001b[39m     })\u001b[33m;\u001b[39m\u001b[0m"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\UsersTest\\users-simple.spec.ts",
-                            "column": 40,
-                            "line": 23
-                          },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m\n\n\u001b[0m \u001b[90m 21 |\u001b[39m             \u001b[33mTestUsers\u001b[39m\u001b[33m.\u001b[39m\u001b[33mSUPER_ADMIN\u001b[39m\u001b[33m.\u001b[39mpassword\n \u001b[90m 22 |\u001b[39m         )\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 23 |\u001b[39m         expect(loginResponse\u001b[33m.\u001b[39mstatus())\u001b[33m.\u001b[39mtoBe(\u001b[35m200\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 24 |\u001b[39m         \u001b[36mconst\u001b[39m loginData \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m loginResponse\u001b[33m.\u001b[39mjson()\u001b[33m;\u001b[39m\n \u001b[90m 25 |\u001b[39m         accessToken \u001b[33m=\u001b[39m loginData\u001b[33m.\u001b[39maccessToken\u001b[33m;\u001b[39m\n \u001b[90m 26 |\u001b[39m     })\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\UsersTest\\users-simple.spec.ts:23:40\u001b[22m"
-                        }
-                      ],
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 625,
+                      "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-10-28T01:37:30.738Z",
+                      "startTime": "2025-10-28T02:09:26.145Z",
                       "annotations": [],
-                      "attachments": [],
-                      "errorLocation": {
-                        "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\black-box\\UsersTest\\users-simple.spec.ts",
-                        "column": 40,
-                        "line": 23
-                      }
+                      "attachments": []
                     }
                   ],
-                  "status": "unexpected"
+                  "status": "expected"
                 }
               ],
-              "id": "3cb1ca42382b8ac4ca45-18272331acb7811a55f7",
+              "id": "ce03f46b38e5c8885bb8-8b358271dc86c1a54e32",
               "file": "black-box/UsersTest/users-simple.spec.ts",
               "line": 45,
               "column": 9
@@ -1469,940 +354,85 @@
       ]
     },
     {
-      "title": "white-box\\AuthTest\\auth-white-box.spec.ts",
-      "file": "white-box/AuthTest/auth-white-box.spec.ts",
+      "title": "black-box\\AuditTest\\audit-simple.spec.ts",
+      "file": "black-box/AuditTest/audit-simple.spec.ts",
       "column": 0,
       "line": 0,
       "specs": [],
       "suites": [
         {
-          "title": "AUTH MODULE - WHITE BOX TESTING",
-          "file": "white-box/AuthTest/auth-white-box.spec.ts",
-          "line": 19,
+          "title": "AUDIT MODULE - SIMPLE TESTS",
+          "file": "black-box/AuditTest/audit-simple.spec.ts",
+          "line": 10,
           "column": 6,
-          "specs": [],
-          "suites": [
+          "specs": [
             {
-              "title": "JWT Token Generation - Path Coverage",
-              "file": "white-box/AuthTest/auth-white-box.spec.ts",
-              "line": 33,
-              "column": 10,
-              "specs": [
+              "title": "Listar registros de auditoría",
+              "ok": true,
+              "tags": [],
+              "tests": [
                 {
-                  "title": "TC_WB_AUTH_001: Token temporal debe expirar exactamente en 5 minutos",
-                  "ok": true,
-                  "tags": [],
-                  "tests": [
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "audit-simple",
+                  "projectName": "audit-simple",
+                  "results": [
                     {
-                      "timeout": 60000,
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 953,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-10-28T02:09:24.734Z",
                       "annotations": [],
-                      "expectedStatus": "passed",
-                      "projectId": "auth-all",
-                      "projectName": "auth-all",
-                      "results": [
-                        {
-                          "workerIndex": 10,
-                          "parallelIndex": 0,
-                          "status": "passed",
-                          "duration": 417,
-                          "errors": [],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2025-10-28T01:37:31.090Z",
-                          "annotations": [],
-                          "attachments": []
-                        }
-                      ],
-                      "status": "expected"
+                      "attachments": []
                     }
                   ],
-                  "id": "af646df09f72be43fa95-7d5415678d636eeebba0",
-                  "file": "white-box/AuthTest/auth-white-box.spec.ts",
-                  "line": 34,
-                  "column": 13
-                },
-                {
-                  "title": "TC_WB_AUTH_002: Token de acceso debe expirar en 1 hora",
-                  "ok": false,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 60000,
-                      "annotations": [],
-                      "expectedStatus": "passed",
-                      "projectId": "auth-all",
-                      "projectName": "auth-all",
-                      "results": [
-                        {
-                          "workerIndex": 10,
-                          "parallelIndex": 0,
-                          "status": "failed",
-                          "duration": 68,
-                          "error": {
-                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoHaveProperty\u001b[2m(\u001b[22m\u001b[32mpath\u001b[39m\u001b[2m)\u001b[22m\n\n\u001b[1mMatcher error\u001b[22m: \u001b[31mreceived\u001b[39m value must not be null nor undefined\n\nReceived has value: \u001b[31mnull\u001b[39m",
-                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoHaveProperty\u001b[2m(\u001b[22m\u001b[32mpath\u001b[39m\u001b[2m)\u001b[22m\n\n\u001b[1mMatcher error\u001b[22m: \u001b[31mreceived\u001b[39m value must not be null nor undefined\n\nReceived has value: \u001b[31mnull\u001b[39m\n    at C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts:83:33",
-                            "location": {
-                              "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts",
-                              "column": 33,
-                              "line": 83
-                            },
-                            "snippet": "\u001b[0m \u001b[90m 81 |\u001b[39m                 \u001b[36mconst\u001b[39m decoded \u001b[33m=\u001b[39m jwt\u001b[33m.\u001b[39mdecode(data\u001b[33m.\u001b[39maccessToken) \u001b[36mas\u001b[39m jwt\u001b[33m.\u001b[39m\u001b[33mJwtPayload\u001b[39m\u001b[33m;\u001b[39m\n \u001b[90m 82 |\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 83 |\u001b[39m                 expect(decoded)\u001b[33m.\u001b[39mtoHaveProperty(\u001b[32m'sub'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                 \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 84 |\u001b[39m                 expect(decoded)\u001b[33m.\u001b[39mtoHaveProperty(\u001b[32m'email'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 85 |\u001b[39m                 expect(decoded)\u001b[33m.\u001b[39mtoHaveProperty(\u001b[32m'roleId'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 86 |\u001b[39m                 expect(decoded)\u001b[33m.\u001b[39mtoHaveProperty(\u001b[32m'role'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
-                          },
-                          "errors": [
-                            {
-                              "location": {
-                                "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts",
-                                "column": 33,
-                                "line": 83
-                              },
-                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoHaveProperty\u001b[2m(\u001b[22m\u001b[32mpath\u001b[39m\u001b[2m)\u001b[22m\n\n\u001b[1mMatcher error\u001b[22m: \u001b[31mreceived\u001b[39m value must not be null nor undefined\n\nReceived has value: \u001b[31mnull\u001b[39m\n\n\u001b[0m \u001b[90m 81 |\u001b[39m                 \u001b[36mconst\u001b[39m decoded \u001b[33m=\u001b[39m jwt\u001b[33m.\u001b[39mdecode(data\u001b[33m.\u001b[39maccessToken) \u001b[36mas\u001b[39m jwt\u001b[33m.\u001b[39m\u001b[33mJwtPayload\u001b[39m\u001b[33m;\u001b[39m\n \u001b[90m 82 |\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 83 |\u001b[39m                 expect(decoded)\u001b[33m.\u001b[39mtoHaveProperty(\u001b[32m'sub'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                 \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 84 |\u001b[39m                 expect(decoded)\u001b[33m.\u001b[39mtoHaveProperty(\u001b[32m'email'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 85 |\u001b[39m                 expect(decoded)\u001b[33m.\u001b[39mtoHaveProperty(\u001b[32m'roleId'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 86 |\u001b[39m                 expect(decoded)\u001b[33m.\u001b[39mtoHaveProperty(\u001b[32m'role'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts:83:33\u001b[22m"
-                            }
-                          ],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2025-10-28T01:37:31.592Z",
-                          "annotations": [],
-                          "attachments": [],
-                          "errorLocation": {
-                            "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts",
-                            "column": 33,
-                            "line": 83
-                          }
-                        }
-                      ],
-                      "status": "unexpected"
-                    }
-                  ],
-                  "id": "af646df09f72be43fa95-4ef4f486c3869300af28",
-                  "file": "white-box/AuthTest/auth-white-box.spec.ts",
-                  "line": 70,
-                  "column": 13
+                  "status": "expected"
                 }
-              ]
+              ],
+              "id": "2bc9a6ee301c91315f57-9745eab6151986b9b05e",
+              "file": "black-box/AuditTest/audit-simple.spec.ts",
+              "line": 28,
+              "column": 9
             },
             {
-              "title": "2FA Logic - Branch Coverage",
-              "file": "white-box/AuthTest/auth-white-box.spec.ts",
-              "line": 98,
-              "column": 10,
-              "specs": [
+              "title": "Obtener estadísticas de auditoría",
+              "ok": true,
+              "tags": [],
+              "tests": [
                 {
-                  "title": "TC_WB_AUTH_003: Rama sin 2FA debe retornar tokens directamente",
-                  "ok": false,
-                  "tags": [],
-                  "tests": [
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "audit-simple",
+                  "projectName": "audit-simple",
+                  "results": [
                     {
-                      "timeout": 60000,
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 574,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-10-28T02:09:25.769Z",
                       "annotations": [],
-                      "expectedStatus": "passed",
-                      "projectId": "auth-all",
-                      "projectName": "auth-all",
-                      "results": [
-                        {
-                          "workerIndex": 11,
-                          "parallelIndex": 0,
-                          "status": "failed",
-                          "duration": 374,
-                          "error": {
-                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m",
-                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m\n    at C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts:107:39",
-                            "location": {
-                              "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts",
-                              "column": 39,
-                              "line": 107
-                            },
-                            "snippet": "\u001b[0m \u001b[90m 105 |\u001b[39m\n \u001b[90m 106 |\u001b[39m             \u001b[90m// Assert: Debe tomar la rama sin 2FA\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 107 |\u001b[39m             expect(response\u001b[33m.\u001b[39mstatus())\u001b[33m.\u001b[39mtoBe(\u001b[35m200\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                       \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 108 |\u001b[39m             \u001b[36mconst\u001b[39m data \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m response\u001b[33m.\u001b[39mjson()\u001b[33m;\u001b[39m\n \u001b[90m 109 |\u001b[39m\n \u001b[90m 110 |\u001b[39m             expect(data\u001b[33m.\u001b[39mrequiresTwoFactor)\u001b[33m.\u001b[39mtoBeFalsy()\u001b[33m;\u001b[39m\u001b[0m"
-                          },
-                          "errors": [
-                            {
-                              "location": {
-                                "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts",
-                                "column": 39,
-                                "line": 107
-                              },
-                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m\n\n\u001b[0m \u001b[90m 105 |\u001b[39m\n \u001b[90m 106 |\u001b[39m             \u001b[90m// Assert: Debe tomar la rama sin 2FA\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 107 |\u001b[39m             expect(response\u001b[33m.\u001b[39mstatus())\u001b[33m.\u001b[39mtoBe(\u001b[35m200\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                       \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 108 |\u001b[39m             \u001b[36mconst\u001b[39m data \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m response\u001b[33m.\u001b[39mjson()\u001b[33m;\u001b[39m\n \u001b[90m 109 |\u001b[39m\n \u001b[90m 110 |\u001b[39m             expect(data\u001b[33m.\u001b[39mrequiresTwoFactor)\u001b[33m.\u001b[39mtoBeFalsy()\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts:107:39\u001b[22m"
-                            }
-                          ],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2025-10-28T01:37:34.804Z",
-                          "annotations": [],
-                          "attachments": [],
-                          "errorLocation": {
-                            "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts",
-                            "column": 39,
-                            "line": 107
-                          }
-                        }
-                      ],
-                      "status": "unexpected"
+                      "attachments": []
                     }
                   ],
-                  "id": "af646df09f72be43fa95-a0a506d0e9144ac853c5",
-                  "file": "white-box/AuthTest/auth-white-box.spec.ts",
-                  "line": 99,
-                  "column": 13
-                },
-                {
-                  "title": "TC_WB_AUTH_004: Rama con 2FA debe retornar tempToken",
-                  "ok": false,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 60000,
-                      "annotations": [],
-                      "expectedStatus": "passed",
-                      "projectId": "auth-all",
-                      "projectName": "auth-all",
-                      "results": [
-                        {
-                          "workerIndex": 12,
-                          "parallelIndex": 0,
-                          "status": "failed",
-                          "duration": 380,
-                          "error": {
-                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m",
-                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m\n    at C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts:124:39",
-                            "location": {
-                              "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts",
-                              "column": 39,
-                              "line": 124
-                            },
-                            "snippet": "\u001b[0m \u001b[90m 122 |\u001b[39m\n \u001b[90m 123 |\u001b[39m             \u001b[90m// Assert: Debe tomar la rama con 2FA\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 124 |\u001b[39m             expect(response\u001b[33m.\u001b[39mstatus())\u001b[33m.\u001b[39mtoBe(\u001b[35m200\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                       \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 125 |\u001b[39m             \u001b[36mconst\u001b[39m data \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m response\u001b[33m.\u001b[39mjson()\u001b[33m;\u001b[39m\n \u001b[90m 126 |\u001b[39m\n \u001b[90m 127 |\u001b[39m             \u001b[36mif\u001b[39m (data\u001b[33m.\u001b[39mrequiresTwoFactor) {\u001b[0m"
-                          },
-                          "errors": [
-                            {
-                              "location": {
-                                "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts",
-                                "column": 39,
-                                "line": 124
-                              },
-                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m\n\n\u001b[0m \u001b[90m 122 |\u001b[39m\n \u001b[90m 123 |\u001b[39m             \u001b[90m// Assert: Debe tomar la rama con 2FA\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 124 |\u001b[39m             expect(response\u001b[33m.\u001b[39mstatus())\u001b[33m.\u001b[39mtoBe(\u001b[35m200\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                       \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 125 |\u001b[39m             \u001b[36mconst\u001b[39m data \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m response\u001b[33m.\u001b[39mjson()\u001b[33m;\u001b[39m\n \u001b[90m 126 |\u001b[39m\n \u001b[90m 127 |\u001b[39m             \u001b[36mif\u001b[39m (data\u001b[33m.\u001b[39mrequiresTwoFactor) {\u001b[0m\n\u001b[2m    at C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts:124:39\u001b[22m"
-                            }
-                          ],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2025-10-28T01:37:38.093Z",
-                          "annotations": [],
-                          "attachments": [],
-                          "errorLocation": {
-                            "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts",
-                            "column": 39,
-                            "line": 124
-                          }
-                        }
-                      ],
-                      "status": "unexpected"
-                    }
-                  ],
-                  "id": "af646df09f72be43fa95-68f7be81d765b7bb49cd",
-                  "file": "white-box/AuthTest/auth-white-box.spec.ts",
-                  "line": 116,
-                  "column": 13
-                },
-                {
-                  "title": "TC_WB_AUTH_005: Rama con 2FA + código debe validar y retornar tokens",
-                  "ok": false,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 60000,
-                      "annotations": [],
-                      "expectedStatus": "passed",
-                      "projectId": "auth-all",
-                      "projectName": "auth-all",
-                      "results": [
-                        {
-                          "workerIndex": 13,
-                          "parallelIndex": 0,
-                          "status": "failed",
-                          "duration": 451,
-                          "error": {
-                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m",
-                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m\n    at C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts:145:39",
-                            "location": {
-                              "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts",
-                              "column": 39,
-                              "line": 145
-                            },
-                            "snippet": "\u001b[0m \u001b[90m 143 |\u001b[39m\n \u001b[90m 144 |\u001b[39m             \u001b[90m// Assert: Debe tomar la rama con código 2FA\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m             expect(response\u001b[33m.\u001b[39mstatus())\u001b[33m.\u001b[39mtoBe(\u001b[35m200\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                       \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m             \u001b[36mconst\u001b[39m data \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m response\u001b[33m.\u001b[39mjson()\u001b[33m;\u001b[39m\n \u001b[90m 147 |\u001b[39m\n \u001b[90m 148 |\u001b[39m             expect(data\u001b[33m.\u001b[39maccessToken)\u001b[33m.\u001b[39mtoBeDefined()\u001b[33m;\u001b[39m\u001b[0m"
-                          },
-                          "errors": [
-                            {
-                              "location": {
-                                "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts",
-                                "column": 39,
-                                "line": 145
-                              },
-                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m\n\n\u001b[0m \u001b[90m 143 |\u001b[39m\n \u001b[90m 144 |\u001b[39m             \u001b[90m// Assert: Debe tomar la rama con código 2FA\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m             expect(response\u001b[33m.\u001b[39mstatus())\u001b[33m.\u001b[39mtoBe(\u001b[35m200\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                       \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m             \u001b[36mconst\u001b[39m data \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m response\u001b[33m.\u001b[39mjson()\u001b[33m;\u001b[39m\n \u001b[90m 147 |\u001b[39m\n \u001b[90m 148 |\u001b[39m             expect(data\u001b[33m.\u001b[39maccessToken)\u001b[33m.\u001b[39mtoBeDefined()\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts:145:39\u001b[22m"
-                            }
-                          ],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2025-10-28T01:37:41.606Z",
-                          "annotations": [],
-                          "attachments": [],
-                          "errorLocation": {
-                            "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts",
-                            "column": 39,
-                            "line": 145
-                          }
-                        }
-                      ],
-                      "status": "unexpected"
-                    }
-                  ],
-                  "id": "af646df09f72be43fa95-badb6dfce5fa2cc6db07",
-                  "file": "white-box/AuthTest/auth-white-box.spec.ts",
-                  "line": 134,
-                  "column": 13
+                  "status": "expected"
                 }
-              ]
-            },
-            {
-              "title": "TOTP Validation - Condition Coverage",
-              "file": "white-box/AuthTest/auth-white-box.spec.ts",
-              "line": 155,
-              "column": 10,
-              "specs": [
-                {
-                  "title": "TC_WB_AUTH_006: Código TOTP válido debe ser aceptado",
-                  "ok": true,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 60000,
-                      "annotations": [
-                        {
-                          "type": "skip",
-                          "description": "Requiere setup de 2FA",
-                          "location": {
-                            "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts",
-                            "line": 184,
-                            "column": 18
-                          }
-                        }
-                      ],
-                      "expectedStatus": "skipped",
-                      "projectId": "auth-all",
-                      "projectName": "auth-all",
-                      "results": [
-                        {
-                          "workerIndex": 14,
-                          "parallelIndex": 0,
-                          "status": "skipped",
-                          "duration": 8,
-                          "errors": [],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2025-10-28T01:37:45.283Z",
-                          "annotations": [
-                            {
-                              "type": "skip",
-                              "description": "Requiere setup de 2FA",
-                              "location": {
-                                "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts",
-                                "line": 184,
-                                "column": 18
-                              }
-                            }
-                          ],
-                          "attachments": []
-                        }
-                      ],
-                      "status": "skipped"
-                    }
-                  ],
-                  "id": "af646df09f72be43fa95-75e6cec5b2d6ead245d8",
-                  "file": "white-box/AuthTest/auth-white-box.spec.ts",
-                  "line": 183,
-                  "column": 13
-                },
-                {
-                  "title": "TC_WB_AUTH_007: Código TOTP expirado debe ser rechazado",
-                  "ok": true,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 60000,
-                      "annotations": [
-                        {
-                          "type": "skip",
-                          "description": "Requiere setup de 2FA",
-                          "location": {
-                            "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts",
-                            "line": 199,
-                            "column": 18
-                          }
-                        }
-                      ],
-                      "expectedStatus": "skipped",
-                      "projectId": "auth-all",
-                      "projectName": "auth-all",
-                      "results": [
-                        {
-                          "workerIndex": 14,
-                          "parallelIndex": 0,
-                          "status": "skipped",
-                          "duration": 5,
-                          "errors": [],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2025-10-28T01:37:45.753Z",
-                          "annotations": [
-                            {
-                              "type": "skip",
-                              "description": "Requiere setup de 2FA",
-                              "location": {
-                                "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts",
-                                "line": 199,
-                                "column": 18
-                              }
-                            }
-                          ],
-                          "attachments": []
-                        }
-                      ],
-                      "status": "skipped"
-                    }
-                  ],
-                  "id": "af646df09f72be43fa95-9c9865458f62148a92e5",
-                  "file": "white-box/AuthTest/auth-white-box.spec.ts",
-                  "line": 198,
-                  "column": 13
-                },
-                {
-                  "title": "TC_WB_AUTH_008: Código TOTP futuro debe ser rechazado",
-                  "ok": true,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 60000,
-                      "annotations": [
-                        {
-                          "type": "skip",
-                          "description": "Requiere setup de 2FA",
-                          "location": {
-                            "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts",
-                            "line": 212,
-                            "column": 18
-                          }
-                        }
-                      ],
-                      "expectedStatus": "skipped",
-                      "projectId": "auth-all",
-                      "projectName": "auth-all",
-                      "results": [
-                        {
-                          "workerIndex": 14,
-                          "parallelIndex": 0,
-                          "status": "skipped",
-                          "duration": 6,
-                          "errors": [],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2025-10-28T01:37:45.780Z",
-                          "annotations": [
-                            {
-                              "type": "skip",
-                              "description": "Requiere setup de 2FA",
-                              "location": {
-                                "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts",
-                                "line": 212,
-                                "column": 18
-                              }
-                            }
-                          ],
-                          "attachments": []
-                        }
-                      ],
-                      "status": "skipped"
-                    }
-                  ],
-                  "id": "af646df09f72be43fa95-e6b77b553fc70a716049",
-                  "file": "white-box/AuthTest/auth-white-box.spec.ts",
-                  "line": 211,
-                  "column": 13
-                },
-                {
-                  "title": "TC_WB_AUTH_009: Time window de TOTP debe ser exactamente 30 segundos",
-                  "ok": true,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 60000,
-                      "annotations": [
-                        {
-                          "type": "skip",
-                          "description": "Requiere secret de 2FA",
-                          "location": {
-                            "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts",
-                            "line": 225,
-                            "column": 18
-                          }
-                        }
-                      ],
-                      "expectedStatus": "skipped",
-                      "projectId": "auth-all",
-                      "projectName": "auth-all",
-                      "results": [
-                        {
-                          "workerIndex": 14,
-                          "parallelIndex": 0,
-                          "status": "skipped",
-                          "duration": 11,
-                          "errors": [],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2025-10-28T01:37:45.810Z",
-                          "annotations": [
-                            {
-                              "type": "skip",
-                              "description": "Requiere secret de 2FA",
-                              "location": {
-                                "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts",
-                                "line": 225,
-                                "column": 18
-                              }
-                            }
-                          ],
-                          "attachments": []
-                        }
-                      ],
-                      "status": "skipped"
-                    }
-                  ],
-                  "id": "af646df09f72be43fa95-20d7156f86d73febae0d",
-                  "file": "white-box/AuthTest/auth-white-box.spec.ts",
-                  "line": 224,
-                  "column": 13
-                }
-              ]
-            },
-            {
-              "title": "Backup Code Logic - Multiple Condition Coverage",
-              "file": "white-box/AuthTest/auth-white-box.spec.ts",
-              "line": 237,
-              "column": 10,
-              "specs": [
-                {
-                  "title": "TC_WB_AUTH_010: Código de respaldo válido debe ser aceptado y removido",
-                  "ok": true,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 60000,
-                      "annotations": [
-                        {
-                          "type": "skip",
-                          "description": "Requiere códigos de respaldo",
-                          "location": {
-                            "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts",
-                            "line": 255,
-                            "column": 18
-                          }
-                        }
-                      ],
-                      "expectedStatus": "skipped",
-                      "projectId": "auth-all",
-                      "projectName": "auth-all",
-                      "results": [
-                        {
-                          "workerIndex": 14,
-                          "parallelIndex": 0,
-                          "status": "skipped",
-                          "duration": 4,
-                          "errors": [],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2025-10-28T01:37:45.841Z",
-                          "annotations": [
-                            {
-                              "type": "skip",
-                              "description": "Requiere códigos de respaldo",
-                              "location": {
-                                "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts",
-                                "line": 255,
-                                "column": 18
-                              }
-                            }
-                          ],
-                          "attachments": []
-                        }
-                      ],
-                      "status": "skipped"
-                    }
-                  ],
-                  "id": "af646df09f72be43fa95-6660a2dfcf104ba80235",
-                  "file": "white-box/AuthTest/auth-white-box.spec.ts",
-                  "line": 254,
-                  "column": 13
-                },
-                {
-                  "title": "TC_WB_AUTH_011: Código de respaldo usado no debe funcionar nuevamente",
-                  "ok": true,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 60000,
-                      "annotations": [
-                        {
-                          "type": "skip",
-                          "description": "Requiere códigos de respaldo",
-                          "location": {
-                            "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts",
-                            "line": 273,
-                            "column": 18
-                          }
-                        }
-                      ],
-                      "expectedStatus": "skipped",
-                      "projectId": "auth-all",
-                      "projectName": "auth-all",
-                      "results": [
-                        {
-                          "workerIndex": 14,
-                          "parallelIndex": 0,
-                          "status": "skipped",
-                          "duration": 5,
-                          "errors": [],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2025-10-28T01:37:45.893Z",
-                          "annotations": [
-                            {
-                              "type": "skip",
-                              "description": "Requiere códigos de respaldo",
-                              "location": {
-                                "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts",
-                                "line": 273,
-                                "column": 18
-                              }
-                            }
-                          ],
-                          "attachments": []
-                        }
-                      ],
-                      "status": "skipped"
-                    }
-                  ],
-                  "id": "af646df09f72be43fa95-adabb3f70f154a654245",
-                  "file": "white-box/AuthTest/auth-white-box.spec.ts",
-                  "line": 272,
-                  "column": 13
-                }
-              ]
-            },
-            {
-              "title": "Password Validation - Statement Coverage",
-              "file": "white-box/AuthTest/auth-white-box.spec.ts",
-              "line": 287,
-              "column": 10,
-              "specs": [
-                {
-                  "title": "TC_WB_AUTH_012: PasswordUtil.verify debe ser llamado correctamente",
-                  "ok": false,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 60000,
-                      "annotations": [],
-                      "expectedStatus": "passed",
-                      "projectId": "auth-all",
-                      "projectName": "auth-all",
-                      "results": [
-                        {
-                          "workerIndex": 14,
-                          "parallelIndex": 0,
-                          "status": "failed",
-                          "duration": 23,
-                          "error": {
-                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m",
-                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m\n    at C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts:296:39",
-                            "location": {
-                              "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts",
-                              "column": 39,
-                              "line": 296
-                            },
-                            "snippet": "\u001b[0m \u001b[90m 294 |\u001b[39m\n \u001b[90m 295 |\u001b[39m             \u001b[90m// Assert: Si el login es exitoso, significa que PasswordUtil.verify funcionó\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 296 |\u001b[39m             expect(response\u001b[33m.\u001b[39mstatus())\u001b[33m.\u001b[39mtoBe(\u001b[35m200\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                       \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 297 |\u001b[39m\n \u001b[90m 298 |\u001b[39m             \u001b[90m// Verificar que la respuesta tenga la estructura esperada\u001b[39m\n \u001b[90m 299 |\u001b[39m             \u001b[36mconst\u001b[39m data \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m response\u001b[33m.\u001b[39mjson()\u001b[33m;\u001b[39m\u001b[0m"
-                          },
-                          "errors": [
-                            {
-                              "location": {
-                                "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts",
-                                "column": 39,
-                                "line": 296
-                              },
-                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m\n\n\u001b[0m \u001b[90m 294 |\u001b[39m\n \u001b[90m 295 |\u001b[39m             \u001b[90m// Assert: Si el login es exitoso, significa que PasswordUtil.verify funcionó\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 296 |\u001b[39m             expect(response\u001b[33m.\u001b[39mstatus())\u001b[33m.\u001b[39mtoBe(\u001b[35m200\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                       \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 297 |\u001b[39m\n \u001b[90m 298 |\u001b[39m             \u001b[90m// Verificar que la respuesta tenga la estructura esperada\u001b[39m\n \u001b[90m 299 |\u001b[39m             \u001b[36mconst\u001b[39m data \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m response\u001b[33m.\u001b[39mjson()\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts:296:39\u001b[22m"
-                            }
-                          ],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2025-10-28T01:37:45.918Z",
-                          "annotations": [],
-                          "attachments": [],
-                          "errorLocation": {
-                            "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts",
-                            "column": 39,
-                            "line": 296
-                          }
-                        }
-                      ],
-                      "status": "unexpected"
-                    }
-                  ],
-                  "id": "af646df09f72be43fa95-d92ba3e7ba77c02922a6",
-                  "file": "white-box/AuthTest/auth-white-box.spec.ts",
-                  "line": 288,
-                  "column": 13
-                },
-                {
-                  "title": "TC_WB_AUTH_013: Password incorrecto debe fallar antes de 2FA",
-                  "ok": true,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 60000,
-                      "annotations": [],
-                      "expectedStatus": "passed",
-                      "projectId": "auth-all",
-                      "projectName": "auth-all",
-                      "results": [
-                        {
-                          "workerIndex": 15,
-                          "parallelIndex": 0,
-                          "status": "passed",
-                          "duration": 425,
-                          "errors": [],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2025-10-28T01:37:48.779Z",
-                          "annotations": [],
-                          "attachments": []
-                        }
-                      ],
-                      "status": "expected"
-                    }
-                  ],
-                  "id": "af646df09f72be43fa95-a938c01271573a799855",
-                  "file": "white-box/AuthTest/auth-white-box.spec.ts",
-                  "line": 303,
-                  "column": 13
-                }
-              ]
-            },
-            {
-              "title": "Session Management - Path Coverage",
-              "file": "white-box/AuthTest/auth-white-box.spec.ts",
-              "line": 318,
-              "column": 10,
-              "specs": [
-                {
-                  "title": "TC_WB_AUTH_014: generateTokens debe crear sesión con hash correcto",
-                  "ok": false,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 60000,
-                      "annotations": [],
-                      "expectedStatus": "passed",
-                      "projectId": "auth-all",
-                      "projectName": "auth-all",
-                      "results": [
-                        {
-                          "workerIndex": 15,
-                          "parallelIndex": 0,
-                          "status": "failed",
-                          "duration": 23,
-                          "error": {
-                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeDefined\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mundefined\u001b[39m",
-                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeDefined\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mundefined\u001b[39m\n    at C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts:330:42",
-                            "location": {
-                              "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts",
-                              "column": 42,
-                              "line": 330
-                            },
-                            "snippet": "\u001b[0m \u001b[90m 328 |\u001b[39m             \u001b[36mif\u001b[39m (\u001b[33m!\u001b[39mdata\u001b[33m.\u001b[39mrequiresTwoFactor) {\n \u001b[90m 329 |\u001b[39m                 \u001b[90m// Assert: Verificar que se creó una sesión (conocimiento interno)\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 330 |\u001b[39m                 expect(data\u001b[33m.\u001b[39maccessToken)\u001b[33m.\u001b[39mtoBeDefined()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                          \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 331 |\u001b[39m                 expect(data\u001b[33m.\u001b[39mrefreshToken)\u001b[33m.\u001b[39mtoBeDefined()\u001b[33m;\u001b[39m\n \u001b[90m 332 |\u001b[39m\n \u001b[90m 333 |\u001b[39m                 \u001b[90m// Verificar estructura del token\u001b[39m\u001b[0m"
-                          },
-                          "errors": [
-                            {
-                              "location": {
-                                "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts",
-                                "column": 42,
-                                "line": 330
-                              },
-                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeDefined\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mundefined\u001b[39m\n\n\u001b[0m \u001b[90m 328 |\u001b[39m             \u001b[36mif\u001b[39m (\u001b[33m!\u001b[39mdata\u001b[33m.\u001b[39mrequiresTwoFactor) {\n \u001b[90m 329 |\u001b[39m                 \u001b[90m// Assert: Verificar que se creó una sesión (conocimiento interno)\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 330 |\u001b[39m                 expect(data\u001b[33m.\u001b[39maccessToken)\u001b[33m.\u001b[39mtoBeDefined()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                          \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 331 |\u001b[39m                 expect(data\u001b[33m.\u001b[39mrefreshToken)\u001b[33m.\u001b[39mtoBeDefined()\u001b[33m;\u001b[39m\n \u001b[90m 332 |\u001b[39m\n \u001b[90m 333 |\u001b[39m                 \u001b[90m// Verificar estructura del token\u001b[39m\u001b[0m\n\u001b[2m    at C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts:330:42\u001b[22m"
-                            }
-                          ],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2025-10-28T01:37:49.285Z",
-                          "annotations": [],
-                          "attachments": [],
-                          "errorLocation": {
-                            "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts",
-                            "column": 42,
-                            "line": 330
-                          }
-                        }
-                      ],
-                      "status": "unexpected"
-                    }
-                  ],
-                  "id": "af646df09f72be43fa95-6b429ddc85208220117c",
-                  "file": "white-box/AuthTest/auth-white-box.spec.ts",
-                  "line": 319,
-                  "column": 13
-                },
-                {
-                  "title": "TC_WB_AUTH_015: Logout debe invalidar token hash en BD",
-                  "ok": false,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 60000,
-                      "annotations": [],
-                      "expectedStatus": "passed",
-                      "projectId": "auth-all",
-                      "projectName": "auth-all",
-                      "results": [
-                        {
-                          "workerIndex": 16,
-                          "parallelIndex": 0,
-                          "status": "failed",
-                          "duration": 403,
-                          "error": {
-                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m",
-                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m\n    at C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts:357:49",
-                            "location": {
-                              "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts",
-                              "column": 49,
-                              "line": 357
-                            },
-                            "snippet": "\u001b[0m \u001b[90m 355 |\u001b[39m\n \u001b[90m 356 |\u001b[39m                 \u001b[90m// Assert\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 357 |\u001b[39m                 expect(logoutResponse\u001b[33m.\u001b[39mstatus())\u001b[33m.\u001b[39mtoBe(\u001b[35m200\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                                 \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 358 |\u001b[39m\n \u001b[90m 359 |\u001b[39m                 \u001b[90m// Verificar que el token ya no funcione\u001b[39m\n \u001b[90m 360 |\u001b[39m                 \u001b[36mconst\u001b[39m profileResponse \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m authUtils\u001b[33m.\u001b[39mgetProfile(loginData\u001b[33m.\u001b[39maccessToken)\u001b[33m;\u001b[39m\u001b[0m"
-                          },
-                          "errors": [
-                            {
-                              "location": {
-                                "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts",
-                                "column": 49,
-                                "line": 357
-                              },
-                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m401\u001b[39m\n\n\u001b[0m \u001b[90m 355 |\u001b[39m\n \u001b[90m 356 |\u001b[39m                 \u001b[90m// Assert\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 357 |\u001b[39m                 expect(logoutResponse\u001b[33m.\u001b[39mstatus())\u001b[33m.\u001b[39mtoBe(\u001b[35m200\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                                 \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 358 |\u001b[39m\n \u001b[90m 359 |\u001b[39m                 \u001b[90m// Verificar que el token ya no funcione\u001b[39m\n \u001b[90m 360 |\u001b[39m                 \u001b[36mconst\u001b[39m profileResponse \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m authUtils\u001b[33m.\u001b[39mgetProfile(loginData\u001b[33m.\u001b[39maccessToken)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts:357:49\u001b[22m"
-                            }
-                          ],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2025-10-28T01:37:52.165Z",
-                          "annotations": [],
-                          "attachments": [],
-                          "errorLocation": {
-                            "file": "C:\\UCR_2025\\Segundo_Semestre\\Analisis\\Proyecto\\backend_nest_js_hogar_de_ancianos\\tests\\white-box\\AuthTest\\auth-white-box.spec.ts",
-                            "column": 49,
-                            "line": 357
-                          }
-                        }
-                      ],
-                      "status": "unexpected"
-                    }
-                  ],
-                  "id": "af646df09f72be43fa95-a21ecb0487a1cc561a0c",
-                  "file": "white-box/AuthTest/auth-white-box.spec.ts",
-                  "line": 343,
-                  "column": 13
-                }
-              ]
-            },
-            {
-              "title": "Error Handling - Exception Coverage",
-              "file": "white-box/AuthTest/auth-white-box.spec.ts",
-              "line": 367,
-              "column": 10,
-              "specs": [
-                {
-                  "title": "TC_WB_AUTH_016: completeTwoFactorLogin debe manejar token inválido",
-                  "ok": true,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 60000,
-                      "annotations": [],
-                      "expectedStatus": "passed",
-                      "projectId": "auth-all",
-                      "projectName": "auth-all",
-                      "results": [
-                        {
-                          "workerIndex": 17,
-                          "parallelIndex": 0,
-                          "status": "passed",
-                          "duration": 393,
-                          "errors": [],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2025-10-28T01:37:55.488Z",
-                          "annotations": [],
-                          "attachments": []
-                        }
-                      ],
-                      "status": "expected"
-                    }
-                  ],
-                  "id": "af646df09f72be43fa95-22fdddab0dcff194e4a0",
-                  "file": "white-box/AuthTest/auth-white-box.spec.ts",
-                  "line": 368,
-                  "column": 13
-                },
-                {
-                  "title": "TC_WB_AUTH_017: completeTwoFactorLogin debe manejar token expirado",
-                  "ok": true,
-                  "tags": [],
-                  "tests": [
-                    {
-                      "timeout": 60000,
-                      "annotations": [],
-                      "expectedStatus": "passed",
-                      "projectId": "auth-all",
-                      "projectName": "auth-all",
-                      "results": [
-                        {
-                          "workerIndex": 17,
-                          "parallelIndex": 0,
-                          "status": "passed",
-                          "duration": 43,
-                          "errors": [],
-                          "stdout": [],
-                          "stderr": [],
-                          "retry": 0,
-                          "startTime": "2025-10-28T01:37:55.982Z",
-                          "annotations": [],
-                          "attachments": []
-                        }
-                      ],
-                      "status": "expected"
-                    }
-                  ],
-                  "id": "af646df09f72be43fa95-7076f9aeede3682ddddc",
-                  "file": "white-box/AuthTest/auth-white-box.spec.ts",
-                  "line": 381,
-                  "column": 13
-                }
-              ]
+              ],
+              "id": "2bc9a6ee301c91315f57-fdd912ed9ab640e53709",
+              "file": "black-box/AuditTest/audit-simple.spec.ts",
+              "line": 44,
+              "column": 9
             }
           ]
         }
@@ -2411,11 +441,11 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2025-10-28T01:37:10.043Z",
-    "duration": 46111.27099999999,
-    "expected": 10,
-    "skipped": 13,
-    "unexpected": 17,
+    "startTime": "2025-10-28T02:08:41.344Z",
+    "duration": 46115.514,
+    "expected": 7,
+    "skipped": 0,
+    "unexpected": 0,
     "flaky": 0
   }
 }

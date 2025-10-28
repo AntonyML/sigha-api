@@ -1,0 +1,1 @@
+export { RoleChange } from '../roles/role-change.entity';

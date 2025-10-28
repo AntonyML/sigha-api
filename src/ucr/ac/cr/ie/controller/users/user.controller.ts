@@ -94,8 +94,8 @@ export class UserController {
     @ApiResponse({ status: 200, description: 'Usuario actualizado exitosamente' })
     @ApiResponse({ status: 404, description: 'Usuario no encontrado' })
     @ApiResponse({ status: 403, description: 'Sin permisos suficientes' })
-    async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-        return await this.userService.updateUser(+id, updateUserDto);
+    async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto, @Request() req) {
+        return await this.userService.updateUser(+id, updateUserDto, req.user.userId);
     }
 
     @Post('change-password')

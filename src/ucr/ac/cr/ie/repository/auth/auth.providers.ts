@@ -4,6 +4,7 @@ import { Role } from '../../domain/auth/core/role.entity';
 import { UserSession } from '../../domain/auth/sessions/user-session.entity';
 import { UserTwoFactor } from '../../domain/auth/security/user-two-factor.entity';
 import { PasswordResetToken } from '../../domain/auth/tokens/password-reset-token.entity';
+import { RoleChange } from '../../domain/roles/role-change.entity';
 
 export const authProviders = [
     {
@@ -29,6 +30,11 @@ export const authProviders = [
     {
         provide: 'PasswordResetTokenRepository',
         useFactory: (dataSource: DataSource) => dataSource.getRepository(PasswordResetToken),
+        inject: ['DataSource'],
+    },
+    {
+        provide: 'RoleChangeRepository',
+        useFactory: (dataSource: DataSource) => dataSource.getRepository(RoleChange),
         inject: ['DataSource'],
     },
 ];

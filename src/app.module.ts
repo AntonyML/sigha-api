@@ -13,6 +13,7 @@ import { ClinicalConditionsModule } from './ucr/ac/cr/ie/clinical-conditions.mod
 import { VaccinesModule } from './ucr/ac/cr/ie/vaccines.module';
 import { NotifuseModule } from './ucr/ac/cr/ie/notifuse.module';
 import { NotificationsModule } from './ucr/ac/cr/ie/notifications.module';
+import { RoleChangesModule } from './ucr/ac/cr/ie/role-changes.module';
 import { JwtAuthGuard } from './ucr/ac/cr/ie/common/guards/jwt-auth.guard';
 
 @Module({
@@ -32,6 +33,7 @@ import { JwtAuthGuard } from './ucr/ac/cr/ie/common/guards/jwt-auth.guard';
     VaccinesModule,
     NotifuseModule,
     NotificationsModule,
+    RoleChangesModule,
   ],
   providers: [
     {
