@@ -17,7 +17,8 @@ async function disable2FAForUser(email: string) {
         password: process.env.DB_PASSWORD,
         database: process.env.DB_NAME,
         entities: [User, Role, UserSession, UserTwoFactor],
-        synchronize: true,
+        synchronize: false,
+        dropSchema: false,
     });
 
     try {
@@ -63,7 +64,8 @@ async function createSuperUsers() {
         password: process.env.DB_PASSWORD || '',
         database: process.env.DB_NAME || 'hogar_de_ancianos',
         entities: [User, Role, UserSession, UserTwoFactor],
-        synchronize: true,
+        synchronize: false,
+        dropSchema: false,
     });
 
     try {

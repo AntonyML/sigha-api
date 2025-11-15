@@ -64,6 +64,8 @@
     "setup:users": "ts-node scripts/create-super-users.ts",
     "disable:2fa": "ts-node scripts/disable-2fa.ts",
     "disable:2fa:admin": "ts-node scripts/disable-2fa.ts admin@hogarancianos.com",
-    "disable:2fa:superadmin": "ts-node scripts/disable-2fa.ts superadmin@hogarancianos.com"
+    "disable:2fa:superadmin": "ts-node scripts/disable-2fa.ts superadmin@hogarancianos.com",
+    "db:reset": "ts-node scripts/reset-database.ts",
+    "db:check": "ts-node scripts/check-database-schema.ts"
   }
 }
