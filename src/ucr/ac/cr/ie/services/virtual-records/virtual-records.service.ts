@@ -1139,4 +1139,60 @@ export class VirtualRecordsService {
             throw new InternalServerErrorException('Failed to retrieve virtual record');
         }
     }
+
+    async searchPatientsBasic(searchDto: SearchVirtualRecordsDto): Promise<{ message: string; data: any[] }> {
+        try {
+            const searchTerm = searchDto.search;
+
+            // Create query builder for universal search - only basic patient info
+            const queryBuilder = this.olderAdultRepository.createQueryBuilder('oa')
+                .select([
+                    'oa.id',
+                    'oa.oaIdentification',
+                    'oa.oaName',
+                    'oa.oaFLastName',
+                    'oa.oaSLastName',
+                    'oa.oaBirthdate',
+                    'oa.oaGender',
+                    'oa.oaPhoneNumber',
+                    'oa.oaEmail',
+                    'oa.oaStatus'
+                ])
+                .where('oa.oaIdentification LIKE :searchTerm', { searchTerm: `%${searchTerm}%` })
+                .orWhere('oa.oaName LIKE :searchTerm', { searchTerm: `%${searchTerm}%` })
+                .orWhere('oa.oaFLastName LIKE :searchTerm', { searchTerm: `%${searchTerm}%` })
+                .orWhere('oa.oaSLastName LIKE :searchTerm', { searchTerm: `%${searchTerm}%` })
+                .orWhere('CONCAT(oa.oaName, " ", oa.oaFLastName) LIKE :searchTerm', { searchTerm: `%${searchTerm}%` })
+                .orWhere('CONCAT(oa.oaName, " ", oa.oaFLastName, " ", oa.oaSLastName) LIKE :searchTerm', { searchTerm: `%${searchTerm}%` })
+                .orWhere('CONCAT(oa.oaFLastName, " ", oa.oaSLastName) LIKE :searchTerm', { searchTerm: `%${searchTerm}%` })
+                .orderBy('oa.oaName', 'ASC')
+                .addOrderBy('oa.oaFLastName', 'ASC');
+
+            const patients = await queryBuilder.getMany();
+
+            // Transform to simplified response
+            const data = patients.map(patient => ({
+                id: patient.id,
+                identification: patient.oaIdentification,
+                name: patient.oaName,
+                firstLastName: patient.oaFLastName,
+                secondLastName: patient.oaSLastName,
+                fullName: `${patient.oaName} ${patient.oaFLastName} ${patient.oaSLastName || ''}`.trim(),
+                birthdate: patient.oaBirthdate,
+                gender: patient.oaGender,
+                phone: patient.oaPhoneNumber,
+                email: patient.oaEmail,
+                status: patient.oaStatus
+            }));
+
+            return {
+                message: `Found ${patients.length} patient(s) matching "${searchTerm}"`,
+                data
+            };
+
+        } catch (error) {
+            console.error('Error searching patients:', error);
+            throw new InternalServerErrorException('Failed to search patients');
+        }
+    }
 }
