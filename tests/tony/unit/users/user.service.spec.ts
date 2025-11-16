@@ -324,7 +324,8 @@ describe('UserService - Unit Tests', () => {
             jest.spyOn(userRepository, 'findOne').mockResolvedValue(mockUser);
             jest.spyOn(roleRepository, 'findOne')
                 .mockResolvedValueOnce(oldRole)
-                .mockResolvedValueOnce(newRole);
+                .mockResolvedValueOnce(newRole)
+                .mockResolvedValueOnce(newRole); // Para la tercera validación
             jest.spyOn(roleChangesService, 'createRoleChange').mockResolvedValue(undefined);
             jest.spyOn(userRepository, 'save').mockResolvedValue({ ...mockUser, roleId: 2 });
             jest.spyOn(auditService, 'createDigitalRecord').mockResolvedValue(undefined);
