@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     triggers {
-        githubPush()
+        gitlab(triggerOnPush: true, triggerOnMergeRequest: true, branchFilterType: 'NameBasedFilter', includeBranchesSpec: 'dev', excludeBranchesSpec: '')
     }
 
     options {
@@ -45,13 +45,21 @@ pipeline {
                             setlocal enabledelayedexpansion
                             
                             set GIT_TERMINAL_PROMPT=0
+                            set GIT_ASKPASS=cmd
+                            set GIT_ASKPASS_PROMPT=never
                             
                             git remote add test-repo "%TARGET_REPO%" 2>nul
                             if errorlevel 1 (
                                 echo Remote already exists, continuing...
                             )
                             
-                            git push -u test-repo HEAD:%TARGET_BRANCH% --force
+                            for /f "tokens=*" %%A in ('echo %GIT_USER%:%GIT_PASS%') do (
+                                git -c credential.helper=store push -u test-repo HEAD:%TARGET_BRANCH% --force 2>&1
+                            )
+                            if errorlevel 1 (
+                                echo ERROR: Git push failed with exit code %ERRORLEVEL%
+                                exit /b 1
+                            )
                         '''
                     }
                 }
