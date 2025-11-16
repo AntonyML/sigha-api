@@ -39,9 +39,10 @@ pipeline {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'git-credentials', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
-                        sh '''
-                            git remote add test-repo "${TARGET_REPO}" 2>/dev/null || true
-                            git push -u test-repo "${SOURCE_BRANCH}:${TARGET_BRANCH}" --force
+                        bat '''
+                            @echo off
+                            git remote add test-repo "%TARGET_REPO%" 2>nul || true
+                            git push -u test-repo "%SOURCE_BRANCH%:%TARGET_BRANCH%" --force
                         '''
                     }
                 }
@@ -51,7 +52,7 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 script {
-                    sh 'npm install'
+                    bat 'npm install'
                 }
             }
         }
@@ -59,7 +60,7 @@ pipeline {
         stage('Run Jest Tests') {
             steps {
                 script {
-                    sh 'npm run test -- --coverage --testPathPattern="tests/tony/unit" 2>&1 | tee jest-results.log'
+                    bat 'npm run test -- --coverage --testPathPattern="tests/tony/unit" > jest-results.log 2>&1'
                 }
             }
         }
@@ -67,7 +68,7 @@ pipeline {
         stage('Run Unit Tests - Users Service') {
             steps {
                 script {
-                    sh 'npm run test -- tests/tony/unit/users/user.service.spec.ts --verbose 2>&1 | tee unit-test-results.log'
+                    bat 'npm run test -- tests/tony/unit/users/user.service.spec.ts --verbose > unit-test-results.log 2>&1'
                 }
             }
         }
