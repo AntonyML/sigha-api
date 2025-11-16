@@ -16,7 +16,7 @@ pipeline {
         SOURCE_BRANCH = 'dev'
         TARGET_REPO = 'https://git.ucr.ac.cr/proyecto_analisis/test_backend_nest_js_hogar_de_ancianos'
         TARGET_BRANCH = 'dev'
-        EMAIL_RECIPIENT = 'antony.mongelopez@ucr.ac.cr'
+        EMAIL_RECIPIENT = 'antonyml2016@gmail.com'
         WORKSPACE_DIR = "${WORKSPACE}"
         GIT_TERMINAL_PROMPT = '0'
     }
