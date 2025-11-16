@@ -41,7 +41,10 @@ pipeline {
                     withCredentials([usernamePassword(credentialsId: 'git-credentials', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
                         bat '''
                             @echo off
-                            git remote add test-repo "%TARGET_REPO%" 2>nul || true
+                            git remote add test-repo "%TARGET_REPO%" 2>nul
+                            if errorlevel 1 (
+                                echo Remote already exists, continuing...
+                            )
                             git push -u test-repo "%SOURCE_BRANCH%:%TARGET_BRANCH%" --force
                         '''
                     }
@@ -77,23 +80,23 @@ pipeline {
     post {
         always {
             script {
-                junit testResults: '**/test-results/**/*.xml', allowEmptyResults: true
-                publishHTML(
-                    [
-                        reportDir: 'coverage',
-                        reportFiles: 'index.html',
-                        reportName: 'Jest Coverage Report',
-                        allowMissing: true,
-                        alwaysLinkToLastBuild: true
-                    ]
-                )
+                if (fileExists('jest-results.log')) {
+                    junit testResults: '**/test-results/**/*.xml', allowEmptyResults: true
+                }
             }
         }
 
         success {
             script {
-                def testOutput = readFile('jest-results.log').take(500)
-                def unitTestOutput = readFile('unit-test-results.log').take(500)
+                def testOutput = ''
+                def unitTestOutput = ''
+                
+                if (fileExists('jest-results.log')) {
+                    testOutput = readFile('jest-results.log').take(500)
+                }
+                if (fileExists('unit-test-results.log')) {
+                    unitTestOutput = readFile('unit-test-results.log').take(500)
+                }
                 
                 emailext(
                     to: "${EMAIL_RECIPIENT}",
@@ -128,16 +131,22 @@ pipeline {
                             </body>
                         </html>
                     """,
-                    mimeType: 'text/html',
-                    attachmentsPattern: '**/coverage/**/*.html'
+                    mimeType: 'text/html'
                 )
             }
         }
 
         failure {
             script {
-                def testOutput = readFile('jest-results.log').take(1000)
-                def unitTestOutput = readFile('unit-test-results.log').take(1000)
+                def testOutput = ''
+                def unitTestOutput = ''
+                
+                if (fileExists('jest-results.log')) {
+                    testOutput = readFile('jest-results.log').take(1000)
+                }
+                if (fileExists('unit-test-results.log')) {
+                    unitTestOutput = readFile('unit-test-results.log').take(1000)
+                }
                 
                 emailext(
                     to: "${EMAIL_RECIPIENT}",
