@@ -26,3 +26,8 @@ Optimize prompts: be specific, define output format, split tasks, provide sample
 - `npm run dev`
 - `npm test`
 - `npm install`.
+
+## Session log
+
+2025-11-15 | Fetched remote branches; pulled `dev` and `tony` branches and updated local copies to match origin. 
+2025-11-15 | Searched for Selenium tests — none found; added a Selenium skeleton test for `Users` (`tests/selenium/UsersTest/users-selenium.spec.ts`) and a script `test:selenium:users` in `package.json`.
