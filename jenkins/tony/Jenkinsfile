@@ -18,6 +18,7 @@ pipeline {
         TARGET_BRANCH = 'dev'
         EMAIL_RECIPIENT = 'antony.mongelopez@ucr.ac.cr'
         WORKSPACE_DIR = "${WORKSPACE}"
+        GIT_TERMINAL_PROMPT = '0'
     }
 
     stages {
@@ -41,11 +42,16 @@ pipeline {
                     withCredentials([usernamePassword(credentialsId: 'git-credentials', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
                         bat '''
                             @echo off
+                            setlocal enabledelayedexpansion
+                            
+                            set GIT_TERMINAL_PROMPT=0
+                            
                             git remote add test-repo "%TARGET_REPO%" 2>nul
                             if errorlevel 1 (
                                 echo Remote already exists, continuing...
                             )
-                            git push -u test-repo "%SOURCE_BRANCH%:%TARGET_BRANCH%" --force
+                            
+                            git push -u test-repo HEAD:%TARGET_BRANCH% --force
                         '''
                     }
                 }
@@ -126,7 +132,7 @@ pipeline {
                                 <pre>${unitTestOutput}</pre>
 
                                 <hr>
-                                <p><strong>Tiempo del Build:</strong> ${BUILD_DURATION}</p>
+                                <p><strong>Build ID:</strong> ${BUILD_NUMBER}</p>
                                 <p><em>Este es un mensaje automático del sistema CI/CD</em></p>
                             </body>
                         </html>
@@ -178,7 +184,7 @@ pipeline {
                                 </ol>
 
                                 <hr>
-                                <p><strong>Tiempo del Build:</strong> ${BUILD_DURATION}</p>
+                                <p><strong>Build ID:</strong> ${BUILD_NUMBER}</p>
                                 <p><em>Este es un mensaje automático del sistema CI/CD</em></p>
                             </body>
                         </html>
