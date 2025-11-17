@@ -293,18 +293,34 @@ pipeline {
                         @echo off
                         setlocal enabledelayedexpansion
                         
+                        set FTP_HOST=localhost
+                        set FTP_USER=ftpadmin
+                        set FTP_PASS=Ftp@2025Proyecto
+                        set FTP_PORT=21
+                        set REMOTE_PATH=/backend/www
                         set SOURCE_BUILD=dist
-                        set LOCAL_IIS_PATH=//DESKTOP-9IKLQIM/backend/www
                         
                         if not exist "!SOURCE_BUILD!" (
                             echo Error: Build directory not found
                             exit /b 1
                         )
                         
-                        echo Copying build files to IIS path...
-                        robocopy "!SOURCE_BUILD!" "!LOCAL_IIS_PATH!" /S /E /NFL /NDL /NJH /NJS /nc /ns /np
+                        echo Creating FTP command file...
+                        (
+                            echo open !FTP_HOST! !FTP_PORT!
+                            echo !FTP_USER!
+                            echo !FTP_PASS!
+                            echo binary
+                            echo cd !REMOTE_PATH!
+                            echo mput !SOURCE_BUILD!/*.*
+                            echo quit
+                        ) > ftp_commands.txt
                         
-                        echo Deployment completed
+                        echo Starting FTP deployment...
+                        ftp -s:ftp_commands.txt
+                        
+                        echo FTP deployment completed
+                        del /q ftp_commands.txt 2>nul
                     '''
                     env.DEPLOYMENT_STATUS = 'SUCCESS'
                     echo " Deployment to IIS via FTP completed"
