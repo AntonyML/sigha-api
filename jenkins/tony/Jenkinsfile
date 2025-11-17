@@ -27,7 +27,7 @@ pipeline {
     }
 
     stages {
-        stage('Initialize') {
+        stage('Checkout') {
             steps {
                 script {
                     checkout(
@@ -37,6 +37,13 @@ pipeline {
                             userRemoteConfigs: [[url: "${SOURCE_REPO}"]]
                         ]
                     )
+                }
+            }
+        }
+
+        stage('Initialize') {
+            steps {
+                script {
                     
                     bat '''
                         @echo off
@@ -75,13 +82,7 @@ pipeline {
             }
             steps {
                 script {
-                    checkout(
-                        [
-                            $class: 'GitSCM',
-                            branches: [[name: "*/${SOURCE_BRANCH}"]],
-                            userRemoteConfigs: [[url: "${SOURCE_REPO}"]]
-                        ]
-                    )
+                    echo "Repository already checked out, skipping duplicate checkout"
                 }
             }
         }
