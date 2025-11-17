@@ -153,6 +153,77 @@ pipeline {
             }
         }
 
+        stage('Build Application') {
+            when {
+                expression { env.HAS_CHANGES == 'true' }
+            }
+            steps {
+                script {
+                    echo "🔨 Building NestJS application..."
+                    bat 'npm run build > build-results.log 2>&1'
+                    env.BUILD_SUCCESS = 'true'
+                    echo "✓ Build completed successfully"
+                }
+            }
+        }
+
+        stage('Deploy to IIS') {
+            when {
+                expression { env.HAS_CHANGES == 'true' && env.BUILD_SUCCESS == 'true' }
+            }
+            steps {
+                script {
+                    echo "📦 Deploying to IIS server..."
+                    bat '''
+                        @echo off
+                        setlocal enabledelayedexpansion
+                        
+                        REM Variables
+                        set SOURCE_BUILD=dist
+                        set IIS_PATH=C:\\ProyectoAnalisis\\backend\\www
+                        
+                        REM Verificar que la carpeta de build existe
+                        if not exist "!SOURCE_BUILD!" (
+                            echo Error: Build directory not found
+                            exit /b 1
+                        )
+                        
+                        REM Crear backup de la versión anterior
+                        if exist "!IIS_PATH!" (
+                            echo Creating backup of previous deployment...
+                            set BACKUP_DIR=!IIS_PATH!_backup_%date:~-4%_%date:~-10,5%_%time:~0,2%%time:~3,2%%time:~6,2%
+                            robocopy "!IIS_PATH!" "!BACKUP_DIR!" /S /E /NFL /NDL /NJH /NJS /nc /ns /np > nul 2>&1
+                            echo Backup created at !BACKUP_DIR!
+                        )
+                        
+                        REM Limpiar carpeta IIS (excepto web.config)
+                        for /d %%D in ("!IIS_PATH!/*") do (
+                            if "%%~nxD" neq "web.config" rmdir /s /q "%%D" 2>nul
+                        )
+                        for %%F in ("!IIS_PATH!/*") do (
+                            if "%%~nxF" neq "web.config" del /q "%%F" 2>nul
+                        )
+                        
+                        REM Copiar nueva versión a IIS
+                        echo Copying build files to IIS...
+                        robocopy "!SOURCE_BUILD!" "!IIS_PATH!" /S /E /NFL /NDL /NJH /NJS /nc /ns /np
+                        
+                        REM Verificar que se copió correctamente
+                        if exist "!IIS_PATH!" (
+                            echo Deployment completed successfully
+                            set deployment_status=SUCCESS
+                        ) else (
+                            echo Deployment failed
+                            set deployment_status=FAILED
+                            exit /b 1
+                        )
+                    '''
+                    env.DEPLOYMENT_STATUS = 'SUCCESS'
+                    echo "✓ Deployment to IIS completed"
+                }
+            }
+        }
+
         stage('Push to Deploy Repository') {
             when {
                 expression { env.HAS_CHANGES == 'true' && currentBuild.result == null }
@@ -218,35 +289,44 @@ pipeline {
                     
                     emailext(
                         to: "${EMAIL_RECIPIENT}",
-                        subject: "Jenkins Pipeline - Rama ${SOURCE_BRANCH}: BUILD EXITOSO",
+                        subject: "Jenkins Pipeline - Rama ${SOURCE_BRANCH}: BUILD EXITOSO ✓",
                         body: """
                             <html>
-                                <body>
-                                    <h2>Pipeline Build - EXITOSO</h2>
-                                    <p><strong>Repositorio:</strong> ${SOURCE_REPO}</p>
-                                    <p><strong>Rama:</strong> ${SOURCE_BRANCH}</p>
-                                    <p><strong>Build Number:</strong> ${BUILD_NUMBER}</p>
-                                    <p><strong>Build URL:</strong> <a href="${BUILD_URL}">${BUILD_URL}</a></p>
+                                <body style="font-family: Arial, sans-serif;">
+                                    <h2 style="color: #2e7d32;">✓ Pipeline Build - EXITOSO</h2>
                                     
-                                    <h3>Resumen de Ejecución:</h3>
-                                    <ul>
-                                        <li>Código descargado exitosamente</li>
-                                        <li>Push al repositorio de pruebas completado</li>
-                                        <li>Dependencias instaladas</li>
-                                        <li>Jest Tests ejecutados exitosamente</li>
-                                        <li>Unit Tests de Users Service ejecutados exitosamente</li>
-                                        <li>✓ Desplegado al repositorio de deploy</li>
+                                    <div style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin: 15px 0;">
+                                        <p><strong>Repositorio:</strong> ${SOURCE_REPO}</p>
+                                        <p><strong>Rama:</strong> ${SOURCE_BRANCH}</p>
+                                        <p><strong>Build Number:</strong> #${BUILD_NUMBER}</p>
+                                        <p><strong>Build URL:</strong> <a href="${BUILD_URL}">${BUILD_URL}</a></p>
+                                        <p><strong>Commit:</strong> ${env.CURRENT_COMMIT}</p>
+                                        <p><strong>Estado Deployment:</strong> ${env.DEPLOYMENT_STATUS ?: 'No ejecutado'}</p>
+                                    </div>
+                                    
+                                    <h3 style="color: #333;">📋 Resumen de Ejecución:</h3>
+                                    <ul style="line-height: 1.8;">
+                                        <li>✓ Código descargado exitosamente</li>
+                                        <li>✓ Dependencias instaladas</li>
+                                        <li>✓ Jest Tests ejecutados exitosamente</li>
+                                        <li>✓ Unit Tests de Users Service ejecutados exitosamente</li>
+                                        <li>✓ Aplicación compilada correctamente</li>
+                                        <li>✓ Deployado a servidor IIS</li>
+                                        <li>✓ Push al repositorio de deploy completado</li>
                                     </ul>
 
-                                    <h3>Detalles de los Tests:</h3>
-                                    <pre>${testOutput}</pre>
+                                    <h3 style="color: #333;">📊 Resultados de Tests:</h3>
+                                    <pre style="background: #f5f5f5; padding: 10px; border-radius: 5px; overflow-x: auto;">${testOutput}</pre>
                                     
-                                    <h3>Detalles Unit Tests - Users Service:</h3>
-                                    <pre>${unitTestOutput}</pre>
+                                    <h3 style="color: #333;">👤 Resultados Unit Tests - Users Service:</h3>
+                                    <pre style="background: #f5f5f5; padding: 10px; border-radius: 5px; overflow-x: auto;">${unitTestOutput}</pre>
+
+                                    <h3 style="color: #333;">🌐 Acceso al Sistema:</h3>
+                                    <p>El sistema está disponible en: <strong>http://localhost:8086</strong></p>
 
                                     <hr>
-                                    <p><strong>Build ID:</strong> ${BUILD_NUMBER}</p>
-                                    <p><em>Este es un mensaje automático del sistema CI/CD</em></p>
+                                    <p style="color: #999; font-size: 12px;">Build ID: ${BUILD_NUMBER} | Fecha: ${new Date().format('yyyy-MM-dd HH:mm:ss')}</p>
+                                    <p style="color: #999; font-size: 12px;">Este es un mensaje automático del sistema CI/CD</p>
                                 </body>
                             </html>
                         """,
