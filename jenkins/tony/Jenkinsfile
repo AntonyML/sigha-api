@@ -179,6 +179,9 @@ pipeline {
                             @echo off
                             setlocal enabledelayedexpansion
                             
+                            REM Stash any local changes
+                            git stash
+                            
                             REM URL-encode credentials
                             set "PASS_ENCODED=!GIT_PASS:@=%%40!"
                             set "PASS_ENCODED=!PASS_ENCODED:?=%%3F!"
@@ -204,7 +207,7 @@ pipeline {
                             git checkout master
                             
                             REM Merge dev
-                            git merge dev --no-edit
+                            git merge origin/dev --no-edit
                             
                             if errorlevel 1 (
                                 echo Error during merge
