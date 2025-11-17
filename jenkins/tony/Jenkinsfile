@@ -177,10 +177,10 @@ pipeline {
                                 git remote add deploy-repo "!URL_WITH_CREDS!"
                             )
                             
-                            REM Push with verbose output
-                            git push -u deploy-repo HEAD:%TARGET_BRANCH% --force
+                            REM Push to master branch with verbose output
+                            git push -u deploy-repo HEAD:master --force
                             
-                            echo ✓ Deployed successfully to deploy repository
+                            echo ✓ Deployed successfully to master branch in deploy repository
                         '''
                     }
                 }
