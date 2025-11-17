@@ -292,8 +292,8 @@ pipeline {
                         
                         REM FTP Configuration
                         set FTP_HOST=localhost
-                        set FTP_USER=admin
-                        set FTP_PASS=admin123
+                        set FTP_USER=ftpadmin
+                        set FTP_PASS=Ftp@2025Proyecto
                         set FTP_PORT=21
                         set REMOTE_PATH=/backend/www
                         set LOCAL_IIS_PATH=\\DESKTOP-9IKLQIM\backend\www
@@ -337,29 +337,36 @@ pipeline {
                             echo !FTP_USER!
                             echo !FTP_PASS!
                             echo binary
-                            echo prompt off
-                            echo mdelete !REMOTE_PATH!/*
                             echo cd !REMOTE_PATH!
-                            echo mput !SOURCE_BUILD!\*
-                            echo bye
+                            echo mput !SOURCE_BUILD!\*.*
+                            echo quit
                         ) > ftp_deploy.txt
                         
                         REM Ejecutar FTP
-                        echo Starting FTP deployment...
-                        ftp -s:ftp_deploy.txt
+                        echo Starting FTP deployment to localhost:21...
+                        ftp -s:ftp_deploy.txt > ftp_log.txt 2>&1
+                        
+                        REM Verificar resultado
+                        type ftp_log.txt
                         
                         if errorlevel 1 (
-                            echo Warning: FTP transfer had issues, validating locally...
-                            REM Fallback: usar robocopy como backup
+                            echo Warning: FTP transfer had issues, using robocopy backup...
                             if not exist "!SOURCE_BUILD!" (
                                 echo Error: Build directory not found
                                 exit /b 1
                             )
-                            echo Using local backup deployment method to \\DESKTOP-9IKLQIM\Sitios\backend...
+                            echo Deploying via robocopy to !LOCAL_IIS_PATH!...
                             robocopy "!SOURCE_BUILD!" "!LOCAL_IIS_PATH!" /S /E /NFL /NDL /NJH /NJS /nc /ns /np
+                            if errorlevel 1 (
+                                echo Backup deployment completed
+                            )
                         ) else (
-                            echo ✓ FTP deployment completed successfully to !REMOTE_PATH!
+                            echo FTP deployment succeeded
                         )
+                        
+                        REM Limpiar archivos temporales
+                        del /q ftp_deploy.txt 2>nul
+                        del /q ftp_log.txt 2>nul
                         
                         REM Limpiar archivo FTP
                         del /q ftp_deploy.txt 2>nul
