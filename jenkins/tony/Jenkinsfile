@@ -295,7 +295,8 @@ pipeline {
                         set FTP_USER=admin
                         set FTP_PASS=admin123
                         set FTP_PORT=21
-                        set REMOTE_PATH=/backend/www
+                        set REMOTE_PATH=/Sitios/backend
+                        set LOCAL_IIS_PATH=\\DESKTOP-9IKLQIM\Sitios\backend
                         set SOURCE_BUILD=dist
                         
                         REM Crear archivo de script FTP
@@ -318,15 +319,14 @@ pipeline {
                         if errorlevel 1 (
                             echo Warning: FTP transfer had issues, validating locally...
                             REM Fallback: usar robocopy como backup
-                            set IIS_PATH=C:\ProyectoAnalisis\backend\www
                             if not exist "!SOURCE_BUILD!" (
                                 echo Error: Build directory not found
                                 exit /b 1
                             )
-                            echo Using local backup deployment method...
-                            robocopy "!SOURCE_BUILD!" "!IIS_PATH!" /S /E /NFL /NDL /NJH /NJS /nc /ns /np
+                            echo Using local backup deployment method to \\DESKTOP-9IKLQIM\Sitios\backend...
+                            robocopy "!SOURCE_BUILD!" "!LOCAL_IIS_PATH!" /S /E /NFL /NDL /NJH /NJS /nc /ns /np
                         ) else (
-                            echo ✓ FTP deployment completed successfully
+                            echo ✓ FTP deployment completed successfully to !REMOTE_PATH!
                         )
                         
                         REM Limpiar archivo FTP
