@@ -299,18 +299,10 @@ pipeline {
                         set LOCAL_IIS_PATH=\\DESKTOP-9IKLQIM\backend\www
                         set SOURCE_BUILD=dist
                         
-                        REM Crear archivo web.config simplificado
+                        REM Crear archivo web.config (dejar vacío para usar config global de IIS)
                         (
                             echo ^<?xml version="1.0" encoding="utf-8"?^>
                             echo ^<configuration^>
-                            echo   ^<system.webServer^>
-                            echo     ^<directoryBrowse enabled="false" /^>
-                            echo     ^<defaultDocument^>
-                            echo       ^<files^>
-                            echo         ^<add value="index.html" /^>
-                            echo       ^</files^>
-                            echo     ^</defaultDocument^>
-                            echo   ^</system.webServer^>
                             echo ^</configuration^>
                         ) > "!SOURCE_BUILD!\web.config"
                         
