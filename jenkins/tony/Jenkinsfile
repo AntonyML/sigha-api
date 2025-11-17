@@ -299,7 +299,7 @@ pipeline {
                         set LOCAL_IIS_PATH=\\DESKTOP-9IKLQIM\backend\www
                         set SOURCE_BUILD=dist
                         
-                        REM Crear archivo web.config
+                        REM Crear archivo web.config simplificado
                         (
                             echo ^<?xml version="1.0" encoding="utf-8"?^>
                             echo ^<configuration^>
@@ -308,25 +308,8 @@ pipeline {
                             echo     ^<defaultDocument^>
                             echo       ^<files^>
                             echo         ^<add value="index.html" /^>
-                            echo         ^<add value="index.htm" /^>
-                            echo         ^<add value="default.html" /^>
-                            echo         ^<add value="default.htm" /^>
                             echo       ^</files^>
                             echo     ^</defaultDocument^>
-                            echo     ^<httpProtocol^>
-                            echo       ^<customHeaders^>
-                            echo         ^<add name="X-Content-Type-Options" value="nosniff" /^>
-                            echo         ^<add name="X-Frame-Options" value="SAMEORIGIN" /^>
-                            echo       ^</customHeaders^>
-                            echo     ^</httpProtocol^>
-                            echo     ^<rewrite^>
-                            echo       ^<rules^>
-                            echo         ^<rule name="API Redirect" stopProcessing="true"^>
-                            echo           ^<match url="^^api/\(.*\)$" /^>
-                            echo           ^<action type="Rewrite" url="http://localhost:3000/api/{R:1}" /^>
-                            echo         ^</rule^>
-                            echo       ^</rules^>
-                            echo     ^</rewrite^>
                             echo   ^</system.webServer^>
                             echo ^</configuration^>
                         ) > "!SOURCE_BUILD!\web.config"
