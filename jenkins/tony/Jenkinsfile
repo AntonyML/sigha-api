@@ -44,22 +44,20 @@ pipeline {
                             @echo off
                             setlocal enabledelayedexpansion
                             
-                            set GIT_TERMINAL_PROMPT=0
-                            set GIT_ASKPASS=cmd
-                            set GIT_ASKPASS_PROMPT=never
+                            REM Parse the URL to inject credentials
+                            setlocal enabledelayedexpansion
+                            set "URL_WITH_CREDS=https://%GIT_USER%:%GIT_PASS%@git.ucr.ac.cr/proyecto_analisis/test_backend_nest_js_hogar_de_ancianos.git"
                             
-                            git remote add test-repo "%TARGET_REPO%" 2>nul
+                            REM Add remote with credentials in URL
+                            git remote add test-repo "!URL_WITH_CREDS!" 2>nul
                             if errorlevel 1 (
-                                echo Remote already exists, continuing...
+                                REM Remote might already exist, remove and add again
+                                git remote remove test-repo 2>nul
+                                git remote add test-repo "!URL_WITH_CREDS!"
                             )
                             
-                            for /f "tokens=*" %%A in ('echo %GIT_USER%:%GIT_PASS%') do (
-                                git -c credential.helper=store push -u test-repo HEAD:%TARGET_BRANCH% --force 2>&1
-                            )
-                            if errorlevel 1 (
-                                echo ERROR: Git push failed with exit code %ERRORLEVEL%
-                                exit /b 1
-                            )
+                            REM Push with verbose output
+                            git push -u test-repo HEAD:%TARGET_BRANCH% --force
                         '''
                     }
                 }
