@@ -237,7 +237,7 @@ pipeline {
                     echo "Updating version..."
                     bat '''
                         @echo off
-                        powershell -ExecutionPolicy Bypass -File "scripts\\versioning\\increment-version.ps1" -Type "patch"
+                        powershell -ExecutionPolicy Bypass -File "scripts/versioning/increment-version.ps1" -Type "patch"
                     '''
                     
                     if (fileExists('version.txt')) {
@@ -296,7 +296,7 @@ pipeline {
                         set FTP_PASS=Ftp@2025Proyecto
                         set FTP_PORT=21
                         set REMOTE_PATH=/backend/www
-                        set LOCAL_IIS_PATH=\\\\DESKTOP-9IKLQIM\\backend\\www
+                        set LOCAL_IIS_PATH=//DESKTOP-9IKLQIM/backend/www
                         set SOURCE_BUILD=dist
                         
                         REM Crear archivo web.config (dejar vacio para usar config global de IIS)
@@ -389,7 +389,7 @@ pipeline {
                         setlocal enabledelayedexpansion
                         
                         set IIS_URL=http://localhost:8086/
-                        set IIS_PATH=C:\\ProyectoAnalisis\\backend\\www
+                        set IIS_PATH=C:/ProyectoAnalisis/backend/www
                         set MAX_RETRIES=5
                         set RETRY_COUNT=0
                         
