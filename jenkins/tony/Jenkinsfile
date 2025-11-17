@@ -296,7 +296,7 @@ pipeline {
                         set FTP_PASS=Ftp@2025Proyecto
                         set FTP_PORT=21
                         set REMOTE_PATH=/backend/www
-                        set LOCAL_IIS_PATH=\\DESKTOP-9IKLQIM\backend\www
+                        set LOCAL_IIS_PATH=\\\\DESKTOP-9IKLQIM\\backend\\www
                         set SOURCE_BUILD=dist
                         
                         REM Crear archivo web.config (dejar vacio para usar config global de IIS)
