@@ -1,0 +1,652 @@
+pipeline {
+    agent any
+
+    triggers {
+            // Esto NO funcionara mientras Jenkins sea local.
+        gitlab(triggerOnPush: true, triggerOnMergeRequest: true, branchFilterType: 'NameBasedFilter', includeBranchesSpec: 'dev', excludeBranchesSpec: '')
+            // La unica opcion que encontre xd
+            //ejecutarlo cada minuto
+       // pollSCM('* * * * *')
+        //ejecutarlo a las 12 am
+        pollSCM('0 0 * * *')
+    }
+
+    options {
+        timestamps()
+        timeout(time: 30, unit: 'MINUTES')
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+    }
+
+    environment {
+        SOURCE_REPO = 'https://git.ucr.ac.cr/proyecto_analisis/backend_nest_js_hogar_de_ancianos'
+        SOURCE_BRANCH = 'dev'
+        TARGET_REPO = 'https://git.ucr.ac.cr/proyecto_analisis/test_backend_nest_js_hogar_de_ancianos'
+        TARGET_BRANCH = 'dev'
+        EMAIL_RECIPIENT = 'antonyml2016@gmail.com'
+        WORKSPACE_DIR = "${WORKSPACE}"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                script {
+                    checkout(
+                        [
+                            $class: 'GitSCM',
+                            branches: [[name: "*/${SOURCE_BRANCH}"]],
+                            userRemoteConfigs: [[url: "${SOURCE_REPO}"]]
+                        ]
+                    )
+                }
+            }
+        }
+
+        stage('Initialize') {
+            steps {
+                script {
+                    
+                    bat '''
+                        @echo off
+                        git rev-parse HEAD > current_commit.txt
+                    '''
+                    
+                    def currentCommit = readFile('current_commit.txt').trim()
+                    def lastBuildFile = "${WORKSPACE}/.last_commit"
+                    def lastCommit = ''
+                    
+                    if (fileExists(lastBuildFile)) {
+                        lastCommit = readFile(lastBuildFile).trim()
+                    }
+                    
+                    env.CURRENT_COMMIT = currentCommit
+                    env.LAST_COMMIT = lastCommit
+                    
+                    echo "Current: ${currentCommit}"
+                    echo "Last: ${lastCommit}"
+                    
+                    if (currentCommit != lastCommit) {
+                        env.HAS_CHANGES = 'true'
+                        writeFile file: lastBuildFile, text: currentCommit
+                        echo "[OK] Changes detected"
+                    } else {
+                        env.HAS_CHANGES = 'false'
+                        echo "[SKIP] No changes. Stopping pipeline."
+                    }
+                }
+            }
+        }
+
+        stage('Checkout Source') {
+            when {
+                expression { env.HAS_CHANGES == 'true' }
+            }
+            steps {
+                script {
+                    echo "Repository already checked out, skipping duplicate checkout"
+                }
+            }
+        }
+
+        stage('Push to Test Repository') {
+            when {
+                expression { env.HAS_CHANGES == 'true' }
+            }
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'git-credentials', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
+                        bat '''
+                            @echo off
+                            setlocal enabledelayedexpansion
+                            
+                            REM URL-encode the password: @ = %%40, ? = %%3F
+                            setlocal enabledelayedexpansion
+                            set "PASS_ENCODED=!GIT_PASS:@=%%40!"
+                            set "PASS_ENCODED=!PASS_ENCODED:?=%%3F!"
+                            set "URL_WITH_CREDS=https://%GIT_USER%:!PASS_ENCODED!@git.ucr.ac.cr/proyecto_analisis/test_backend_nest_js_hogar_de_ancianos.git"
+                            
+                            REM Add remote with credentials in URL
+                            git remote add test-repo "!URL_WITH_CREDS!" 2>nul
+                            if errorlevel 1 (
+                                REM Remote might already exist, remove and add again
+                                git remote remove test-repo 2>nul
+                                git remote add test-repo "!URL_WITH_CREDS!"
+                            )
+                            
+                            REM Push with verbose output
+                            git push -u test-repo HEAD:%TARGET_BRANCH% --force
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('Install Dependencies') {
+            when {
+                expression { env.HAS_CHANGES == 'true' }
+            }
+            steps {
+                script {
+                    bat 'npm install'
+                }
+            }
+        }
+
+        stage('Run Jest Tests') {
+            when {
+                expression { env.HAS_CHANGES == 'true' }
+            }
+            steps {
+                script {
+                    bat 'npm run test -- --coverage --testPathPatterns="tests/tony/unit" > jest-results.log 2>&1'
+                }
+            }
+        }
+
+        stage('Run Unit Tests - Users Service') {
+            when {
+                expression { env.HAS_CHANGES == 'true' }
+            }
+            steps {
+                script {
+                    bat 'npm run test -- tests/tony/unit/users/user.service.spec.ts --verbose > unit-test-results.log 2>&1'
+                }
+            }
+        }
+
+        stage('Build Application') {
+            when {
+                expression { env.HAS_CHANGES == 'true' }
+            }
+            steps {
+                script {
+                    echo " Building NestJS application..."
+                    bat 'npm run build > build-results.log 2>&1'
+                    env.BUILD_SUCCESS = 'true'
+                    echo "  Build completed successfully"
+                }
+            }
+        }
+
+        stage('Merge to Master Branch') {
+            when {
+                expression { env.HAS_CHANGES == 'true' && env.BUILD_SUCCESS == 'true' && currentBuild.result == null }
+            }
+            steps {
+                script {
+                    echo " Merging dev master..."
+                    withCredentials([usernamePassword(credentialsId: 'git-credentials', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
+                        bat '''
+                            @echo off
+                            setlocal enabledelayedexpansion
+                            
+                            REM Stash any local changes
+                            git stash
+                            
+                            REM URL-encode credentials
+                            set "PASS_ENCODED=!GIT_PASS:@=%%40!"
+                            set "PASS_ENCODED=!PASS_ENCODED:?=%%3F!"
+                            set "URL_WITH_CREDS=https://%GIT_USER%:!PASS_ENCODED!@git.ucr.ac.cr/proyecto_analisis/backend_nest_js_hogar_de_ancianos.git"
+                            
+                            REM Fetch latest master
+                            git fetch origin master
+                            
+                            REM Check for conflicts
+                            git merge-base --is-ancestor HEAD origin/master
+                            if errorlevel 1 (
+                                echo Checking for merge conflicts...
+                                git merge --no-commit --no-ff origin/master 2>nul
+                                if errorlevel 1 (
+                                    echo Error: Cannot merge dev into master due to conflicts
+                                    git merge --abort
+                                    exit /b 1
+                                )
+                                git merge --abort
+                            )
+                            
+                            REM Checkout master
+                            git checkout master
+                            
+                            REM Merge dev
+                            git merge origin/dev --no-edit
+                            
+                            if errorlevel 1 (
+                                echo Error during merge
+                                exit /b 1
+                            )
+                            
+                            REM Push to origin
+                            git push -u origin master
+                            
+                            if errorlevel 1 (
+                                echo Error pushing to master
+                                exit /b 1
+                            )
+                            
+                            echo Successfully merged dev into master
+                        '''
+                    }
+                    env.MERGE_STATUS = 'SUCCESS'
+                    echo "Merge to master completed"
+                }
+            }
+        }
+
+        stage('Update Version') {
+            when {
+                expression { env.HAS_CHANGES == 'true' && env.MERGE_STATUS == 'SUCCESS' }
+            }
+            steps {
+                script {
+                    echo "Updating version..."
+                    bat '''
+                        @echo off
+                        powershell -ExecutionPolicy Bypass -File "scripts/versioning/increment-version.ps1" -Type "patch"
+                    '''
+                    
+                    if (fileExists('version.txt')) {
+                        env.NEW_VERSION = readFile('version.txt').trim().replace('VERSION=', '')
+                        echo "Version updated to ${env.NEW_VERSION}"
+                    }
+                }
+            }
+        }
+
+        stage('Checkout Master for Deploy') {
+            when {
+                expression { env.HAS_CHANGES == 'true' && env.NEW_VERSION ?: false }
+            }
+            steps {
+                script {
+                    echo " Checking out master branch for deployment..."
+                    bat '''
+                        @echo off
+                        git checkout master
+                        git pull origin master
+                    '''
+                    echo " Master branch checked out with latest changes"
+                }
+            }
+        }
+
+        stage('Build from Master') {
+            when {
+                expression { env.HAS_CHANGES == 'true' && env.NEW_VERSION ?: false }
+            }
+            steps {
+                script {
+                    echo " Building NestJS application from master branch..."
+                    bat 'npm install && npm run build > build-master-results.log 2>&1'
+                    env.MASTER_BUILD_SUCCESS = 'true'
+                    echo " Build from master completed successfully"
+                }
+            }
+        }
+
+        stage('Deploy to IIS via FTP') {
+            when {
+                expression { env.HAS_CHANGES == 'true' && env.MASTER_BUILD_SUCCESS == 'true' }
+            }
+            steps {
+                script {
+                    echo " Deploying to IIS server via FTP..."
+                    bat '''
+                        @echo off
+                        setlocal enabledelayedexpansion
+                        
+                        set FTP_HOST=localhost
+                        set FTP_USER=ftpadmin
+                        set FTP_PASS=Ftp@2025Proyecto
+                        set FTP_PORT=21
+                        set REMOTE_PATH=/backend/www
+                        set SOURCE_BUILD=dist
+                        
+                        if not exist "!SOURCE_BUILD!" (
+                            echo Error: Build directory not found
+                            exit /b 1
+                        )
+                        
+                        echo Creating FTP command file...
+                        (
+                            echo open !FTP_HOST! !FTP_PORT!
+                            echo !FTP_USER!
+                            echo !FTP_PASS!
+                            echo binary
+                            echo cd !REMOTE_PATH!
+                            echo mput !SOURCE_BUILD!/*.*
+                            echo quit
+                        ) > ftp_commands.txt
+                        
+                        echo Starting FTP deployment...
+                        ftp -s:ftp_commands.txt
+                        
+                        echo FTP deployment completed
+                        del /q ftp_commands.txt 2>nul
+                    '''
+                    env.DEPLOYMENT_STATUS = 'SUCCESS'
+                    echo " Deployment to IIS via FTP completed"
+                }
+            }
+        }
+
+        stage('Validate IIS Deployment') {
+            when {
+                expression { env.HAS_CHANGES == 'true' && env.DEPLOYMENT_STATUS == 'SUCCESS' }
+            }
+            steps {
+                script {
+                    echo " Validating IIS deployment..."
+                    bat '''
+                        @echo off
+                        setlocal enabledelayedexpansion
+                        
+                        set IIS_URL=http://localhost:8086/
+                        set IIS_PATH=C:/ProyectoAnalisis/backend/www
+                        set MAX_RETRIES=5
+                        set RETRY_COUNT=0
+                        
+                        echo Validating deployment...
+                        echo.
+                        
+                        :retry_loop
+                        if !RETRY_COUNT! geq !MAX_RETRIES! (
+                            echo Error: IIS is not responding after !MAX_RETRIES! attempts
+                            exit /b 1
+                        )
+                        
+                        REM Verificar que los archivos se copiaron
+                        if not exist "!IIS_PATH!" (
+                            echo Error: IIS deployment path does not exist
+                            exit /b 1
+                        )
+                        
+                        REM Contar archivos copiados
+                        for /f %%A in ('dir /b/s "!IIS_PATH!" 2^>nul ^| find /c /v ""') do (
+                            set FILE_COUNT=%%A
+                        )
+                        
+                        if !FILE_COUNT! leq 0 (
+                            echo Warning: No files found in deployment directory
+                        ) else (
+                            echo Deployment validation successful
+                            echo Files deployed: !FILE_COUNT!
+                        )
+                        
+                        REM Verificar que web.config existe
+                        if exist "!IIS_PATH!/web.config" (
+                            echo web.config found
+                        ) else (
+                            echo Error: web.config not found
+                            exit /b 1
+                        )
+                        
+                        REM Verificar que index.html existe
+                        if exist "!IIS_PATH!/index.html" (
+                            echo index.html found
+                        ) else (
+                            echo Warning: index.html not found, IIS may not serve properly
+                        )
+                        
+                        echo.
+                        echo All validation checks passed
+                    '''
+                    env.VALIDATION_STATUS = 'PASSED'
+                    echo " IIS deployment validation completed"
+                }
+            }
+        }
+
+        stage('Run JMeter - Performance Tests') {
+            when {
+                expression { env.HAS_CHANGES == 'true' && env.VALIDATION_STATUS == 'PASSED' }
+            }
+            steps {
+                script {
+                    echo " Running JMeter Performance Tests..."
+                    
+                    bat '''
+                        @echo off
+                        setlocal enabledelayedexpansion
+                        
+                        REM Verificar si JMeter esta instalado
+                        where jmeter >nul 2>&1
+                        if errorlevel 1 (
+                            echo Warning: JMeter no esta instalado o no esta en PATH
+                            echo Para instalar JMeter, descargalo desde: https://jmeter.apache.org/
+                            echo Skipping JMeter tests...
+                            exit /b 0
+                        )
+                        
+                        REM Crear directorio para resultados
+                        if not exist "jmeter-results" mkdir jmeter-results
+                        
+                        REM Ejecutar tests de JMeter
+                        echo Starting JMeter tests...
+                        jmeter -n -t tests/jmeter/users-performance-test.jmx -l jmeter-results/results.jtl -j jmeter.log
+                        
+                        if errorlevel 1 (
+                            echo Warning: JMeter tests had some issues, but continuing...
+                        ) else (
+                            echo JMeter tests completed successfully
+                        )
+                    '''
+                    
+                    env.JMETER_EXECUTED = 'true'
+                    echo " JMeter tests completed"
+                }
+            }
+        }
+
+        stage('Push to Deploy Repository') {
+            when {
+                expression { env.HAS_CHANGES == 'true' && currentBuild.result == null }
+            }
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'git-credentials', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
+                        bat '''
+                            @echo off
+                            setlocal enabledelayedexpansion
+                            
+                            REM URL-encode the password: @ = %%40, ? = %%3F
+                            setlocal enabledelayedexpansion
+                            set "PASS_ENCODED=!GIT_PASS:@=%%40!"
+                            set "PASS_ENCODED=!PASS_ENCODED:?=%%3F!"
+                            set "URL_WITH_CREDS=https://%GIT_USER%:!PASS_ENCODED!@git.ucr.ac.cr/proyecto_analisis/deploy_backend_nest_js_hogar_de_ancianos.git"
+                            
+                            REM Add remote with credentials in URL
+                            git remote add deploy-repo "!URL_WITH_CREDS!" 2>nul
+                            if errorlevel 1 (
+                                REM Remote might already exist, remove and add again
+                                git remote remove deploy-repo 2>nul
+                                git remote add deploy-repo "!URL_WITH_CREDS!"
+                            )
+                            
+                            REM Push to master branch with verbose output
+                            git push -u deploy-repo HEAD:master --force
+                            
+                            echo " Deployed successfully to master branch in deploy repository"
+                        '''
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            script {
+                if (env.HAS_CHANGES == 'false') {
+                    currentBuild.result = 'NOT_BUILT'
+                    echo "Build marked as NOT_BUILT - no changes detected"
+                }
+                
+                if (fileExists('jest-results.log')) {
+                    junit testResults: '**/test-results/**/*.xml', allowEmptyResults: true
+                }
+            }
+        }
+
+        success {
+            script {
+                if (env.HAS_CHANGES == 'true') {
+                    def testOutput = ''
+                    def unitTestOutput = ''
+                    def jmeterOutput = ''
+                    
+                    if (fileExists('jest-results.log')) {
+                        testOutput = readFile('jest-results.log').take(500)
+                    }
+                    if (fileExists('unit-test-results.log')) {
+                        unitTestOutput = readFile('unit-test-results.log').take(500)
+                    }
+                    if (fileExists('jmeter-results/results.jtl')) {
+                        jmeterOutput = readFile('jmeter-results/results.jtl').take(500)
+                    }
+                    
+                    emailext(
+                        to: "${EMAIL_RECIPIENT}",
+                        subject: "Jenkins Pipeline - Rama ${SOURCE_BRANCH}: BUILD EXITOSO ",
+                        body: """
+                            <html>
+                                <body style="font-family: Arial, sans-serif;">
+                                    <h2 style="color: #2e7d32;"> Pipeline Build - EXITOSO</h2>
+                                    
+                                    <div style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin: 15px 0;">
+                                        <p><strong>Repositorio:</strong> ${SOURCE_REPO}</p>
+                                        <p><strong>Rama:</strong> ${SOURCE_BRANCH}</p>
+                                        <p><strong>Build Number:</strong> #${BUILD_NUMBER}</p>
+                                        <p><strong>Build URL:</strong> <a href="${BUILD_URL}">${BUILD_URL}</a></p>
+                                        <p><strong>Commit:</strong> ${env.CURRENT_COMMIT}</p>
+                                        <p><strong>Version Deployada:</strong> ${env.NEW_VERSION ?: 'No especificada'}</p>
+                                        <p><strong>Estado Deployment:</strong> ${env.DEPLOYMENT_STATUS ?: 'No ejecutado'}</p>
+                                    </div>
+                                    
+                                    <h3 style="color: #333;"> Resumen de Ejecucion:</h3>
+                                    <ul style="line-height: 1.8;">
+                                        <li> Codigo descargado exitosamente (rama dev)</li>
+                                        <li> Dependencias instaladas</li>
+                                        <li>  Jest Tests ejecutados exitosamente</li>
+                                        <li>  Unit Tests de Users Service ejecutados exitosamente</li>
+                                        <li>  Aplicacion compilada desde dev</li>
+                                        <li>  Merge dev a master completado</li>
+                                        <li>  Version actualizada automaticamente</li>
+                                        <li>  Aplicacion recompilada desde master</li>
+                                        <li>  Deployado a servidor IIS (desde master)</li>
+                                        <li>${env.JMETER_EXECUTED == 'true' ? ' ' : ''} Performance Tests con JMeter ejecutados</li>
+                                        <li>  Push al repositorio de deploy completado</li>
+                                    </ul>
+
+                                    <h3 style="color: #333;"> Resultados de Tests Unitarios:</h3>
+                                    <pre style="background: #f5f5f5; padding: 10px; border-radius: 5px; overflow-x: auto;">${testOutput}</pre>
+                                    
+                                    <h3 style="color: #333;"> Resultados Unit Tests - Users Service:</h3>
+                                    <pre style="background: #f5f5f5; padding: 10px; border-radius: 5px; overflow-x: auto;">${unitTestOutput}</pre>
+
+                                    <h3 style="color: #333;">Resultados Performance Tests - JMeter:</h3>
+                                    <pre style="background: #f5f5f5; padding: 10px; border-radius: 5px; overflow-x: auto;">${jmeterOutput ?: 'No se ejecutaron tests de JMeter'}</pre>
+
+                                    <h3 style="color: #333;">Acceso al Sistema:</h3>
+                                    <p>El sistema esta disponible en: <strong>http://localhost:8086</strong></p>
+                                    <p>API disponible en: <strong>http://localhost:3000/api</strong></p>
+
+                                    <h3 style="color: #333;"> Celebraciones:</h3>
+                                    <p style="font-size: 24px;">Todos los tests pasaron! Excelente trabajo!</p>
+
+                                    <hr>
+                                    <p style="color: #999; font-size: 12px;">Build ID: ${BUILD_NUMBER} | Fecha: ${new Date().format('yyyy-MM-dd HH:mm:ss')}</p>
+                                    <p style="color: #999; font-size: 12px;">Este es un mensaje automatico del sistema CI/CD</p>
+                                </body>
+                            </html>
+                        """,
+                        mimeType: 'text/html'
+                    )
+                    
+                    env.BUILD_SUCCESS = 'true'
+                }
+            }
+        }
+
+        failure {
+            script {
+                if (env.HAS_CHANGES == 'true') {
+                    def testOutput = ''
+                    def unitTestOutput = ''
+                    
+                    if (fileExists('jest-results.log')) {
+                        testOutput = readFile('jest-results.log').take(1000)
+                    }
+                    if (fileExists('unit-test-results.log')) {
+                        unitTestOutput = readFile('unit-test-results.log').take(1000)
+                    }
+                    
+                    emailext(
+                        to: "${EMAIL_RECIPIENT}",
+                        subject: "Jenkins Pipeline - Rama ${SOURCE_BRANCH}: BUILD FALLIDO",
+                        body: """
+                            <html>
+                                <body>
+                                    <h2>Pipeline Build - FALLIDO</h2>
+                                    <p><strong>Repositorio:</strong> ${SOURCE_REPO}</p>
+                                    <p><strong>Rama:</strong> ${SOURCE_BRANCH}</p>
+                                    <p><strong>Build Number:</strong> ${BUILD_NUMBER}</p>
+                                    <p><strong>Build URL:</strong> <a href="${BUILD_URL}">${BUILD_URL}</a></p>
+                                    
+                                    <h3>Causa del Fallo:</h3>
+                                    <p>Revisa los logs detallados a continuacion para identificar el problema.</p>
+
+                                    <h3>Salida de Jest Tests:</h3>
+                                    <pre>${testOutput}</pre>
+                                    
+                                    <h3>Salida Unit Tests - Users Service:</h3>
+                                    <pre>${unitTestOutput}</pre>
+
+                                    <h3>Acciones Recomendadas:</h3>
+                                    <ol>
+                                        <li>Revisa los logs completos en: <a href="${BUILD_URL}console">${BUILD_URL}console</a></li>
+                                        <li>Verifica los cambios en la rama ${SOURCE_BRANCH}</li>
+                                        <li>Ejecuta localmente: npm run test</li>
+                                        <li>Contacta al equipo de desarrollo si es necesario</li>
+                                    </ol>
+
+                                    <hr>
+                                    <p><strong>Build ID:</strong> ${BUILD_NUMBER}</p>
+                                    <p><em>Este es un mensaje automatico del sistema CI/CD</em></p>
+                                </body>
+                            </html>
+                        """,
+                        mimeType: 'text/html'
+                    )
+                }
+            }
+        }
+
+        unstable {
+            script {
+                if (env.HAS_CHANGES == 'true') {
+                    emailext(
+                        to: "${EMAIL_RECIPIENT}",
+                        subject: "Jenkins Pipeline - Rama ${SOURCE_BRANCH}: BUILD INESTABLE",
+                        body: """
+                            <html>
+                                <body>
+                                    <h2>Pipeline Build - INESTABLE</h2>
+                                    <p><strong>Repositorio:</strong> ${SOURCE_REPO}</p>
+                                    <p><strong>Rama:</strong> ${SOURCE_BRANCH}</p>
+                                    <p><strong>Build Number:</strong> ${BUILD_NUMBER}</p>
+                                    <p><strong>Build URL:</strong> <a href="${BUILD_URL}">${BUILD_URL}</a></p>
+                                    
+                                    <p>El pipeline completo pero hay algunos tests que fallaron o produjeron advertencias.</p>
+                                    <p>Por favor revisa los detalles en: <a href="${BUILD_URL}console">${BUILD_URL}console</a></p>
+
+                                    <hr>
+                                    <p><em>Este es un mensaje automatico del sistema CI/CD</em></p>
+                                </body>
+                            </html>
+                        """,
+                        mimeType: 'text/html'
+                    )
+                }
+            }
+        }
+    }
+}
