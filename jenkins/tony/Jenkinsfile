@@ -44,9 +44,11 @@ pipeline {
                             @echo off
                             setlocal enabledelayedexpansion
                             
-                            REM Parse the URL to inject credentials
+                            REM URL-encode the password: @ = %%40, ? = %%3F
                             setlocal enabledelayedexpansion
-                            set "URL_WITH_CREDS=https://%GIT_USER%:%GIT_PASS%@git.ucr.ac.cr/proyecto_analisis/test_backend_nest_js_hogar_de_ancianos.git"
+                            set "PASS_ENCODED=!GIT_PASS:@=%%40!"
+                            set "PASS_ENCODED=!PASS_ENCODED:?=%%3F!"
+                            set "URL_WITH_CREDS=https://%GIT_USER%:!PASS_ENCODED!@git.ucr.ac.cr/proyecto_analisis/test_backend_nest_js_hogar_de_ancianos.git"
                             
                             REM Add remote with credentials in URL
                             git remote add test-repo "!URL_WITH_CREDS!" 2>nul
