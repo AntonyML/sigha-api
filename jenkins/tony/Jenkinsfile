@@ -34,8 +34,8 @@ pipeline {
                         ]
                     )
                     
-                    def currentCommit = sh(
-                        script: "git rev-parse HEAD",
+                    def currentCommit = bat(
+                        script: 'git rev-parse HEAD',
                         returnStdout: true
                     ).trim()
                     
