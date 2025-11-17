@@ -1,8 +1,8 @@
-pipeline {
+﻿pipeline {
     agent any
 
     triggers {
-            // Esto NO funcionará mientras Jenkins sea local.
+            // Esto NO funcionara mientras Jenkins sea local.
         gitlab(triggerOnPush: true, triggerOnMergeRequest: true, branchFilterType: 'NameBasedFilter', includeBranchesSpec: 'dev', excludeBranchesSpec: '')
             // La unica opcion que encontre xd
             //ejecutarlo cada minuto
@@ -67,10 +67,10 @@ pipeline {
                     if (currentCommit != lastCommit) {
                         env.HAS_CHANGES = 'true'
                         writeFile file: lastBuildFile, text: currentCommit
-                        echo "✓ Changes detected!"
+                        echo "[OK] Changes detected"
                     } else {
                         env.HAS_CHANGES = 'false'
-                        echo "✗ No changes. Stopping pipeline."
+                        echo "[SKIP] No changes. Stopping pipeline."
                     }
                 }
             }
@@ -159,10 +159,10 @@ pipeline {
             }
             steps {
                 script {
-                    echo "🔨 Building NestJS application..."
+                    echo " Building NestJS application..."
                     bat 'npm run build > build-results.log 2>&1'
                     env.BUILD_SUCCESS = 'true'
-                    echo "✓ Build completed successfully"
+                    echo "  Build completed successfully"
                 }
             }
         }
@@ -173,7 +173,7 @@ pipeline {
             }
             steps {
                 script {
-                    echo "🔀 Merging dev → master..."
+                    echo " Merging dev master..."
                     withCredentials([usernamePassword(credentialsId: 'git-credentials', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
                         bat '''
                             @echo off
@@ -219,11 +219,11 @@ pipeline {
                                 exit /b 1
                             )
                             
-                            echo ✓ Successfully merged dev into master
+                            echo Successfully merged dev into master
                         '''
                     }
                     env.MERGE_STATUS = 'SUCCESS'
-                    echo "✓ Merge to master completed"
+                    echo "Merge to master completed"
                 }
             }
         }
@@ -234,7 +234,7 @@ pipeline {
             }
             steps {
                 script {
-                    echo "📝 Updating version..."
+                    echo "Updating version..."
                     bat '''
                         @echo off
                         powershell -ExecutionPolicy Bypass -File "scripts\\versioning\\increment-version.ps1" -Type "patch"
@@ -242,7 +242,7 @@ pipeline {
                     
                     if (fileExists('version.txt')) {
                         env.NEW_VERSION = readFile('version.txt').trim().replace('VERSION=', '')
-                        echo "✓ Version updated to ${env.NEW_VERSION}"
+                        echo "Version updated to ${env.NEW_VERSION}"
                     }
                 }
             }
@@ -254,13 +254,13 @@ pipeline {
             }
             steps {
                 script {
-                    echo "🔄 Checking out master branch for deployment..."
+                    echo " Checking out master branch for deployment..."
                     bat '''
                         @echo off
                         git checkout master
                         git pull origin master
                     '''
-                    echo "✓ Master branch checked out with latest changes"
+                    echo " Master branch checked out with latest changes"
                 }
             }
         }
@@ -271,10 +271,10 @@ pipeline {
             }
             steps {
                 script {
-                    echo "🔨 Building NestJS application from master branch..."
+                    echo " Building NestJS application from master branch..."
                     bat 'npm install && npm run build > build-master-results.log 2>&1'
                     env.MASTER_BUILD_SUCCESS = 'true'
-                    echo "✓ Build from master completed successfully"
+                    echo " Build from master completed successfully"
                 }
             }
         }
@@ -285,7 +285,7 @@ pipeline {
             }
             steps {
                 script {
-                    echo "📦 Deploying to IIS server via FTP..."
+                    echo " Deploying to IIS server via FTP..."
                     bat '''
                         @echo off
                         setlocal enabledelayedexpansion
@@ -299,7 +299,7 @@ pipeline {
                         set LOCAL_IIS_PATH=\\DESKTOP-9IKLQIM\backend\www
                         set SOURCE_BUILD=dist
                         
-                        REM Crear archivo web.config (dejar vacío para usar config global de IIS)
+                        REM Crear archivo web.config (dejar vacio para usar config global de IIS)
                         (
                             echo ^<?xml version="1.0" encoding="utf-8"?^>
                             echo ^<configuration^>
@@ -324,7 +324,7 @@ pipeline {
                                 echo ^</head^>
                                 echo ^<body^>
                                 echo     ^<div class="container"^>
-                                echo         ^<h1^>✓ Backend en Línea^</h1^>
+                                echo         ^<h1^>Backend en Linea^</h1^>
                                 echo         ^<p^>Hogar de Ancianos - API REST^</p^>
                                 echo         ^<p^>URL de la API: ^<a href="http://localhost:3000/api"^>http://localhost:3000/api^</a^>^</p^>
                                 echo     ^</div^>
@@ -372,7 +372,7 @@ pipeline {
                         del /q ftp_deploy.txt 2>nul
                     '''
                     env.DEPLOYMENT_STATUS = 'SUCCESS'
-                    echo "✓ Deployment to IIS via FTP completed"
+                    echo " Deployment to IIS via FTP completed"
                 }
             }
         }
@@ -383,7 +383,7 @@ pipeline {
             }
             steps {
                 script {
-                    echo "✔️ Validating IIS deployment..."
+                    echo " Validating IIS deployment..."
                     bat '''
                         @echo off
                         setlocal enabledelayedexpansion
@@ -416,13 +416,13 @@ pipeline {
                         if !FILE_COUNT! leq 0 (
                             echo Warning: No files found in deployment directory
                         ) else (
-                            echo ✓ Deployment validation successful
+                            echo Deployment validation successful
                             echo Files deployed: !FILE_COUNT!
                         )
                         
                         REM Verificar que web.config existe
                         if exist "!IIS_PATH!\web.config" (
-                            echo ✓ web.config found
+                            echo web.config found
                         ) else (
                             echo Error: web.config not found
                             exit /b 1
@@ -430,16 +430,16 @@ pipeline {
                         
                         REM Verificar que index.html existe
                         if exist "!IIS_PATH!\index.html" (
-                            echo ✓ index.html found
+                            echo index.html found
                         ) else (
                             echo Warning: index.html not found, IIS may not serve properly
                         )
                         
                         echo.
-                        echo ✓ All validation checks passed
+                        echo All validation checks passed
                     '''
                     env.VALIDATION_STATUS = 'PASSED'
-                    echo "✓ IIS deployment validation completed"
+                    echo " IIS deployment validation completed"
                 }
             }
         }
@@ -450,7 +450,7 @@ pipeline {
             }
             steps {
                 script {
-                    echo "🔥 Running JMeter Performance Tests..."
+                    echo " Running JMeter Performance Tests..."
                     
                     bat '''
                         @echo off
@@ -459,8 +459,8 @@ pipeline {
                         REM Verificar si JMeter está instalado
                         where jmeter >nul 2>&1
                         if errorlevel 1 (
-                            echo Warning: JMeter no está instalado o no está en PATH
-                            echo Para instalar JMeter, descárgalo desde: https://jmeter.apache.org/
+                            echo Warning: JMeter no esta¡ instalado o no esta en PATH
+                            echo Para instalar JMeter, descargalo desde: https://jmeter.apache.org/
                             echo Skipping JMeter tests...
                             exit /b 0
                         )
@@ -480,7 +480,7 @@ pipeline {
                     '''
                     
                     env.JMETER_EXECUTED = 'true'
-                    echo "✓ JMeter tests completed"
+                    echo " JMeter tests completed"
                 }
             }
         }
@@ -513,7 +513,7 @@ pipeline {
                             REM Push to master branch with verbose output
                             git push -u deploy-repo HEAD:master --force
                             
-                            echo ✓ Deployed successfully to master branch in deploy repository
+                            echo " Deployed successfully to master branch in deploy repository"
                         '''
                     }
                 }
@@ -554,11 +554,11 @@ pipeline {
                     
                     emailext(
                         to: "${EMAIL_RECIPIENT}",
-                        subject: "Jenkins Pipeline - Rama ${SOURCE_BRANCH}: BUILD EXITOSO ✓",
+                        subject: "Jenkins Pipeline - Rama ${SOURCE_BRANCH}: BUILD EXITOSO ",
                         body: """
                             <html>
                                 <body style="font-family: Arial, sans-serif;">
-                                    <h2 style="color: #2e7d32;">✓ Pipeline Build - EXITOSO</h2>
+                                    <h2 style="color: #2e7d32;"> Pipeline Build - EXITOSO</h2>
                                     
                                     <div style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin: 15px 0;">
                                         <p><strong>Repositorio:</strong> ${SOURCE_REPO}</p>
@@ -566,44 +566,44 @@ pipeline {
                                         <p><strong>Build Number:</strong> #${BUILD_NUMBER}</p>
                                         <p><strong>Build URL:</strong> <a href="${BUILD_URL}">${BUILD_URL}</a></p>
                                         <p><strong>Commit:</strong> ${env.CURRENT_COMMIT}</p>
-                                        <p><strong>Versión Deployada:</strong> ${env.NEW_VERSION ?: 'No especificada'}</p>
+                                        <p><strong>Version Deployada:</strong> ${env.NEW_VERSION ?: 'No especificada'}</p>
                                         <p><strong>Estado Deployment:</strong> ${env.DEPLOYMENT_STATUS ?: 'No ejecutado'}</p>
                                     </div>
                                     
-                                    <h3 style="color: #333;">📋 Resumen de Ejecución:</h3>
+                                    <h3 style="color: #333;"> Resumen de Ejecucion:</h3>
                                     <ul style="line-height: 1.8;">
-                                        <li>✓ Código descargado exitosamente (rama dev)</li>
-                                        <li>✓ Dependencias instaladas</li>
-                                        <li>✓ Jest Tests ejecutados exitosamente</li>
-                                        <li>✓ Unit Tests de Users Service ejecutados exitosamente</li>
-                                        <li>✓ Aplicación compilada desde dev</li>
-                                        <li>✓ Merge dev → master completado</li>
-                                        <li>✓ Versión actualizada automáticamente</li>
-                                        <li>✓ Aplicación recompilada desde master</li>
-                                        <li>✓ Deployado a servidor IIS (desde master)</li>
-                                        <li>${env.JMETER_EXECUTED == 'true' ? '✓' : '⊘'} Performance Tests con JMeter ejecutados</li>
-                                        <li>✓ Push al repositorio de deploy completado</li>
+                                        <li> Codigo descargado exitosamente (rama dev)</li>
+                                        <li> Dependencias instaladas</li>
+                                        <li>  Jest Tests ejecutados exitosamente</li>
+                                        <li>  Unit Tests de Users Service ejecutados exitosamente</li>
+                                        <li>  Aplicacion compilada desde dev</li>
+                                        <li>  Merge dev â†’ master completado</li>
+                                        <li>  Versin actualizada automÃ¡ticamente</li>
+                                        <li>  Aplicaci n recompilada desde master</li>
+                                        <li>  Deployado a servidor IIS (desde master)</li>
+                                        <li>${env.JMETER_EXECUTED == 'true' ? ' ' : ''} Performance Tests con JMeter ejecutados</li>
+                                        <li>  Push al repositorio de deploy completado</li>
                                     </ul>
 
-                                    <h3 style="color: #333;">📊 Resultados de Tests Unitarios:</h3>
+                                    <h3 style="color: #333;"> Resultados de Tests Unitarios:</h3>
                                     <pre style="background: #f5f5f5; padding: 10px; border-radius: 5px; overflow-x: auto;">${testOutput}</pre>
                                     
-                                    <h3 style="color: #333;">👤 Resultados Unit Tests - Users Service:</h3>
+                                    <h3 style="color: #333;"> Resultados Unit Tests - Users Service:</h3>
                                     <pre style="background: #f5f5f5; padding: 10px; border-radius: 5px; overflow-x: auto;">${unitTestOutput}</pre>
 
-                                    <h3 style="color: #333;">🔥 Resultados Performance Tests - JMeter:</h3>
+                                    <h3 style="color: #333;">Resultados Performance Tests - JMeter:</h3>
                                     <pre style="background: #f5f5f5; padding: 10px; border-radius: 5px; overflow-x: auto;">${jmeterOutput ?: 'No se ejecutaron tests de JMeter'}</pre>
 
-                                    <h3 style="color: #333;">🌐 Acceso al Sistema:</h3>
-                                    <p>El sistema está disponible en: <strong>http://localhost:8086</strong></p>
+                                    <h3 style="color: #333;">Acceso al Sistema:</h3>
+                                    <p>El sistema estÃ¡ disponible en: <strong>http://localhost:8086</strong></p>
                                     <p>API disponible en: <strong>http://localhost:3000/api</strong></p>
 
-                                    <h3 style="color: #333;">✨ Celebraciones:</h3>
-                                    <p style="font-size: 24px;">🎉 ¡Todos los tests pasaron! ¡Excelente trabajo!</p>
+                                    <h3 style="color: #333;"> Celebraciones:</h3>
+                                    <p style="font-size: 24px;"> ¡Todos los tests pasaron! ¡Excelente trabajo!</p>
 
                                     <hr>
                                     <p style="color: #999; font-size: 12px;">Build ID: ${BUILD_NUMBER} | Fecha: ${new Date().format('yyyy-MM-dd HH:mm:ss')}</p>
-                                    <p style="color: #999; font-size: 12px;">Este es un mensaje automático del sistema CI/CD</p>
+                                    <p style="color: #999; font-size: 12px;">Este es un mensaje automatico del sistema CI/CD</p>
                                 </body>
                             </html>
                         """,
@@ -641,7 +641,7 @@ pipeline {
                                     <p><strong>Build URL:</strong> <a href="${BUILD_URL}">${BUILD_URL}</a></p>
                                     
                                     <h3>Causa del Fallo:</h3>
-                                    <p>Revisa los logs detallados a continuación para identificar el problema.</p>
+                                    <p>Revisa los logs detallados a continuacion para identificar el problema.</p>
 
                                     <h3>Salida de Jest Tests:</h3>
                                     <pre>${testOutput}</pre>
@@ -659,7 +659,7 @@ pipeline {
 
                                     <hr>
                                     <p><strong>Build ID:</strong> ${BUILD_NUMBER}</p>
-                                    <p><em>Este es un mensaje automático del sistema CI/CD</em></p>
+                                    <p><em>Este es un mensaje automatico del sistema CI/CD</em></p>
                                 </body>
                             </html>
                         """,
@@ -684,11 +684,11 @@ pipeline {
                                     <p><strong>Build Number:</strong> ${BUILD_NUMBER}</p>
                                     <p><strong>Build URL:</strong> <a href="${BUILD_URL}">${BUILD_URL}</a></p>
                                     
-                                    <p>El pipeline completó pero hay algunos tests que fallaron o produjeron advertencias.</p>
+                                    <p>El pipeline completo pero hay algunos tests que fallaron o produjeron advertencias.</p>
                                     <p>Por favor revisa los detalles en: <a href="${BUILD_URL}console">${BUILD_URL}console</a></p>
 
                                     <hr>
-                                    <p><em>Este es un mensaje automático del sistema CI/CD</em></p>
+                                    <p><em>Este es un mensaje automatico del sistema CI/CD</em></p>
                                 </body>
                             </html>
                         """,
