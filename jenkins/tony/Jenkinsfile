@@ -77,7 +77,7 @@ pipeline {
         stage('Run Jest Tests') {
             steps {
                 script {
-                    bat 'npm run test -- --coverage --testPathPattern="tests/tony/unit" > jest-results.log 2>&1'
+                    bat 'npm run test -- --coverage --testPathPatterns="tests/tony/unit" > jest-results.log 2>&1'
                 }
             }
         }
