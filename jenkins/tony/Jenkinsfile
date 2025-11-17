@@ -248,13 +248,44 @@ pipeline {
             }
         }
 
-        stage('Deploy to IIS') {
+        stage('Checkout Master for Deploy') {
             when {
                 expression { env.HAS_CHANGES == 'true' && env.NEW_VERSION ?: false }
             }
             steps {
                 script {
-                    echo "📦 Deploying to IIS server..."
+                    echo "🔄 Checking out master branch for deployment..."
+                    bat '''
+                        @echo off
+                        git checkout master
+                        git pull origin master
+                    '''
+                    echo "✓ Master branch checked out with latest changes"
+                }
+            }
+        }
+
+        stage('Build from Master') {
+            when {
+                expression { env.HAS_CHANGES == 'true' && env.NEW_VERSION ?: false }
+            }
+            steps {
+                script {
+                    echo "🔨 Building NestJS application from master branch..."
+                    bat 'npm install && npm run build > build-master-results.log 2>&1'
+                    env.MASTER_BUILD_SUCCESS = 'true'
+                    echo "✓ Build from master completed successfully"
+                }
+            }
+        }
+
+        stage('Deploy to IIS') {
+            when {
+                expression { env.HAS_CHANGES == 'true' && env.MASTER_BUILD_SUCCESS == 'true' }
+            }
+            steps {
+                script {
+                    echo "📦 Deploying to IIS server (from master)..."
                     bat '''
                         @echo off
                         setlocal enabledelayedexpansion
@@ -285,13 +316,13 @@ pipeline {
                             if "%%~nxF" neq "web.config" del /q "%%F" 2>nul
                         )
                         
-                        REM Copiar nueva versión a IIS
+                        REM Copiar nueva versión a IIS desde master
                         echo Copying build files to IIS...
                         robocopy "!SOURCE_BUILD!" "!IIS_PATH!" /S /E /NFL /NDL /NJH /NJS /nc /ns /np
                         
                         REM Verificar que se copió correctamente
                         if exist "!IIS_PATH!" (
-                            echo Deployment completed successfully
+                            echo Deployment completed successfully from master
                             set deployment_status=SUCCESS
                         ) else (
                             echo Deployment failed
@@ -300,7 +331,7 @@ pipeline {
                         )
                     '''
                     env.DEPLOYMENT_STATUS = 'SUCCESS'
-                    echo "✓ Deployment to IIS completed"
+                    echo "✓ Deployment to IIS completed (from master)"
                 }
             }
         }
@@ -500,13 +531,16 @@ pipeline {
                                     
                                     <h3 style="color: #333;">📋 Resumen de Ejecución:</h3>
                                     <ul style="line-height: 1.8;">
-                                        <li>✓ Código descargado exitosamente</li>
+                                        <li>✓ Código descargado exitosamente (rama dev)</li>
                                         <li>✓ Dependencias instaladas</li>
                                         <li>✓ Jest Tests ejecutados exitosamente</li>
                                         <li>✓ Unit Tests de Users Service ejecutados exitosamente</li>
+                                        <li>✓ Aplicación compilada desde dev</li>
+                                        <li>✓ Merge dev → master completado</li>
+                                        <li>✓ Versión actualizada automáticamente</li>
+                                        <li>✓ Aplicación recompilada desde master</li>
+                                        <li>✓ Deployado a servidor IIS (desde master)</li>
                                         <li>${env.JMETER_EXECUTED == 'true' ? '✓' : '⊘'} Performance Tests con JMeter ejecutados</li>
-                                        <li>✓ Aplicación compilada correctamente</li>
-                                        <li>✓ Deployado a servidor IIS</li>
                                         <li>✓ Push al repositorio de deploy completado</li>
                                     </ul>
 
