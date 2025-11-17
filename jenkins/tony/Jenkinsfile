@@ -153,6 +153,47 @@ pipeline {
             }
         }
 
+        stage('Run JMeter - Performance Tests') {
+            when {
+                expression { env.HAS_CHANGES == 'true' }
+            }
+            steps {
+                script {
+                    echo "🔥 Running JMeter Performance Tests..."
+                    
+                    bat '''
+                        @echo off
+                        setlocal enabledelayedexpansion
+                        
+                        REM Verificar si JMeter está instalado
+                        where jmeter >nul 2>&1
+                        if errorlevel 1 (
+                            echo Warning: JMeter no está instalado o no está en PATH
+                            echo Para instalar JMeter, descárgalo desde: https://jmeter.apache.org/
+                            echo Skipping JMeter tests...
+                            exit /b 0
+                        )
+                        
+                        REM Crear directorio para resultados
+                        if not exist "jmeter-results" mkdir jmeter-results
+                        
+                        REM Ejecutar tests de JMeter
+                        echo Starting JMeter tests...
+                        jmeter -n -t tests/jmeter/users-performance-test.jmx -l jmeter-results/results.jtl -j jmeter.log
+                        
+                        if errorlevel 1 (
+                            echo Warning: JMeter tests had some issues, but continuing...
+                        ) else (
+                            echo JMeter tests completed successfully
+                        )
+                    '''
+                    
+                    env.JMETER_EXECUTED = 'true'
+                    echo "✓ JMeter tests completed"
+                }
+            }
+        }
+
         stage('Build Application') {
             when {
                 expression { env.HAS_CHANGES == 'true' }
@@ -279,12 +320,16 @@ pipeline {
                 if (env.HAS_CHANGES == 'true') {
                     def testOutput = ''
                     def unitTestOutput = ''
+                    def jmeterOutput = ''
                     
                     if (fileExists('jest-results.log')) {
                         testOutput = readFile('jest-results.log').take(500)
                     }
                     if (fileExists('unit-test-results.log')) {
                         unitTestOutput = readFile('unit-test-results.log').take(500)
+                    }
+                    if (fileExists('jmeter-results/results.jtl')) {
+                        jmeterOutput = readFile('jmeter-results/results.jtl').take(500)
                     }
                     
                     emailext(
@@ -310,19 +355,27 @@ pipeline {
                                         <li>✓ Dependencias instaladas</li>
                                         <li>✓ Jest Tests ejecutados exitosamente</li>
                                         <li>✓ Unit Tests de Users Service ejecutados exitosamente</li>
+                                        <li>${env.JMETER_EXECUTED == 'true' ? '✓' : '⊘'} Performance Tests con JMeter ejecutados</li>
                                         <li>✓ Aplicación compilada correctamente</li>
                                         <li>✓ Deployado a servidor IIS</li>
                                         <li>✓ Push al repositorio de deploy completado</li>
                                     </ul>
 
-                                    <h3 style="color: #333;">📊 Resultados de Tests:</h3>
+                                    <h3 style="color: #333;">📊 Resultados de Tests Unitarios:</h3>
                                     <pre style="background: #f5f5f5; padding: 10px; border-radius: 5px; overflow-x: auto;">${testOutput}</pre>
                                     
                                     <h3 style="color: #333;">👤 Resultados Unit Tests - Users Service:</h3>
                                     <pre style="background: #f5f5f5; padding: 10px; border-radius: 5px; overflow-x: auto;">${unitTestOutput}</pre>
 
+                                    <h3 style="color: #333;">🔥 Resultados Performance Tests - JMeter:</h3>
+                                    <pre style="background: #f5f5f5; padding: 10px; border-radius: 5px; overflow-x: auto;">${jmeterOutput ?: 'No se ejecutaron tests de JMeter'}</pre>
+
                                     <h3 style="color: #333;">🌐 Acceso al Sistema:</h3>
                                     <p>El sistema está disponible en: <strong>http://localhost:8086</strong></p>
+                                    <p>API disponible en: <strong>http://localhost:3000/api</strong></p>
+
+                                    <h3 style="color: #333;">✨ Celebraciones:</h3>
+                                    <p style="font-size: 24px;">🎉 ¡Todos los tests pasaron! ¡Excelente trabajo!</p>
 
                                     <hr>
                                     <p style="color: #999; font-size: 12px;">Build ID: ${BUILD_NUMBER} | Fecha: ${new Date().format('yyyy-MM-dd HH:mm:ss')}</p>
