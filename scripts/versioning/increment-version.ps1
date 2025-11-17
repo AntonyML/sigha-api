@@ -49,7 +49,7 @@ $packageJson | ConvertTo-Json -Depth 10 | Set-Content -Path "package.json"
 git tag -a "v$newVersion" -m "Release version $newVersion"
 
 # Output para Jenkins
-Write-Host "VERSION=$newVersion" | Out-File -FilePath "version.txt" -Encoding UTF8
+"VERSION=$newVersion" | Out-File -FilePath "version.txt" -Encoding UTF8 -Force
 
 Write-Host "[OK] Version actualizada a $newVersion"
 exit 0
