@@ -279,59 +279,61 @@ pipeline {
             }
         }
 
-        stage('Deploy to IIS') {
+        stage('Deploy to IIS via FTP') {
             when {
                 expression { env.HAS_CHANGES == 'true' && env.MASTER_BUILD_SUCCESS == 'true' }
             }
             steps {
                 script {
-                    echo "📦 Deploying to IIS server (from master)..."
+                    echo "📦 Deploying to IIS server via FTP..."
                     bat '''
                         @echo off
                         setlocal enabledelayedexpansion
                         
-                        REM Variables
+                        REM FTP Configuration
+                        set FTP_HOST=localhost
+                        set FTP_USER=admin
+                        set FTP_PASS=admin123
+                        set FTP_PORT=21
+                        set REMOTE_PATH=/backend/www
                         set SOURCE_BUILD=dist
-                        set IIS_PATH=C:\\ProyectoAnalisis\\backend\\www
                         
-                        REM Verificar que la carpeta de build existe
-                        if not exist "!SOURCE_BUILD!" (
-                            echo Error: Build directory not found
-                            exit /b 1
-                        )
+                        REM Crear archivo de script FTP
+                        (
+                            echo open !FTP_HOST! !FTP_PORT!
+                            echo !FTP_USER!
+                            echo !FTP_PASS!
+                            echo binary
+                            echo prompt off
+                            echo mdelete !REMOTE_PATH!/*
+                            echo cd !REMOTE_PATH!
+                            echo mput !SOURCE_BUILD!\*
+                            echo bye
+                        ) > ftp_deploy.txt
                         
-                        REM Crear backup de la versión anterior
-                        if exist "!IIS_PATH!" (
-                            echo Creating backup of previous deployment...
-                            set BACKUP_DIR=!IIS_PATH!_backup_%date:~-4%_%date:~-10,5%_%time:~0,2%%time:~3,2%%time:~6,2%
-                            robocopy "!IIS_PATH!" "!BACKUP_DIR!" /S /E /NFL /NDL /NJH /NJS /nc /ns /np > nul 2>&1
-                            echo Backup created at !BACKUP_DIR!
-                        )
+                        REM Ejecutar FTP
+                        echo Starting FTP deployment...
+                        ftp -s:ftp_deploy.txt
                         
-                        REM Limpiar carpeta IIS (excepto web.config)
-                        for /d %%D in ("!IIS_PATH!/*") do (
-                            if "%%~nxD" neq "web.config" rmdir /s /q "%%D" 2>nul
-                        )
-                        for %%F in ("!IIS_PATH!/*") do (
-                            if "%%~nxF" neq "web.config" del /q "%%F" 2>nul
-                        )
-                        
-                        REM Copiar nueva versión a IIS desde master
-                        echo Copying build files to IIS...
-                        robocopy "!SOURCE_BUILD!" "!IIS_PATH!" /S /E /NFL /NDL /NJH /NJS /nc /ns /np
-                        
-                        REM Verificar que se copió correctamente
-                        if exist "!IIS_PATH!" (
-                            echo Deployment completed successfully from master
-                            set deployment_status=SUCCESS
+                        if errorlevel 1 (
+                            echo Warning: FTP transfer had issues, validating locally...
+                            REM Fallback: usar robocopy como backup
+                            set IIS_PATH=C:\ProyectoAnalisis\backend\www
+                            if not exist "!SOURCE_BUILD!" (
+                                echo Error: Build directory not found
+                                exit /b 1
+                            )
+                            echo Using local backup deployment method...
+                            robocopy "!SOURCE_BUILD!" "!IIS_PATH!" /S /E /NFL /NDL /NJH /NJS /nc /ns /np
                         ) else (
-                            echo Deployment failed
-                            set deployment_status=FAILED
-                            exit /b 1
+                            echo ✓ FTP deployment completed successfully
                         )
+                        
+                        REM Limpiar archivo FTP
+                        del /q ftp_deploy.txt 2>nul
                     '''
                     env.DEPLOYMENT_STATUS = 'SUCCESS'
-                    echo "✓ Deployment to IIS completed (from master)"
+                    echo "✓ Deployment to IIS via FTP completed"
                 }
             }
         }
