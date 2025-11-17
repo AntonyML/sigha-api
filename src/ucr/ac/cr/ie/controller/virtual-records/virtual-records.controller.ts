@@ -533,4 +533,58 @@ export class VirtualRecordsController {
     async searchVirtualRecords(@Query() searchDto: SearchVirtualRecordsDto) {
         return this.virtualRecordsService.searchVirtualRecords(searchDto);
     }
+
+    @Get('patients/search')
+    @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.DIRECTOR, RoleType.NURSE, RoleType.PHYSIOTHERAPIST, RoleType.PSYCHOLOGIST, RoleType.SOCIAL_WORKER)
+    @ApiOperation({ 
+        summary: 'Search patients with basic information only',
+        description: 'Search for patients using a single search term that will be matched against identification, name, and last names. Returns only essential patient information (no programs, family, or clinical data).'
+    })
+    @ApiQuery({
+        name: 'search',
+        description: 'Search term to find by identification, name, or last names (e.g., "María", "González", "1-1234", etc.)',
+        required: true,
+        type: 'string',
+        example: 'María'
+    })
+    @ApiResponse({
+        status: 200,
+        description: 'Patients found successfully',
+        schema: {
+            type: 'object',
+            properties: {
+                message: { type: 'string', example: 'Found 2 patient(s) matching "María"' },
+                data: {
+                    type: 'array',
+                    items: {
+                        type: 'object',
+                        properties: {
+                            id: { type: 'number', example: 1 },
+                            identification: { type: 'string', example: '1-1234-5679' },
+                            name: { type: 'string', example: 'María Elena' },
+                            firstLastName: { type: 'string', example: 'González' },
+                            secondLastName: { type: 'string', example: 'Rodríguez' },
+                            fullName: { type: 'string', example: 'María Elena González Rodríguez' },
+                            birthdate: { type: 'string', format: 'date', example: '1945-03-15' },
+                            gender: { type: 'string', example: 'female' },
+                            phone: { type: 'string', example: '+506 8888-9999' },
+                            email: { type: 'string', example: 'maria@example.com' },
+                            status: { type: 'string', example: 'alive' }
+                        }
+                    }
+                }
+            }
+        }
+    })
+    @ApiResponse({
+        status: 400,
+        description: 'Invalid or missing search term'
+    })
+    @ApiResponse({
+        status: 500,
+        description: 'Internal server error during search'
+    })
+    async searchPatientsBasic(@Query() searchDto: SearchVirtualRecordsDto) {
+        return this.virtualRecordsService.searchPatientsBasic(searchDto);
+    }
 }
