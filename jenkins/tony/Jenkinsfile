@@ -208,6 +208,26 @@ pipeline {
             }
         }
 
+        stage('Update Version') {
+            when {
+                expression { env.HAS_CHANGES == 'true' && env.BUILD_SUCCESS == 'true' }
+            }
+            steps {
+                script {
+                    echo "📝 Updating version..."
+                    bat '''
+                        @echo off
+                        powershell -ExecutionPolicy Bypass -File "scripts\\versioning\\increment-version.ps1" -Type "patch"
+                    '''
+                    
+                    if (fileExists('version.txt')) {
+                        env.NEW_VERSION = readFile('version.txt').trim().replace('VERSION=', '')
+                        echo "✓ Version updated to ${env.NEW_VERSION}"
+                    }
+                }
+            }
+        }
+
         stage('Deploy to IIS') {
             when {
                 expression { env.HAS_CHANGES == 'true' && env.BUILD_SUCCESS == 'true' }
@@ -346,6 +366,7 @@ pipeline {
                                         <p><strong>Build Number:</strong> #${BUILD_NUMBER}</p>
                                         <p><strong>Build URL:</strong> <a href="${BUILD_URL}">${BUILD_URL}</a></p>
                                         <p><strong>Commit:</strong> ${env.CURRENT_COMMIT}</p>
+                                        <p><strong>Versión Deployada:</strong> ${env.NEW_VERSION ?: 'No especificada'}</p>
                                         <p><strong>Estado Deployment:</strong> ${env.DEPLOYMENT_STATUS ?: 'No ejecutado'}</p>
                                     </div>
                                     
