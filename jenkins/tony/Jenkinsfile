@@ -285,6 +285,66 @@ pipeline {
             }
         }
 
+        stage('Merge to Master Branch') {
+            when {
+                expression { env.HAS_CHANGES == 'true' && env.DEPLOYMENT_STATUS == 'SUCCESS' && currentBuild.result == null }
+            }
+            steps {
+                script {
+                    echo "🔀 Merging dev → master..."
+                    withCredentials([usernamePassword(credentialsId: 'git-credentials', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
+                        bat '''
+                            @echo off
+                            setlocal enabledelayedexpansion
+                            
+                            REM URL-encode credentials
+                            set "PASS_ENCODED=!GIT_PASS:@=%%40!"
+                            set "PASS_ENCODED=!PASS_ENCODED:?=%%3F!"
+                            set "URL_WITH_CREDS=https://%GIT_USER%:!PASS_ENCODED!@git.ucr.ac.cr/proyecto_analisis/backend_nest_js_hogar_de_ancianos.git"
+                            
+                            REM Fetch latest master
+                            git fetch origin master
+                            
+                            REM Check for conflicts
+                            git merge-base --is-ancestor HEAD origin/master
+                            if errorlevel 1 (
+                                echo Checking for merge conflicts...
+                                git merge --no-commit --no-ff origin/master 2>nul
+                                if errorlevel 1 (
+                                    echo Error: Cannot merge dev into master due to conflicts
+                                    git merge --abort
+                                    exit /b 1
+                                )
+                                git merge --abort
+                            )
+                            
+                            REM Checkout master
+                            git checkout master
+                            
+                            REM Merge dev
+                            git merge dev --no-edit
+                            
+                            if errorlevel 1 (
+                                echo Error during merge
+                                exit /b 1
+                            )
+                            
+                            REM Push to origin
+                            git push -u origin master
+                            
+                            if errorlevel 1 (
+                                echo Error pushing to master
+                                exit /b 1
+                            )
+                            
+                            echo ✓ Successfully merged dev into master
+                        '''
+                    }
+                    echo "✓ Merge to master completed"
+                }
+            }
+        }
+
         stage('Push to Deploy Repository') {
             when {
                 expression { env.HAS_CHANGES == 'true' && currentBuild.result == null }
