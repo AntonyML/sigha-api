@@ -108,7 +108,7 @@ export class NursingService {
                 .leftJoinAndSelect('appointment.staff', 'staff')
                 .where('area.sa_name = :areaName', { areaName: SpecializedAreaName.NURSING })
                 .andWhere('appointment.sa_status IN (:...statuses)', { 
-                    statuses: [AppointmentStatus.SCHEDULED, AppointmentStatus.IN_PROGRESS] 
+                    statuses: [AppointmentStatus.SCHEDULED, AppointmentStatus.IN_PROGRESS, AppointmentStatus.RESCHEDULED] 
                 });
 
             // Aplicar filtros opcionales
