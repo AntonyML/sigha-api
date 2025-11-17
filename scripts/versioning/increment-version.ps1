@@ -1,4 +1,4 @@
-# Script para incrementar versión automáticamente
+# Script para incrementar version automaticamente
 # Uso: .\increment-version.ps1 -Type "patch|minor|major"
 
 param(
@@ -7,39 +7,39 @@ param(
     [string]$Type = "patch"
 )
 
-# Leer versión actual del package.json
+# Leer version actual del package.json
 $packageJson = Get-Content -Path "package.json" | ConvertFrom-Json
 $currentVersion = $packageJson.version
 
-Write-Host "Versión actual: $currentVersion"
+Write-Host "Version actual: $currentVersion"
 
-# Parsear versión (semver: major.minor.patch)
+# Parsear version (semver: major.minor.patch)
 $versionParts = $currentVersion -split '\.'
 $major = [int]$versionParts[0]
 $minor = [int]$versionParts[1]
 $patch = [int]$versionParts[2]
 
-# Incrementar según tipo
+# Incrementar segun tipo
 switch ($Type) {
     "major" {
         $major++
         $minor = 0
         $patch = 0
-        Write-Host "Incrementando versión MAJOR"
+        Write-Host "Incrementando version MAJOR"
     }
     "minor" {
         $minor++
         $patch = 0
-        Write-Host "Incrementando versión MINOR"
+        Write-Host "Incrementando version MINOR"
     }
     "patch" {
         $patch++
-        Write-Host "Incrementando versión PATCH"
+        Write-Host "Incrementando version PATCH"
     }
 }
 
 $newVersion = "$major.$minor.$patch"
-Write-Host "Nueva versión: $newVersion"
+Write-Host "Nueva version: $newVersion"
 
 # Actualizar package.json
 $packageJson.version = $newVersion
@@ -51,5 +51,5 @@ git tag -a "v$newVersion" -m "Release version $newVersion"
 # Output para Jenkins
 Write-Host "VERSION=$newVersion" | Out-File -FilePath "version.txt" -Encoding UTF8
 
-Write-Host "✓ Versión actualizada a $newVersion"
+Write-Host "[OK] Version actualizada a $newVersion"
 exit 0
