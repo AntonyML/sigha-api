@@ -421,7 +421,7 @@ pipeline {
                         )
                         
                         REM Verificar que web.config existe
-                        if exist "!IIS_PATH!\web.config" (
+                        if exist "!IIS_PATH!/web.config" (
                             echo web.config found
                         ) else (
                             echo Error: web.config not found
@@ -429,7 +429,7 @@ pipeline {
                         )
                         
                         REM Verificar que index.html existe
-                        if exist "!IIS_PATH!\index.html" (
+                        if exist "!IIS_PATH!/index.html" (
                             echo index.html found
                         ) else (
                             echo Warning: index.html not found, IIS may not serve properly
