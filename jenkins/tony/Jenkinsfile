@@ -3,7 +3,7 @@ pipeline {
 
     triggers {
         gitlab(triggerOnPush: true, triggerOnMergeRequest: true, branchFilterType: 'NameBasedFilter', includeBranchesSpec: 'dev', excludeBranchesSpec: '')
-        pollSCM('H/5 * * * *')
+        pollSCM('* * * * *')
     }
 
     options {
@@ -19,10 +19,45 @@ pipeline {
         TARGET_BRANCH = 'dev'
         EMAIL_RECIPIENT = 'antonyml2016@gmail.com'
         WORKSPACE_DIR = "${WORKSPACE}"
-        GIT_TERMINAL_PROMPT = '0'
     }
 
     stages {
+        stage('Check for Changes') {
+            steps {
+                script {
+                    echo "Checking for new commits..."
+                    checkout(
+                        [
+                            $class: 'GitSCM',
+                            branches: [[name: "*/${SOURCE_BRANCH}"]],
+                            userRemoteConfigs: [[url: "${SOURCE_REPO}"]]
+                        ]
+                    )
+                    
+                    def currentCommit = sh(
+                        script: "git rev-parse HEAD",
+                        returnStdout: true
+                    ).trim()
+                    
+                    def lastBuildFile = "${WORKSPACE}/.last_commit"
+                    def lastCommit = ''
+                    
+                    if (fileExists(lastBuildFile)) {
+                        lastCommit = readFile(lastBuildFile).trim()
+                    }
+                    
+                    if (currentCommit == lastCommit) {
+                        echo "No changes detected. Skipping pipeline."
+                        currentBuild.result = 'NOT_BUILT'
+                        return
+                    }
+                    
+                    echo "Changes detected: ${currentCommit}"
+                    writeFile file: lastBuildFile, text: currentCommit
+                }
+            }
+        }
+
         stage('Checkout Source') {
             steps {
                 script {
