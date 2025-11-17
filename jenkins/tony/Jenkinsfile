@@ -151,6 +151,41 @@ pipeline {
                 }
             }
         }
+
+        stage('Push to Deploy Repository') {
+            when {
+                expression { env.HAS_CHANGES == 'true' && currentBuild.result == null }
+            }
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'git-credentials', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
+                        bat '''
+                            @echo off
+                            setlocal enabledelayedexpansion
+                            
+                            REM URL-encode the password: @ = %%40, ? = %%3F
+                            setlocal enabledelayedexpansion
+                            set "PASS_ENCODED=!GIT_PASS:@=%%40!"
+                            set "PASS_ENCODED=!PASS_ENCODED:?=%%3F!"
+                            set "URL_WITH_CREDS=https://%GIT_USER%:!PASS_ENCODED!@git.ucr.ac.cr/proyecto_analisis/deploy_backend_nest_js_hogar_de_ancianos.git"
+                            
+                            REM Add remote with credentials in URL
+                            git remote add deploy-repo "!URL_WITH_CREDS!" 2>nul
+                            if errorlevel 1 (
+                                REM Remote might already exist, remove and add again
+                                git remote remove deploy-repo 2>nul
+                                git remote add deploy-repo "!URL_WITH_CREDS!"
+                            )
+                            
+                            REM Push with verbose output
+                            git push -u deploy-repo HEAD:%TARGET_BRANCH% --force
+                            
+                            echo ✓ Deployed successfully to deploy repository
+                        '''
+                    }
+                }
+            }
+        }
     }
 
     post {
@@ -199,6 +234,7 @@ pipeline {
                                         <li>Dependencias instaladas</li>
                                         <li>Jest Tests ejecutados exitosamente</li>
                                         <li>Unit Tests de Users Service ejecutados exitosamente</li>
+                                        <li>✓ Desplegado al repositorio de deploy</li>
                                     </ul>
 
                                     <h3>Detalles de los Tests:</h3>
@@ -215,6 +251,8 @@ pipeline {
                         """,
                         mimeType: 'text/html'
                     )
+                    
+                    env.BUILD_SUCCESS = 'true'
                 }
             }
         }
