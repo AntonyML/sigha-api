@@ -295,11 +295,68 @@ pipeline {
                         set FTP_USER=admin
                         set FTP_PASS=admin123
                         set FTP_PORT=21
-                        set REMOTE_PATH=/Sitios/backend
-                        set LOCAL_IIS_PATH=\\DESKTOP-9IKLQIM\Sitios\backend
+                        set REMOTE_PATH=/backend/www
+                        set LOCAL_IIS_PATH=\\DESKTOP-9IKLQIM\backend\www
                         set SOURCE_BUILD=dist
                         
-                        REM Crear archivo de script FTP
+                        REM Crear archivo web.config
+                        (
+                            echo ^<?xml version="1.0" encoding="utf-8"?^>
+                            echo ^<configuration^>
+                            echo   ^<system.webServer^>
+                            echo     ^<directoryBrowse enabled="false" /^>
+                            echo     ^<defaultDocument^>
+                            echo       ^<files^>
+                            echo         ^<add value="index.html" /^>
+                            echo         ^<add value="index.htm" /^>
+                            echo         ^<add value="default.html" /^>
+                            echo         ^<add value="default.htm" /^>
+                            echo       ^</files^>
+                            echo     ^</defaultDocument^>
+                            echo     ^<httpProtocol^>
+                            echo       ^<customHeaders^>
+                            echo         ^<add name="X-Content-Type-Options" value="nosniff" /^>
+                            echo         ^<add name="X-Frame-Options" value="SAMEORIGIN" /^>
+                            echo       ^</customHeaders^>
+                            echo     ^</httpProtocol^>
+                            echo     ^<rewrite^>
+                            echo       ^<rules^>
+                            echo         ^<rule name="API Redirect" stopProcessing="true"^>
+                            echo           ^<match url="^^api/\(.*\)$" /^>
+                            echo           ^<action type="Rewrite" url="http://localhost:3000/api/{R:1}" /^>
+                            echo         ^</rule^>
+                            echo       ^</rules^>
+                            echo     ^</rewrite^>
+                            echo   ^</system.webServer^>
+                            echo ^</configuration^>
+                        ) > "!SOURCE_BUILD!\web.config"
+                        
+                        REM Crear index.html si no existe
+                        if not exist "!SOURCE_BUILD!\index.html" (
+                            (
+                                echo ^<!DOCTYPE html^>
+                                echo ^<html lang="es"^>
+                                echo ^<head^>
+                                echo     ^<meta charset="UTF-8"^>
+                                echo     ^<meta name="viewport" content="width=device-width, initial-scale=1.0"^>
+                                echo     ^<title^>Backend - Hogar de Ancianos^</title^>
+                                echo     ^<style^>
+                                echo         body { font-family: Arial; display: flex; justify-content: center; align-items: center; height: 100vh; background: #667eea; }
+                                echo         .container { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+                                echo         h1 { color: #333; }
+                                echo         p { color: #666; }
+                                echo     ^</style^>
+                                echo ^</head^>
+                                echo ^<body^>
+                                echo     ^<div class="container"^>
+                                echo         ^<h1^>✓ Backend en Línea^</h1^>
+                                echo         ^<p^>Hogar de Ancianos - API REST^</p^>
+                                echo         ^<p^>URL de la API: ^<a href="http://localhost:3000/api"^>http://localhost:3000/api^</a^>^</p^>
+                                echo     ^</div^>
+                                echo ^</body^>
+                                echo ^</html^>
+                            ) > "!SOURCE_BUILD!\index.html"
+                        )
                         (
                             echo open !FTP_HOST! !FTP_PORT!
                             echo !FTP_USER!
