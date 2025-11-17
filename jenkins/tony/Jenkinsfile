@@ -285,6 +285,73 @@ pipeline {
             }
         }
 
+        stage('Validate IIS Deployment') {
+            when {
+                expression { env.HAS_CHANGES == 'true' && env.DEPLOYMENT_STATUS == 'SUCCESS' }
+            }
+            steps {
+                script {
+                    echo "✔️ Validating IIS deployment..."
+                    bat '''
+                        @echo off
+                        setlocal enabledelayedexpansion
+                        
+                        set IIS_URL=http://localhost:8086/
+                        set IIS_PATH=C:\\ProyectoAnalisis\\backend\\www
+                        set MAX_RETRIES=5
+                        set RETRY_COUNT=0
+                        
+                        echo Validating deployment...
+                        echo.
+                        
+                        :retry_loop
+                        if !RETRY_COUNT! geq !MAX_RETRIES! (
+                            echo Error: IIS is not responding after !MAX_RETRIES! attempts
+                            exit /b 1
+                        )
+                        
+                        REM Verificar que los archivos se copiaron
+                        if not exist "!IIS_PATH!" (
+                            echo Error: IIS deployment path does not exist
+                            exit /b 1
+                        )
+                        
+                        REM Contar archivos copiados
+                        for /f %%A in ('dir /b/s "!IIS_PATH!" 2^>nul ^| find /c /v ""') do (
+                            set FILE_COUNT=%%A
+                        )
+                        
+                        if !FILE_COUNT! leq 0 (
+                            echo Warning: No files found in deployment directory
+                        ) else (
+                            echo ✓ Deployment validation successful
+                            echo Files deployed: !FILE_COUNT!
+                        )
+                        
+                        REM Verificar que web.config existe
+                        if exist "!IIS_PATH!\web.config" (
+                            echo ✓ web.config found
+                        ) else (
+                            echo Error: web.config not found
+                            exit /b 1
+                        )
+                        
+                        REM Verificar que index.html existe
+                        if exist "!IIS_PATH!\index.html" (
+                            echo ✓ index.html found
+                        ) else (
+                            echo Warning: index.html not found, IIS may not serve properly
+                        )
+                        
+                        echo.
+                        echo ✓ All validation checks passed
+                    '''
+                    env.VALIDATION_STATUS = 'PASSED'
+                    echo "✓ IIS deployment validation completed"
+                }
+            }
+        }
+
         stage('Merge to Master Branch') {
             when {
                 expression { env.HAS_CHANGES == 'true' && env.DEPLOYMENT_STATUS == 'SUCCESS' && currentBuild.result == null }
