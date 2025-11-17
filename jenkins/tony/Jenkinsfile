@@ -1,4 +1,4 @@
-﻿pipeline {
+pipeline {
     agent any
 
     triggers {
@@ -456,10 +456,10 @@
                         @echo off
                         setlocal enabledelayedexpansion
                         
-                        REM Verificar si JMeter está instalado
+                        REM Verificar si JMeter est? instalado
                         where jmeter >nul 2>&1
                         if errorlevel 1 (
-                            echo Warning: JMeter no esta¡ instalado o no esta en PATH
+                            echo Warning: JMeter no esta? instalado o no esta en PATH
                             echo Para instalar JMeter, descargalo desde: https://jmeter.apache.org/
                             echo Skipping JMeter tests...
                             exit /b 0
@@ -577,8 +577,8 @@
                                         <li>  Jest Tests ejecutados exitosamente</li>
                                         <li>  Unit Tests de Users Service ejecutados exitosamente</li>
                                         <li>  Aplicacion compilada desde dev</li>
-                                        <li>  Merge dev â†’ master completado</li>
-                                        <li>  Versin actualizada automÃ¡ticamente</li>
+                                        <li>  Merge dev ??? master completado</li>
+                                        <li>  Versin actualizada autom??ticamente</li>
                                         <li>  Aplicaci n recompilada desde master</li>
                                         <li>  Deployado a servidor IIS (desde master)</li>
                                         <li>${env.JMETER_EXECUTED == 'true' ? ' ' : ''} Performance Tests con JMeter ejecutados</li>
@@ -595,11 +595,11 @@
                                     <pre style="background: #f5f5f5; padding: 10px; border-radius: 5px; overflow-x: auto;">${jmeterOutput ?: 'No se ejecutaron tests de JMeter'}</pre>
 
                                     <h3 style="color: #333;">Acceso al Sistema:</h3>
-                                    <p>El sistema estÃ¡ disponible en: <strong>http://localhost:8086</strong></p>
+                                    <p>El sistema est?? disponible en: <strong>http://localhost:8086</strong></p>
                                     <p>API disponible en: <strong>http://localhost:3000/api</strong></p>
 
                                     <h3 style="color: #333;"> Celebraciones:</h3>
-                                    <p style="font-size: 24px;"> ¡Todos los tests pasaron! ¡Excelente trabajo!</p>
+                                    <p style="font-size: 24px;"> ?Todos los tests pasaron! ?Excelente trabajo!</p>
 
                                     <hr>
                                     <p style="color: #999; font-size: 12px;">Build ID: ${BUILD_NUMBER} | Fecha: ${new Date().format('yyyy-MM-dd HH:mm:ss')}</p>
