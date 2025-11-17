@@ -34,11 +34,12 @@ pipeline {
                         ]
                     )
                     
-                    def currentCommit = bat(
-                        script: 'git rev-parse HEAD',
-                        returnStdout: true
-                    ).trim()
+                    bat '''
+                        @echo off
+                        git rev-parse HEAD > current_commit.txt
+                    '''
                     
+                    def currentCommit = readFile('current_commit.txt').trim()
                     def lastBuildFile = "${WORKSPACE}/.last_commit"
                     def lastCommit = ''
                     
@@ -46,13 +47,16 @@ pipeline {
                         lastCommit = readFile(lastBuildFile).trim()
                     }
                     
+                    echo "Current commit: ${currentCommit}"
+                    echo "Last commit: ${lastCommit}"
+                    
                     if (currentCommit == lastCommit) {
                         echo "No changes detected. Skipping pipeline."
                         currentBuild.result = 'NOT_BUILT'
                         return
                     }
                     
-                    echo "Changes detected: ${currentCommit}"
+                    echo "Changes detected. Proceeding with pipeline."
                     writeFile file: lastBuildFile, text: currentCommit
                 }
             }
