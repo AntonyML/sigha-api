@@ -22,10 +22,9 @@ pipeline {
     }
 
     stages {
-        stage('Check for Changes') {
+        stage('Initialize') {
             steps {
                 script {
-                    echo "Checking for new commits..."
                     checkout(
                         [
                             $class: 'GitSCM',
@@ -47,22 +46,28 @@ pipeline {
                         lastCommit = readFile(lastBuildFile).trim()
                     }
                     
-                    echo "Current commit: ${currentCommit}"
-                    echo "Last commit: ${lastCommit}"
+                    env.CURRENT_COMMIT = currentCommit
+                    env.LAST_COMMIT = lastCommit
                     
-                    if (currentCommit == lastCommit) {
-                        echo "No changes detected. Skipping pipeline."
-                        currentBuild.result = 'NOT_BUILT'
-                        return
+                    echo "Current: ${currentCommit}"
+                    echo "Last: ${lastCommit}"
+                    
+                    if (currentCommit != lastCommit) {
+                        env.HAS_CHANGES = 'true'
+                        writeFile file: lastBuildFile, text: currentCommit
+                        echo "✓ Changes detected!"
+                    } else {
+                        env.HAS_CHANGES = 'false'
+                        echo "✗ No changes. Stopping pipeline."
                     }
-                    
-                    echo "Changes detected. Proceeding with pipeline."
-                    writeFile file: lastBuildFile, text: currentCommit
                 }
             }
         }
 
         stage('Checkout Source') {
+            when {
+                expression { env.HAS_CHANGES == 'true' }
+            }
             steps {
                 script {
                     checkout(
@@ -77,6 +82,9 @@ pipeline {
         }
 
         stage('Push to Test Repository') {
+            when {
+                expression { env.HAS_CHANGES == 'true' }
+            }
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'git-credentials', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
@@ -107,6 +115,9 @@ pipeline {
         }
 
         stage('Install Dependencies') {
+            when {
+                expression { env.HAS_CHANGES == 'true' }
+            }
             steps {
                 script {
                     bat 'npm install'
@@ -115,6 +126,9 @@ pipeline {
         }
 
         stage('Run Jest Tests') {
+            when {
+                expression { env.HAS_CHANGES == 'true' }
+            }
             steps {
                 script {
                     bat 'npm run test -- --coverage --testPathPatterns="tests/tony/unit" > jest-results.log 2>&1'
@@ -123,6 +137,9 @@ pipeline {
         }
 
         stage('Run Unit Tests - Users Service') {
+            when {
+                expression { env.HAS_CHANGES == 'true' }
+            }
             steps {
                 script {
                     bat 'npm run test -- tests/tony/unit/users/user.service.spec.ts --verbose > unit-test-results.log 2>&1'
@@ -134,6 +151,11 @@ pipeline {
     post {
         always {
             script {
+                if (env.HAS_CHANGES == 'false') {
+                    currentBuild.result = 'NOT_BUILT'
+                    echo "Build marked as NOT_BUILT - no changes detected"
+                }
+                
                 if (fileExists('jest-results.log')) {
                     junit testResults: '**/test-results/**/*.xml', allowEmptyResults: true
                 }
@@ -142,130 +164,136 @@ pipeline {
 
         success {
             script {
-                def testOutput = ''
-                def unitTestOutput = ''
-                
-                if (fileExists('jest-results.log')) {
-                    testOutput = readFile('jest-results.log').take(500)
-                }
-                if (fileExists('unit-test-results.log')) {
-                    unitTestOutput = readFile('unit-test-results.log').take(500)
-                }
-                
-                emailext(
-                    to: "${EMAIL_RECIPIENT}",
-                    subject: "Jenkins Pipeline - Rama ${SOURCE_BRANCH}: BUILD EXITOSO",
-                    body: """
-                        <html>
-                            <body>
-                                <h2>Pipeline Build - EXITOSO</h2>
-                                <p><strong>Repositorio:</strong> ${SOURCE_REPO}</p>
-                                <p><strong>Rama:</strong> ${SOURCE_BRANCH}</p>
-                                <p><strong>Build Number:</strong> ${BUILD_NUMBER}</p>
-                                <p><strong>Build URL:</strong> <a href="${BUILD_URL}">${BUILD_URL}</a></p>
-                                
-                                <h3>Resumen de Ejecución:</h3>
-                                <ul>
-                                    <li>Código descargado exitosamente</li>
-                                    <li>Push al repositorio de pruebas completado</li>
-                                    <li>Dependencias instaladas</li>
-                                    <li>Jest Tests ejecutados exitosamente</li>
-                                    <li>Unit Tests de Users Service ejecutados exitosamente</li>
-                                </ul>
+                if (env.HAS_CHANGES == 'true') {
+                    def testOutput = ''
+                    def unitTestOutput = ''
+                    
+                    if (fileExists('jest-results.log')) {
+                        testOutput = readFile('jest-results.log').take(500)
+                    }
+                    if (fileExists('unit-test-results.log')) {
+                        unitTestOutput = readFile('unit-test-results.log').take(500)
+                    }
+                    
+                    emailext(
+                        to: "${EMAIL_RECIPIENT}",
+                        subject: "Jenkins Pipeline - Rama ${SOURCE_BRANCH}: BUILD EXITOSO",
+                        body: """
+                            <html>
+                                <body>
+                                    <h2>Pipeline Build - EXITOSO</h2>
+                                    <p><strong>Repositorio:</strong> ${SOURCE_REPO}</p>
+                                    <p><strong>Rama:</strong> ${SOURCE_BRANCH}</p>
+                                    <p><strong>Build Number:</strong> ${BUILD_NUMBER}</p>
+                                    <p><strong>Build URL:</strong> <a href="${BUILD_URL}">${BUILD_URL}</a></p>
+                                    
+                                    <h3>Resumen de Ejecución:</h3>
+                                    <ul>
+                                        <li>Código descargado exitosamente</li>
+                                        <li>Push al repositorio de pruebas completado</li>
+                                        <li>Dependencias instaladas</li>
+                                        <li>Jest Tests ejecutados exitosamente</li>
+                                        <li>Unit Tests de Users Service ejecutados exitosamente</li>
+                                    </ul>
 
-                                <h3>Detalles de los Tests:</h3>
-                                <pre>${testOutput}</pre>
-                                
-                                <h3>Detalles Unit Tests - Users Service:</h3>
-                                <pre>${unitTestOutput}</pre>
+                                    <h3>Detalles de los Tests:</h3>
+                                    <pre>${testOutput}</pre>
+                                    
+                                    <h3>Detalles Unit Tests - Users Service:</h3>
+                                    <pre>${unitTestOutput}</pre>
 
-                                <hr>
-                                <p><strong>Build ID:</strong> ${BUILD_NUMBER}</p>
-                                <p><em>Este es un mensaje automático del sistema CI/CD</em></p>
-                            </body>
-                        </html>
-                    """,
-                    mimeType: 'text/html'
-                )
+                                    <hr>
+                                    <p><strong>Build ID:</strong> ${BUILD_NUMBER}</p>
+                                    <p><em>Este es un mensaje automático del sistema CI/CD</em></p>
+                                </body>
+                            </html>
+                        """,
+                        mimeType: 'text/html'
+                    )
+                }
             }
         }
 
         failure {
             script {
-                def testOutput = ''
-                def unitTestOutput = ''
-                
-                if (fileExists('jest-results.log')) {
-                    testOutput = readFile('jest-results.log').take(1000)
+                if (env.HAS_CHANGES == 'true') {
+                    def testOutput = ''
+                    def unitTestOutput = ''
+                    
+                    if (fileExists('jest-results.log')) {
+                        testOutput = readFile('jest-results.log').take(1000)
+                    }
+                    if (fileExists('unit-test-results.log')) {
+                        unitTestOutput = readFile('unit-test-results.log').take(1000)
+                    }
+                    
+                    emailext(
+                        to: "${EMAIL_RECIPIENT}",
+                        subject: "Jenkins Pipeline - Rama ${SOURCE_BRANCH}: BUILD FALLIDO",
+                        body: """
+                            <html>
+                                <body>
+                                    <h2>Pipeline Build - FALLIDO</h2>
+                                    <p><strong>Repositorio:</strong> ${SOURCE_REPO}</p>
+                                    <p><strong>Rama:</strong> ${SOURCE_BRANCH}</p>
+                                    <p><strong>Build Number:</strong> ${BUILD_NUMBER}</p>
+                                    <p><strong>Build URL:</strong> <a href="${BUILD_URL}">${BUILD_URL}</a></p>
+                                    
+                                    <h3>Causa del Fallo:</h3>
+                                    <p>Revisa los logs detallados a continuación para identificar el problema.</p>
+
+                                    <h3>Salida de Jest Tests:</h3>
+                                    <pre>${testOutput}</pre>
+                                    
+                                    <h3>Salida Unit Tests - Users Service:</h3>
+                                    <pre>${unitTestOutput}</pre>
+
+                                    <h3>Acciones Recomendadas:</h3>
+                                    <ol>
+                                        <li>Revisa los logs completos en: <a href="${BUILD_URL}console">${BUILD_URL}console</a></li>
+                                        <li>Verifica los cambios en la rama ${SOURCE_BRANCH}</li>
+                                        <li>Ejecuta localmente: npm run test</li>
+                                        <li>Contacta al equipo de desarrollo si es necesario</li>
+                                    </ol>
+
+                                    <hr>
+                                    <p><strong>Build ID:</strong> ${BUILD_NUMBER}</p>
+                                    <p><em>Este es un mensaje automático del sistema CI/CD</em></p>
+                                </body>
+                            </html>
+                        """,
+                        mimeType: 'text/html'
+                    )
                 }
-                if (fileExists('unit-test-results.log')) {
-                    unitTestOutput = readFile('unit-test-results.log').take(1000)
-                }
-                
-                emailext(
-                    to: "${EMAIL_RECIPIENT}",
-                    subject: "Jenkins Pipeline - Rama ${SOURCE_BRANCH}: BUILD FALLIDO",
-                    body: """
-                        <html>
-                            <body>
-                                <h2>Pipeline Build - FALLIDO</h2>
-                                <p><strong>Repositorio:</strong> ${SOURCE_REPO}</p>
-                                <p><strong>Rama:</strong> ${SOURCE_BRANCH}</p>
-                                <p><strong>Build Number:</strong> ${BUILD_NUMBER}</p>
-                                <p><strong>Build URL:</strong> <a href="${BUILD_URL}">${BUILD_URL}</a></p>
-                                
-                                <h3>Causa del Fallo:</h3>
-                                <p>Revisa los logs detallados a continuación para identificar el problema.</p>
-
-                                <h3>Salida de Jest Tests:</h3>
-                                <pre>${testOutput}</pre>
-                                
-                                <h3>Salida Unit Tests - Users Service:</h3>
-                                <pre>${unitTestOutput}</pre>
-
-                                <h3>Acciones Recomendadas:</h3>
-                                <ol>
-                                    <li>Revisa los logs completos en: <a href="${BUILD_URL}console">${BUILD_URL}console</a></li>
-                                    <li>Verifica los cambios en la rama ${SOURCE_BRANCH}</li>
-                                    <li>Ejecuta localmente: npm run test</li>
-                                    <li>Contacta al equipo de desarrollo si es necesario</li>
-                                </ol>
-
-                                <hr>
-                                <p><strong>Build ID:</strong> ${BUILD_NUMBER}</p>
-                                <p><em>Este es un mensaje automático del sistema CI/CD</em></p>
-                            </body>
-                        </html>
-                    """,
-                    mimeType: 'text/html'
-                )
             }
         }
 
         unstable {
             script {
-                emailext(
-                    to: "${EMAIL_RECIPIENT}",
-                    subject: "Jenkins Pipeline - Rama ${SOURCE_BRANCH}: BUILD INESTABLE",
-                    body: """
-                        <html>
-                            <body>
-                                <h2>Pipeline Build - INESTABLE</h2>
-                                <p><strong>Repositorio:</strong> ${SOURCE_REPO}</p>
-                                <p><strong>Rama:</strong> ${SOURCE_BRANCH}</p>
-                                <p><strong>Build Number:</strong> ${BUILD_NUMBER}</p>
-                                <p><strong>Build URL:</strong> <a href="${BUILD_URL}">${BUILD_URL}</a></p>
-                                
-                                <p>El pipeline completó pero hay algunos tests que fallaron o produjeron advertencias.</p>
-                                <p>Por favor revisa los detalles en: <a href="${BUILD_URL}console">${BUILD_URL}console</a></p>
+                if (env.HAS_CHANGES == 'true') {
+                    emailext(
+                        to: "${EMAIL_RECIPIENT}",
+                        subject: "Jenkins Pipeline - Rama ${SOURCE_BRANCH}: BUILD INESTABLE",
+                        body: """
+                            <html>
+                                <body>
+                                    <h2>Pipeline Build - INESTABLE</h2>
+                                    <p><strong>Repositorio:</strong> ${SOURCE_REPO}</p>
+                                    <p><strong>Rama:</strong> ${SOURCE_BRANCH}</p>
+                                    <p><strong>Build Number:</strong> ${BUILD_NUMBER}</p>
+                                    <p><strong>Build URL:</strong> <a href="${BUILD_URL}">${BUILD_URL}</a></p>
+                                    
+                                    <p>El pipeline completó pero hay algunos tests que fallaron o produjeron advertencias.</p>
+                                    <p>Por favor revisa los detalles en: <a href="${BUILD_URL}console">${BUILD_URL}console</a></p>
 
-                                <hr>
-                                <p><em>Este es un mensaje automático del sistema CI/CD</em></p>
-                            </body>
-                        </html>
-                    """,
-                    mimeType: 'text/html'
-                )
+                                    <hr>
+                                    <p><em>Este es un mensaje automático del sistema CI/CD</em></p>
+                                </body>
+                            </html>
+                        """,
+                        mimeType: 'text/html'
+                    )
+                }
             }
         }
     }
