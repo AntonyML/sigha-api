@@ -43,8 +43,8 @@ describe('EntranceExitService pruebas ', () => {
     jest.clearAllMocks();
   });
 
-  describe('create - Primera pruebaaaaaa', () => {
-    it('should create an entrance record successfully', async () => {
+  describe('create - Primera pruebaa', () => {
+    it('should create an  record successfully', async () => {
       const createDto: CreateEntranceExitDto = {
         eeType: EntranceExitType.EMPLOYEE,
         eeAccessType: AccessType.ENTRANCE,
