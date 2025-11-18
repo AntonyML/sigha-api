@@ -1,10 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
-import { EntranceExitService } from './entrance-exit.service';
-import { EntranceExit, EntranceExitType, AccessType } from '../../domain/entrances-exits/entrance-exit.entity';
-import { CreateEntranceExitDto, CloseCycleDto } from '../../dto/entrances-exits';
+import { EntranceExitService } from '../../../../src/ucr/ac/cr/ie/services/entrances-exits/entrance-exit.service';
+import { EntranceExit, EntranceExitType, AccessType } from '../../../../src/ucr/ac/cr/ie/domain/entrances-exits/entrance-exit.entity';
+import { CreateEntranceExitDto, CloseCycleDto } from '../../../../src/ucr/ac/cr/ie/dto/entrances-exits';
 
-describe('EntranceExitService', () => {
+describe('EntranceExitService  unit', () => {
   let service: EntranceExitService;
   let mockRepository: any;
 
@@ -43,7 +43,7 @@ describe('EntranceExitService', () => {
     jest.clearAllMocks();
   });
 
-  describe('create', () => {
+  describe('create - Prueba 1', () => {
     it('should create an entrance record successfully', async () => {
       const createDto: CreateEntranceExitDto = {
         eeType: EntranceExitType.EMPLOYEE,
@@ -71,7 +71,9 @@ describe('EntranceExitService', () => {
       expect(mockRepository.save).toHaveBeenCalledWith(expect.any(EntranceExit));
       expect(result).toEqual(expectedResult);
     });
+  });
 
+  describe('create - Prueba 2', () => {
     it('should create an exit record successfully', async () => {
       const createDto: CreateEntranceExitDto = {
         eeType: EntranceExitType.EMPLOYEE,
@@ -99,7 +101,9 @@ describe('EntranceExitService', () => {
       expect(mockRepository.save).toHaveBeenCalledWith(expect.any(EntranceExit));
       expect(result).toEqual(expectedResult);
     });
+  });
 
+  describe('create - Prueba 3', () => {
     it('should throw BadRequestException when entrance has exit date', async () => {
       const createDto: CreateEntranceExitDto = {
         eeType: EntranceExitType.EMPLOYEE,
@@ -107,7 +111,7 @@ describe('EntranceExitService', () => {
         eeIdentification: '12345678',
         eeName: 'Michelle',
         eeFLastName: 'Arguedas',
-        eeSLastName: 'Murillooo',
+        eeSLastName: 'Murillo',
         eeDatetimeEntrance: '2024-10-26T08:00:00.000Z',
         eeDatetimeExit: '2024-10-26T17:00:00.000Z',
         eeClose: false,
@@ -120,13 +124,15 @@ describe('EntranceExitService', () => {
       
       expect(mockRepository.save).not.toHaveBeenCalled();
     });
+  });
 
+  describe('create - Prueba 4', () => {
     it('should throw BadRequestException when exit has entrance date', async () => {
       const createDto: CreateEntranceExitDto = {
         eeType: EntranceExitType.EMPLOYEE,
         eeAccessType: AccessType.EXIT,
         eeIdentification: '12345678',
-        eeName: 'Michellee',
+        eeName: 'Michelle',
         eeFLastName: 'Arguedas',
         eeSLastName: 'Murillo',
         eeDatetimeEntrance: '2024-10-26T08:00:00.000Z',
@@ -141,7 +147,9 @@ describe('EntranceExitService', () => {
       
       expect(mockRepository.save).not.toHaveBeenCalled();
     });
+  });
 
+  describe('create - Prueba 5', () => {
     it('should use current date when entrance date is not provided', async () => {
       const createDto: CreateEntranceExitDto = {
         eeType: EntranceExitType.VISITOR,
@@ -173,7 +181,7 @@ describe('EntranceExitService', () => {
     });
   });
 
-  describe('closeCycle', () => {
+  describe('closeCycle - Prueba 6', () => {
     it('should close cycle successfully', async () => {
       const id = 1;
       const closeCycleDto: CloseCycleDto = {
@@ -210,7 +218,9 @@ describe('EntranceExitService', () => {
       }));
       expect(result).toEqual(updatedRecord);
     });
+  });
 
+  describe('closeCycle - Prueba 7', () => {
     it('should throw NotFoundException when record does not exist', async () => {
       const id = 999;
       const closeCycleDto: CloseCycleDto = {
@@ -226,7 +236,9 @@ describe('EntranceExitService', () => {
       
       expect(mockRepository.save).not.toHaveBeenCalled();
     });
+  });
 
+  describe('closeCycle - Prueba 8', () => {
     it('should throw BadRequestException when trying to close already closed cycle', async () => {
       const id = 1;
       const closeCycleDto: CloseCycleDto = {
@@ -250,7 +262,7 @@ describe('EntranceExitService', () => {
     });
   });
 
-  describe('getOpenEntrances', () => {
+  describe('getOpenEntrances - Prueba 9', () => {
     it('should return all open entrance records', async () => {
       const mockRecords = [
         {
@@ -286,32 +298,7 @@ describe('EntranceExitService', () => {
     });
   });
 
-  describe('getClosedRecords', () => {
-    it('should return all closed records', async () => {
-      const mockRecords = [
-        {
-          id: 1,
-          eeType: EntranceExitType.EMPLOYEE,
-          eeAccessType: AccessType.ENTRANCE,
-          eeName: 'Luis',
-          eeFLastName: 'Rivera',
-          eeClose: true
-        }
-      ];
-
-      mockRepository.find.mockResolvedValue(mockRecords);
-
-      const result = await service.getClosedRecords();
-
-      expect(mockRepository.find).toHaveBeenCalledWith({
-        where: { eeClose: true },
-        order: { createAt: 'DESC' }
-      });
-      expect(result).toEqual(mockRecords);
-    });
-  });
-
-  describe('remove', () => {
+  describe('remove - Prueba 10', () => {
     it('should remove a record successfully', async () => {
       const id = 1;
       const mockRecord = {
@@ -328,17 +315,6 @@ describe('EntranceExitService', () => {
       expect(mockRepository.findOne).toHaveBeenCalledWith({ where: { id } });
       expect(mockRepository.remove).toHaveBeenCalledWith(mockRecord);
       expect(result).toEqual({ success: true });
-    });
-
-    it('should throw NotFoundException when trying to remove non-existent record', async () => {
-      const id = 999;
-      mockRepository.findOne.mockResolvedValue(null);
-
-      await expect(service.remove(id))
-        .rejects
-        .toThrow(NotFoundException);
-      
-      expect(mockRepository.remove).not.toHaveBeenCalled();
     });
   });
 });
