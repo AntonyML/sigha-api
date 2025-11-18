@@ -6,9 +6,9 @@ pipeline {
         gitlab(triggerOnPush: true, triggerOnMergeRequest: true, branchFilterType: 'NameBasedFilter', includeBranchesSpec: 'dev', excludeBranchesSpec: '')
             // La unica opcion que encontre xd
             //ejecutarlo cada minuto
-        pollSCM('* * * * *')
+       // pollSCM('* * * * *')
         //ejecutarlo a las 12 am
-       // pollSCM('0 0 * * *')
+        pollSCM('0 0 * * *')
     }
 
     options {
