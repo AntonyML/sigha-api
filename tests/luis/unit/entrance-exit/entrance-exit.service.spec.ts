@@ -4,7 +4,7 @@ import { EntranceExitService } from '../../../../src/ucr/ac/cr/ie/services/entra
 import { EntranceExit, EntranceExitType, AccessType } from '../../../../src/ucr/ac/cr/ie/domain/entrances-exits/entrance-exit.entity';
 import { CreateEntranceExitDto, CloseCycleDto } from '../../../../src/ucr/ac/cr/ie/dto/entrances-exits';
 
-describe('EntranceExitService pruebas unitarias', () => {
+describe('EntranceExitService pruebas ', () => {
   let service: EntranceExitService;
   let mockRepository: any;
 
