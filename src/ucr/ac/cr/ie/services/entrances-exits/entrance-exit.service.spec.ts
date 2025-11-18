@@ -49,9 +49,9 @@ describe('EntranceExitService', () => {
         eeType: EntranceExitType.EMPLOYEE,
         eeAccessType: AccessType.ENTRANCE,
         eeIdentification: '12345678',
-        eeName: 'Juan',
-        eeFLastName: 'Pérez',
-        eeSLastName: 'González',
+        eeName: 'Michelle',
+        eeFLastName: 'Arguedas',
+        eeSLastName: 'Murillo',
         eeDatetimeEntrance: '2024-10-26T08:00:00.000Z',
         eeClose: false,
         eeObservations: 'Entrada normal'
@@ -77,9 +77,9 @@ describe('EntranceExitService', () => {
         eeType: EntranceExitType.EMPLOYEE,
         eeAccessType: AccessType.EXIT,
         eeIdentification: '12345678',
-        eeName: 'Juan',
-        eeFLastName: 'Pérez',
-        eeSLastName: 'González',
+        eeName: 'Michelle',
+        eeFLastName: 'Arguedas',
+        eeSLastName: 'Murillo',
         eeDatetimeExit: '2024-10-26T17:00:00.000Z',
         eeClose: true,
         eeObservations: 'Salida normal'
@@ -105,11 +105,11 @@ describe('EntranceExitService', () => {
         eeType: EntranceExitType.EMPLOYEE,
         eeAccessType: AccessType.ENTRANCE,
         eeIdentification: '12345678',
-        eeName: 'Juan',
-        eeFLastName: 'Pérez',
-        eeSLastName: 'González',
+        eeName: 'Michelle',
+        eeFLastName: 'Arguedas',
+        eeSLastName: 'Murillooo',
         eeDatetimeEntrance: '2024-10-26T08:00:00.000Z',
-        eeDatetimeExit: '2024-10-26T17:00:00.000Z', // ← Error: Entrada no puede tener fecha de salida
+        eeDatetimeExit: '2024-10-26T17:00:00.000Z',
         eeClose: false,
         eeObservations: 'Test'
       };
@@ -126,10 +126,10 @@ describe('EntranceExitService', () => {
         eeType: EntranceExitType.EMPLOYEE,
         eeAccessType: AccessType.EXIT,
         eeIdentification: '12345678',
-        eeName: 'Juan',
-        eeFLastName: 'Pérez',
-        eeSLastName: 'González',
-        eeDatetimeEntrance: '2024-10-26T08:00:00.000Z', // ← Error: Salida no puede tener fecha de entrada
+        eeName: 'Michelle',
+        eeFLastName: 'Arguedas',
+        eeSLastName: 'Murillo',
+        eeDatetimeEntrance: '2024-10-26T08:00:00.000Z',
         eeDatetimeExit: '2024-10-26T17:00:00.000Z',
         eeClose: true,
         eeObservations: 'Test'
@@ -147,7 +147,7 @@ describe('EntranceExitService', () => {
         eeType: EntranceExitType.VISITOR,
         eeAccessType: AccessType.ENTRANCE,
         eeIdentification: '87654321',
-        eeName: 'María',
+        eeName: 'Luis',
         eeFLastName: 'López',
         eeClose: false
       };
@@ -237,7 +237,7 @@ describe('EntranceExitService', () => {
       const existingRecord = {
         id: 1,
         eeType: EntranceExitType.EMPLOYEE,
-        eeClose: true // ← Ya cerrado
+        eeClose: true 
       };
 
       mockRepository.findOne.mockResolvedValue(existingRecord);
@@ -257,15 +257,15 @@ describe('EntranceExitService', () => {
           id: 1,
           eeType: EntranceExitType.EMPLOYEE,
           eeAccessType: AccessType.ENTRANCE,
-          eeName: 'Juan',
-          eeFLastName: 'Pérez',
+          eeName: 'Michelle',
+          eeFLastName: 'Arguedas',
           eeClose: false
         },
         {
           id: 2,
           eeType: EntranceExitType.VISITOR,
           eeAccessType: AccessType.ENTRANCE,
-          eeName: 'María',
+          eeName: 'Luis',
           eeFLastName: 'López',
           eeClose: false
         }
@@ -293,8 +293,8 @@ describe('EntranceExitService', () => {
           id: 1,
           eeType: EntranceExitType.EMPLOYEE,
           eeAccessType: AccessType.ENTRANCE,
-          eeName: 'Juan',
-          eeFLastName: 'Pérez',
+          eeName: 'Luis',
+          eeFLastName: 'Rivera',
           eeClose: true
         }
       ];
@@ -317,7 +317,7 @@ describe('EntranceExitService', () => {
       const mockRecord = {
         id: 1,
         eeType: EntranceExitType.EMPLOYEE,
-        eeName: 'Juan'
+        eeName: 'Luis'
       };
 
       mockRepository.findOne.mockResolvedValue(mockRecord);
