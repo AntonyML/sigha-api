@@ -14,16 +14,16 @@ async function bootstrap() {
     const email = 'luis.riveralopez@ucr.ac.cr';
     const password = '***REMOVED***';
     
-    console.log('🔍 Buscando usuario...');
+    console.log(' Buscando usuario...');
     const user = await userRepository.findOne({ where: { uEmail: email } });
     
     if (!user) {
-      console.log('❌ Usuario NO encontrado');
+      console.log(' Usuario NO encontrado');
       await app.close();
       return;
     }
     
-    console.log('✓ Usuario encontrado:', user.uEmail);
+    console.log(' Usuario encontrado:', user.uEmail);
     console.log('  Password actual:', user.uPassword ? '✓ Existe' : '❌ Vacío/Nulo');
     
     // Hashear la nueva contraseña
