@@ -126,7 +126,7 @@ describe('EntranceExitService', () => {
         eeType: EntranceExitType.EMPLOYEE,
         eeAccessType: AccessType.EXIT,
         eeIdentification: '12345678',
-        eeName: 'Michelle',
+        eeName: 'Michellee',
         eeFLastName: 'Arguedas',
         eeSLastName: 'Murillo',
         eeDatetimeEntrance: '2024-10-26T08:00:00.000Z',
