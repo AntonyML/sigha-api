@@ -4,7 +4,7 @@ import { EntranceExitService } from '../../../../src/ucr/ac/cr/ie/services/entra
 import { EntranceExit, EntranceExitType, AccessType } from '../../../../src/ucr/ac/cr/ie/domain/entrances-exits/entrance-exit.entity';
 import { CreateEntranceExitDto, CloseCycleDto } from '../../../../src/ucr/ac/cr/ie/dto/entrances-exits';
 
-describe('EntranceExitService pruebas ', () => {
+describe('EntranceExitService  unit', () => {
   let service: EntranceExitService;
   let mockRepository: any;
 
@@ -43,8 +43,8 @@ describe('EntranceExitService pruebas ', () => {
     jest.clearAllMocks();
   });
 
-  describe('create - Primera pruebaa', () => {
-    it('should create an  record successfully', async () => {
+  describe('create - Prueba 1', () => {
+    it('should create an entrance record successfully', async () => {
       const createDto: CreateEntranceExitDto = {
         eeType: EntranceExitType.EMPLOYEE,
         eeAccessType: AccessType.ENTRANCE,
