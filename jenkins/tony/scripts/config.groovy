@@ -1,8 +1,3 @@
-/**
- * config.groovy
- * Configuración centralizada del pipeline
- */
-
 def getConfig() {
     return [
         source: [

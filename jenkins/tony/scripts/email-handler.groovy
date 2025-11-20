@@ -1,8 +1,3 @@
-/**
- * email-handler.groovy
- * Maneja todas las notificaciones por email
- */
-
 def sendSuccessEmail(emailRecipient, sourceBranch, sourceRepo, testOutput, unitTestOutput) {
     emailext(
         to: emailRecipient,
@@ -10,7 +5,7 @@ def sendSuccessEmail(emailRecipient, sourceBranch, sourceRepo, testOutput, unitT
         body: """
             <html>
                 <body>
-                    <h2>Pipeline Build - EXITOSO ✓</h2>
+                    <h2>Pipeline Build - EXITOSO</h2>
                     <p><strong>Repositorio:</strong> ${sourceRepo}</p>
                     <p><strong>Rama:</strong> ${sourceBranch}</p>
                     <p><strong>Build Number:</strong> ${BUILD_NUMBER}</p>
@@ -18,12 +13,12 @@ def sendSuccessEmail(emailRecipient, sourceBranch, sourceRepo, testOutput, unitT
                     
                     <h3>Resumen de Ejecución:</h3>
                     <ul>
-                        <li>✓ Código descargado exitosamente</li>
-                        <li>✓ Push al repositorio de pruebas completado</li>
-                        <li>✓ Dependencias instaladas</li>
-                        <li>✓ Jest Tests ejecutados exitosamente</li>
-                        <li>✓ Unit Tests de Users Service ejecutados exitosamente</li>
-                        <li>✓ Desplegado al repositorio de deploy</li>
+                        <li>Código descargado exitosamente</li>
+                        <li>Push al repositorio de pruebas completado</li>
+                        <li>Dependencias instaladas</li>
+                        <li>Jest Tests ejecutados exitosamente</li>
+                        <li>Unit Tests de Users Service ejecutados exitosamente</li>
+                        <li>Desplegado al repositorio de deploy</li>
                     </ul>
 
                     <h3>Detalles de los Tests:</h3>
@@ -40,7 +35,6 @@ def sendSuccessEmail(emailRecipient, sourceBranch, sourceRepo, testOutput, unitT
         """,
         mimeType: 'text/html'
     )
-    echo "✓ Email de éxito enviado a ${emailRecipient}"
 }
 
 def sendFailureEmail(emailRecipient, sourceBranch, sourceRepo, testOutput, unitTestOutput) {
@@ -50,7 +44,7 @@ def sendFailureEmail(emailRecipient, sourceBranch, sourceRepo, testOutput, unitT
         body: """
             <html>
                 <body>
-                    <h2>Pipeline Build - FALLIDO ✗</h2>
+                    <h2>Pipeline Build - FALLIDO</h2>
                     <p><strong>Repositorio:</strong> ${sourceRepo}</p>
                     <p><strong>Rama:</strong> ${sourceBranch}</p>
                     <p><strong>Build Number:</strong> ${BUILD_NUMBER}</p>
@@ -81,7 +75,6 @@ def sendFailureEmail(emailRecipient, sourceBranch, sourceRepo, testOutput, unitT
         """,
         mimeType: 'text/html'
     )
-    echo "✓ Email de fallo enviado a ${emailRecipient}"
 }
 
 def sendUnstableEmail(emailRecipient, sourceBranch, sourceRepo) {
@@ -91,7 +84,7 @@ def sendUnstableEmail(emailRecipient, sourceBranch, sourceRepo) {
         body: """
             <html>
                 <body>
-                    <h2>Pipeline Build - INESTABLE ⚠</h2>
+                    <h2>Pipeline Build - INESTABLE</h2>
                     <p><strong>Repositorio:</strong> ${sourceRepo}</p>
                     <p><strong>Rama:</strong> ${sourceBranch}</p>
                     <p><strong>Build Number:</strong> ${BUILD_NUMBER}</p>
@@ -107,7 +100,6 @@ def sendUnstableEmail(emailRecipient, sourceBranch, sourceRepo) {
         """,
         mimeType: 'text/html'
     )
-    echo "✓ Email de inestabilidad enviado a ${emailRecipient}"
 }
 
 return this
