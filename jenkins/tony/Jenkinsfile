@@ -3,11 +3,7 @@ pipeline {
 
     triggers {
         gitlab(triggerOnPush: true, triggerOnMergeRequest: true, branchFilterType: 'NameBasedFilter', includeBranchesSpec: 'dev', excludeBranchesSpec: '')
-         // La unica opcion que encontre xd
-            //ejecutarlo cada minuto
-        pollSCM('* * * * *')
-        //ejecutarlo a las 12 am
-       // pollSCM('0 0 * * *')
+        pollSCM('0 0 * * *')
     }
 
     options {
@@ -24,16 +20,15 @@ pipeline {
         stage('Load Configuration') {
             steps {
                 script {
-                    def configModule = load("${WORKSPACE}/jenkins/tony/scripts/config.groovy")
-                    env.CONFIG = configModule.getConfig()
+                    def config = load("${WORKSPACE}/jenkins/tony/scripts/config.groovy")
                     
-                    env.SOURCE_REPO = env.CONFIG.source.repo
-                    env.SOURCE_BRANCH = env.CONFIG.source.branch
-                    env.TARGET_REPO = env.CONFIG.test.repo
-                    env.TARGET_BRANCH = env.CONFIG.test.branch
-                    env.DEPLOY_REPO = env.CONFIG.deploy.repo
-                    env.DEPLOY_BRANCH = env.CONFIG.deploy.branch
-                    env.EMAIL_RECIPIENT = env.CONFIG.email.recipient
+                    env.SOURCE_REPO = config.getSourceRepo()
+                    env.SOURCE_BRANCH = config.getSourceBranch()
+                    env.TARGET_REPO = config.getTestRepo()
+                    env.TARGET_BRANCH = config.getTestBranch()
+                    env.DEPLOY_REPO = config.getDeployRepo()
+                    env.DEPLOY_BRANCH = config.getDeployBranch()
+                    env.EMAIL_RECIPIENT = config.getEmailRecipient()
                 }
             }
         }
