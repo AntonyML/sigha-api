@@ -2,11 +2,11 @@ pipeline {
     agent any
 
     triggers {
-            // Esto NO funcionará mientras Jenkins sea local.
+        // Esto NO funcionará mientras Jenkins sea local.
         gitlab(triggerOnPush: true, triggerOnMergeRequest: true, branchFilterType: 'NameBasedFilter', includeBranchesSpec: 'dev', excludeBranchesSpec: '')
-            // La unica opcion que encontre xd
-            //ejecutarlo cada minuto
-       // pollSCM('* * * * *')
+        // La única opción que encontré xd
+        //ejecutarlo cada minuto
+        // pollSCM('* * * * *')
         //ejecutarlo a las 12 am
         pollSCM('0 0 * * *')
     }
@@ -18,38 +18,40 @@ pipeline {
     }
 
     environment {
-        SOURCE_REPO = 'https://git.ucr.ac.cr/proyecto_analisis/backend_nest_js_hogar_de_ancianos'
-        SOURCE_BRANCH = 'dev'
-        TARGET_REPO = 'https://git.ucr.ac.cr/proyecto_analisis/test_backend_nest_js_hogar_de_ancianos'
-        TARGET_BRANCH = 'dev'
-        EMAIL_RECIPIENT = 'antonyml2016@gmail.com'
         WORKSPACE_DIR = "${WORKSPACE}"
     }
 
     stages {
-        stage('Initialize') {
+        stage('Load Configuration') {
             steps {
                 script {
-                    checkout(
-                        [
-                            $class: 'GitSCM',
-                            branches: [[name: "*/${SOURCE_BRANCH}"]],
-                            userRemoteConfigs: [[url: "${SOURCE_REPO}"]]
-                        ]
-                    )
+                    // Cargar configuración centralizada
+                    def configModule = load("${WORKSPACE}/jenkins/tony/scripts/config.groovy")
+                    env.CONFIG = configModule.getConfig()
                     
-                    bat '''
-                        @echo off
-                        git rev-parse HEAD > current_commit.txt
-                    '''
+                    // Extraer valores para fácil acceso
+                    env.SOURCE_REPO = env.CONFIG.source.repo
+                    env.SOURCE_BRANCH = env.CONFIG.source.branch
+                    env.TARGET_REPO = env.CONFIG.test.repo
+                    env.TARGET_BRANCH = env.CONFIG.test.branch
+                    env.DEPLOY_REPO = env.CONFIG.deploy.repo
+                    env.DEPLOY_BRANCH = env.CONFIG.deploy.branch
+                    env.EMAIL_RECIPIENT = env.CONFIG.email.recipient
                     
-                    def currentCommit = readFile('current_commit.txt').trim()
-                    def lastBuildFile = "${WORKSPACE}/.last_commit"
-                    def lastCommit = ''
+                    echo "✓ Configuración cargada exitosamente"
+                }
+            }
+        }
+
+        stage('Initialize & Check Changes') {
+            steps {
+                script {
+                    def gitOps = load("${WORKSPACE}/jenkins/tony/scripts/git-operations.groovy")
                     
-                    if (fileExists(lastBuildFile)) {
-                        lastCommit = readFile(lastBuildFile).trim()
-                    }
+                    gitOps.checkoutSource(env.SOURCE_REPO, env.SOURCE_BRANCH)
+                    
+                    def currentCommit = gitOps.getCurrentCommit()
+                    def lastCommit = gitOps.getLastCommit(env.WORKSPACE)
                     
                     env.CURRENT_COMMIT = currentCommit
                     env.LAST_COMMIT = lastCommit
@@ -57,31 +59,15 @@ pipeline {
                     echo "Current: ${currentCommit}"
                     echo "Last: ${lastCommit}"
                     
-                    if (currentCommit != lastCommit) {
+                    if (gitOps.hasChanges(currentCommit, lastCommit)) {
                         env.HAS_CHANGES = 'true'
-                        writeFile file: lastBuildFile, text: currentCommit
+                        gitOps.saveCurrentCommit(env.WORKSPACE, currentCommit)
                         echo "✓ Changes detected!"
                     } else {
                         env.HAS_CHANGES = 'false'
                         echo "✗ No changes. Stopping pipeline."
+                        currentBuild.result = 'NOT_BUILT'
                     }
-                }
-            }
-        }
-
-        stage('Checkout Source') {
-            when {
-                expression { env.HAS_CHANGES == 'true' }
-            }
-            steps {
-                script {
-                    checkout(
-                        [
-                            $class: 'GitSCM',
-                            branches: [[name: "*/${SOURCE_BRANCH}"]],
-                            userRemoteConfigs: [[url: "${SOURCE_REPO}"]]
-                        ]
-                    )
                 }
             }
         }
@@ -92,29 +78,8 @@ pipeline {
             }
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: 'git-credentials', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
-                        bat '''
-                            @echo off
-                            setlocal enabledelayedexpansion
-                            
-                            REM URL-encode the password: @ = %%40, ? = %%3F
-                            setlocal enabledelayedexpansion
-                            set "PASS_ENCODED=!GIT_PASS:@=%%40!"
-                            set "PASS_ENCODED=!PASS_ENCODED:?=%%3F!"
-                            set "URL_WITH_CREDS=https://%GIT_USER%:!PASS_ENCODED!@git.ucr.ac.cr/proyecto_analisis/test_backend_nest_js_hogar_de_ancianos.git"
-                            
-                            REM Add remote with credentials in URL
-                            git remote add test-repo "!URL_WITH_CREDS!" 2>nul
-                            if errorlevel 1 (
-                                REM Remote might already exist, remove and add again
-                                git remote remove test-repo 2>nul
-                                git remote add test-repo "!URL_WITH_CREDS!"
-                            )
-                            
-                            REM Push with verbose output
-                            git push -u test-repo HEAD:%TARGET_BRANCH% --force
-                        '''
-                    }
+                    def gitOps = load("${WORKSPACE}/jenkins/tony/scripts/git-operations.groovy")
+                    gitOps.pushToRepository(env.TARGET_REPO, env.TARGET_BRANCH, 'git-credentials')
                 }
             }
         }
@@ -125,29 +90,29 @@ pipeline {
             }
             steps {
                 script {
-                    bat 'npm install'
+                    def testRunner = load("${WORKSPACE}/jenkins/tony/scripts/test-runner.groovy")
+                    testRunner.installDependencies()
                 }
             }
         }
 
-        stage('Run Jest Tests') {
+        stage('Run Tests') {
             when {
                 expression { env.HAS_CHANGES == 'true' }
             }
             steps {
                 script {
-                    bat 'npm run test -- --coverage --testPathPatterns="tests/tony/unit" > jest-results.log 2>&1'
-                }
-            }
-        }
-
-        stage('Run Unit Tests - Users Service') {
-            when {
-                expression { env.HAS_CHANGES == 'true' }
-            }
-            steps {
-                script {
-                    bat 'npm run test -- tests/tony/unit/users/user.service.spec.ts --verbose > unit-test-results.log 2>&1'
+                    def testRunner = load("${WORKSPACE}/jenkins/tony/scripts/test-runner.groovy")
+                    
+                    try {
+                        testRunner.runJestTests()
+                        testRunner.runUnitTests()
+                        testRunner.publishTestResults()
+                    } catch (Exception e) {
+                        echo "⚠ Error en tests: ${e.message}"
+                        currentBuild.result = 'FAILURE'
+                        throw e
+                    }
                 }
             }
         }
@@ -158,31 +123,9 @@ pipeline {
             }
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: 'git-credentials', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
-                        bat '''
-                            @echo off
-                            setlocal enabledelayedexpansion
-                            
-                            REM URL-encode the password: @ = %%40, ? = %%3F
-                            setlocal enabledelayedexpansion
-                            set "PASS_ENCODED=!GIT_PASS:@=%%40!"
-                            set "PASS_ENCODED=!PASS_ENCODED:?=%%3F!"
-                            set "URL_WITH_CREDS=https://%GIT_USER%:!PASS_ENCODED!@git.ucr.ac.cr/proyecto_analisis/deploy_backend_nest_js_hogar_de_ancianos.git"
-                            
-                            REM Add remote with credentials in URL
-                            git remote add deploy-repo "!URL_WITH_CREDS!" 2>nul
-                            if errorlevel 1 (
-                                REM Remote might already exist, remove and add again
-                                git remote remove deploy-repo 2>nul
-                                git remote add deploy-repo "!URL_WITH_CREDS!"
-                            )
-                            
-                            REM Push to master branch with verbose output
-                            git push -u deploy-repo HEAD:master --force
-                            
-                            echo ✓ Deployed successfully to master branch in deploy repository
-                        '''
-                    }
+                    def gitOps = load("${WORKSPACE}/jenkins/tony/scripts/git-operations.groovy")
+                    gitOps.pushToRepository(env.DEPLOY_REPO, env.DEPLOY_BRANCH, 'git-credentials')
+                    echo "✓ Deployed successfully to master branch in deploy repository"
                 }
             }
         }
@@ -195,64 +138,25 @@ pipeline {
                     currentBuild.result = 'NOT_BUILT'
                     echo "Build marked as NOT_BUILT - no changes detected"
                 }
-                
-                if (fileExists('jest-results.log')) {
-                    junit testResults: '**/test-results/**/*.xml', allowEmptyResults: true
-                }
             }
         }
 
         success {
             script {
                 if (env.HAS_CHANGES == 'true') {
-                    def testOutput = ''
-                    def unitTestOutput = ''
+                    def emailHandler = load("${WORKSPACE}/jenkins/tony/scripts/email-handler.groovy")
+                    def testRunner = load("${WORKSPACE}/jenkins/tony/scripts/test-runner.groovy")
                     
-                    if (fileExists('jest-results.log')) {
-                        testOutput = readFile('jest-results.log').take(500)
-                    }
-                    if (fileExists('unit-test-results.log')) {
-                        unitTestOutput = readFile('unit-test-results.log').take(500)
-                    }
+                    def testOutput = testRunner.getTestOutput('jest-results.log', 500)
+                    def unitTestOutput = testRunner.getTestOutput('unit-test-results.log', 500)
                     
-                    emailext(
-                        to: "${EMAIL_RECIPIENT}",
-                        subject: "Jenkins Pipeline - Rama ${SOURCE_BRANCH}: BUILD EXITOSO",
-                        body: """
-                            <html>
-                                <body>
-                                    <h2>Pipeline Build - EXITOSO</h2>
-                                    <p><strong>Repositorio:</strong> ${SOURCE_REPO}</p>
-                                    <p><strong>Rama:</strong> ${SOURCE_BRANCH}</p>
-                                    <p><strong>Build Number:</strong> ${BUILD_NUMBER}</p>
-                                    <p><strong>Build URL:</strong> <a href="${BUILD_URL}">${BUILD_URL}</a></p>
-                                    
-                                    <h3>Resumen de Ejecución:</h3>
-                                    <ul>
-                                        <li>Código descargado exitosamente</li>
-                                        <li>Push al repositorio de pruebas completado</li>
-                                        <li>Dependencias instaladas</li>
-                                        <li>Jest Tests ejecutados exitosamente</li>
-                                        <li>Unit Tests de Users Service ejecutados exitosamente</li>
-                                        <li>✓ Desplegado al repositorio de deploy</li>
-                                    </ul>
-
-                                    <h3>Detalles de los Tests:</h3>
-                                    <pre>${testOutput}</pre>
-                                    
-                                    <h3>Detalles Unit Tests - Users Service:</h3>
-                                    <pre>${unitTestOutput}</pre>
-
-                                    <hr>
-                                    <p><strong>Build ID:</strong> ${BUILD_NUMBER}</p>
-                                    <p><em>Este es un mensaje automático del sistema CI/CD</em></p>
-                                </body>
-                            </html>
-                        """,
-                        mimeType: 'text/html'
+                    emailHandler.sendSuccessEmail(
+                        env.EMAIL_RECIPIENT,
+                        env.SOURCE_BRANCH,
+                        env.SOURCE_REPO,
+                        testOutput,
+                        unitTestOutput
                     )
-                    
-                    env.BUILD_SUCCESS = 'true'
                 }
             }
         }
@@ -260,52 +164,18 @@ pipeline {
         failure {
             script {
                 if (env.HAS_CHANGES == 'true') {
-                    def testOutput = ''
-                    def unitTestOutput = ''
+                    def emailHandler = load("${WORKSPACE}/jenkins/tony/scripts/email-handler.groovy")
+                    def testRunner = load("${WORKSPACE}/jenkins/tony/scripts/test-runner.groovy")
                     
-                    if (fileExists('jest-results.log')) {
-                        testOutput = readFile('jest-results.log').take(1000)
-                    }
-                    if (fileExists('unit-test-results.log')) {
-                        unitTestOutput = readFile('unit-test-results.log').take(1000)
-                    }
+                    def testOutput = testRunner.getTestOutput('jest-results.log', 1000)
+                    def unitTestOutput = testRunner.getTestOutput('unit-test-results.log', 1000)
                     
-                    emailext(
-                        to: "${EMAIL_RECIPIENT}",
-                        subject: "Jenkins Pipeline - Rama ${SOURCE_BRANCH}: BUILD FALLIDO",
-                        body: """
-                            <html>
-                                <body>
-                                    <h2>Pipeline Build - FALLIDO</h2>
-                                    <p><strong>Repositorio:</strong> ${SOURCE_REPO}</p>
-                                    <p><strong>Rama:</strong> ${SOURCE_BRANCH}</p>
-                                    <p><strong>Build Number:</strong> ${BUILD_NUMBER}</p>
-                                    <p><strong>Build URL:</strong> <a href="${BUILD_URL}">${BUILD_URL}</a></p>
-                                    
-                                    <h3>Causa del Fallo:</h3>
-                                    <p>Revisa los logs detallados a continuación para identificar el problema.</p>
-
-                                    <h3>Salida de Jest Tests:</h3>
-                                    <pre>${testOutput}</pre>
-                                    
-                                    <h3>Salida Unit Tests - Users Service:</h3>
-                                    <pre>${unitTestOutput}</pre>
-
-                                    <h3>Acciones Recomendadas:</h3>
-                                    <ol>
-                                        <li>Revisa los logs completos en: <a href="${BUILD_URL}console">${BUILD_URL}console</a></li>
-                                        <li>Verifica los cambios en la rama ${SOURCE_BRANCH}</li>
-                                        <li>Ejecuta localmente: npm run test</li>
-                                        <li>Contacta al equipo de desarrollo si es necesario</li>
-                                    </ol>
-
-                                    <hr>
-                                    <p><strong>Build ID:</strong> ${BUILD_NUMBER}</p>
-                                    <p><em>Este es un mensaje automático del sistema CI/CD</em></p>
-                                </body>
-                            </html>
-                        """,
-                        mimeType: 'text/html'
+                    emailHandler.sendFailureEmail(
+                        env.EMAIL_RECIPIENT,
+                        env.SOURCE_BRANCH,
+                        env.SOURCE_REPO,
+                        testOutput,
+                        unitTestOutput
                     )
                 }
             }
@@ -314,27 +184,11 @@ pipeline {
         unstable {
             script {
                 if (env.HAS_CHANGES == 'true') {
-                    emailext(
-                        to: "${EMAIL_RECIPIENT}",
-                        subject: "Jenkins Pipeline - Rama ${SOURCE_BRANCH}: BUILD INESTABLE",
-                        body: """
-                            <html>
-                                <body>
-                                    <h2>Pipeline Build - INESTABLE</h2>
-                                    <p><strong>Repositorio:</strong> ${SOURCE_REPO}</p>
-                                    <p><strong>Rama:</strong> ${SOURCE_BRANCH}</p>
-                                    <p><strong>Build Number:</strong> ${BUILD_NUMBER}</p>
-                                    <p><strong>Build URL:</strong> <a href="${BUILD_URL}">${BUILD_URL}</a></p>
-                                    
-                                    <p>El pipeline completó pero hay algunos tests que fallaron o produjeron advertencias.</p>
-                                    <p>Por favor revisa los detalles en: <a href="${BUILD_URL}console">${BUILD_URL}console</a></p>
-
-                                    <hr>
-                                    <p><em>Este es un mensaje automático del sistema CI/CD</em></p>
-                                </body>
-                            </html>
-                        """,
-                        mimeType: 'text/html'
+                    def emailHandler = load("${WORKSPACE}/jenkins/tony/scripts/email-handler.groovy")
+                    emailHandler.sendUnstableEmail(
+                        env.EMAIL_RECIPIENT,
+                        env.SOURCE_BRANCH,
+                        env.SOURCE_REPO
                     )
                 }
             }
