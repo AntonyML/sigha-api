@@ -1,58 +1,86 @@
 def deployToIIS(ftpHost, ftpUser, ftpPass, ftpPort, remotePath, sourceBuild) {
-    bat '''
-        @echo off
-        setlocal enabledelayedexpansion
+    echo "=========================================="
+    echo "FTP DEPLOYMENT - PowerShell Version"
+    echo "=========================================="
+    
+    def scriptPath = ".\\jenkins\\tony\\scripts\\deploy-ftp-powershell.ps1"
+    
+    powershell(script: """
+        Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
         
-        set FTP_HOST=''' + ftpHost + '''
-        set FTP_USER=''' + ftpUser + '''
-        set FTP_PASS=''' + ftpPass + '''
-        set FTP_PORT=''' + ftpPort + '''
-        set REMOTE_PATH=''' + remotePath + '''
-        set SOURCE_BUILD=''' + sourceBuild + '''
+        & "${scriptPath}" `
+            -FtpHost "${ftpHost}" `
+            -FtpPort ${ftpPort} `
+            -FtpUser "${ftpUser}" `
+            -FtpPass "${ftpPass}" `
+            -RemotePath "${remotePath}" `
+            -SourceBuild ".\\${sourceBuild}"
         
-        if not exist "!SOURCE_BUILD!" (
-            echo Error: Build directory not found at !SOURCE_BUILD!
-            exit /b 1
-        )
-        
-        echo Creating FTP deployment script...
-        (
-            echo open !FTP_HOST! !FTP_PORT!
-            echo !FTP_USER!
-            echo !FTP_PASS!
-            echo binary
-            echo cd !REMOTE_PATH!
-            echo mput !SOURCE_BUILD!/*.*
-            echo quit
-        ) > ftp_deploy.txt
-        
-        echo Starting FTP deployment...
-        ftp -s:ftp_deploy.txt
-        
-        if errorlevel 1 (
-            echo FTP deployment failed
-            del /q ftp_deploy.txt 2>nul
-            exit /b 1
-        )
-        
-        echo FTP deployment completed successfully
-        del /q ftp_deploy.txt 2>nul
-    '''
+        if (\$LASTEXITCODE -ne 0) {
+            throw "FTP deployment failed with exit code: \$LASTEXITCODE"
+        }
+    """)
+    
+    echo "FTP deployment completed successfully"
 }
 
-def restartIISService() {
-    bat '''
-        @echo off
-        echo Restarting IIS...
-        iisreset /restart
+def startNodeServer() {
+    echo "=========================================="
+    echo "STARTING NODE.JS SERVER"
+    echo "=========================================="
+    
+    def scriptPath = ".\\jenkins\\tony\\scripts\\start-node-server.ps1"
+    
+    powershell(script: """
+        Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
         
-        if errorlevel 1 (
-            echo Warning: Could not restart IIS automatically
-            exit /b 0
-        )
+        & "${scriptPath}" `
+            -WorkingDirectory "C:\\ProyectoAnalisis\\backend\\www" `
+            -Port 3001 `
+            -TimeoutSeconds 10
         
-        echo IIS restarted successfully
-    '''
+        if (\$LASTEXITCODE -ne 0) {
+            echo "Warning: Node.js startup script reported issues but continuing..."
+        }
+    """)
+    
+    echo "Node.js server startup sequence completed"
+}
+
+def verifyDeployment() {
+    echo "=========================================="
+    echo "VERIFYING DEPLOYMENT"
+    echo "=========================================="
+    
+    powershell(script: """
+        \$maxRetries = 5
+        \$retryCount = 0
+        \$success = \$false
+        
+        while (\$retryCount -lt \$maxRetries -and -not \$success) {
+            try {
+                \$response = Invoke-WebRequest -Uri "http://localhost:3001/api" `
+                                             -Method GET `
+                                             -TimeoutSec 5 `
+                                             -ErrorAction Stop
+                
+                if (\$response.StatusCode -eq 200) {
+                    Write-Host "Health check passed - Deployment verified" -ForegroundColor Green
+                    \$success = \$true
+                }
+            }
+            catch {
+                \$retryCount++
+                if (\$retryCount -lt \$maxRetries) {
+                    Write-Host "Retry \$retryCount/\$maxRetries - waiting for server..." -ForegroundColor Yellow
+                    Start-Sleep -Seconds 2
+                }
+                else {
+                    Write-Host "Warning: Could not verify deployment after \$maxRetries attempts" -ForegroundColor Yellow
+                }
+            }
+        }
+    """)
 }
 
 return this

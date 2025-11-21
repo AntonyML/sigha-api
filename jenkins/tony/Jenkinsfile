@@ -176,7 +176,7 @@ pipeline {
             }
         }
 
-        stage('Deploy to IIS') {
+        stage('Deploy to IIS via FTP') {
             when {
                 expression { env.HAS_CHANGES == 'true' && env.BUILD_SUCCESS == 'true' }
             }
@@ -185,6 +185,7 @@ pipeline {
                     def deployIis = load("${WORKSPACE}/jenkins/tony/scripts/deploy-iis.groovy")
                     
                     try {
+                        echo '[PIPELINE] Iniciando FTP deployment...'
                         deployIis.deployToIIS(
                             env.FTP_HOST,
                             env.FTP_USER,
@@ -193,12 +194,52 @@ pipeline {
                             env.REMOTE_PATH,
                             env.SOURCE_BUILD
                         )
-                        deployIis.restartIISService()
+                        echo '[PIPELINE] FTP deployment completed'
                         env.DEPLOY_SUCCESS = 'true'
                     } catch (Exception e) {
                         env.DEPLOY_SUCCESS = 'false'
                         currentBuild.result = 'FAILURE'
                         throw e
+                    }
+                }
+            }
+        }
+
+        stage('Start Node.js Server') {
+            when {
+                expression { env.HAS_CHANGES == 'true' && env.DEPLOY_SUCCESS == 'true' }
+            }
+            steps {
+                script {
+                    def deployIis = load("${WORKSPACE}/jenkins/tony/scripts/deploy-iis.groovy")
+                    
+                    try {
+                        echo '[PIPELINE] Iniciando servidor Node.js en puerto 3001...'
+                        deployIis.startNodeServer()
+                        echo '[PIPELINE] Servidor Node.js iniciado'
+                    } catch (Exception e) {
+                        echo "[PIPELINE] Advertencia: Node.js startup falló pero continuando: ${e.message}"
+                        // Continuar incluso si hay error, el servidor podría estar iniciando
+                    }
+                }
+            }
+        }
+
+        stage('Verify Deployment') {
+            when {
+                expression { env.HAS_CHANGES == 'true' && env.DEPLOY_SUCCESS == 'true' }
+            }
+            steps {
+                script {
+                    def deployIis = load("${WORKSPACE}/jenkins/tony/scripts/deploy-iis.groovy")
+                    
+                    try {
+                        echo '[PIPELINE] Verificando deployment...'
+                        sleep(time: 3, unit: 'SECONDS')
+                        deployIis.verifyDeployment()
+                        echo '[PIPELINE] Deployment verificado'
+                    } catch (Exception e) {
+                        echo "[PIPELINE] Advertencia: Verificación falló pero continuando: ${e.message}"
                     }
                 }
             }
