@@ -4,51 +4,48 @@ param(
     [int]$TimeoutSeconds = 10
 )
 
-Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "INICIAR SERVIDOR NODE.JS" -ForegroundColor Cyan
-Write-Host "========================================" -ForegroundColor Cyan
+Write-Host "========================================"
+Write-Host "INICIAR SERVIDOR NODE.JS"
+Write-Host "========================================"
 Write-Host ""
 
 try {
-    # Detener cualquier proceso Node.js anterior
-    Write-Host "Verificando procesos Node.js previos..." -ForegroundColor Yellow
+    Write-Host "Verificando procesos Node.js previos..."
     $existingNode = Get-Process -Name "node" -ErrorAction SilentlyContinue
     
     if ($existingNode) {
-        Write-Host "Deteniendo proceso Node.js anterior..." -ForegroundColor Yellow
+        Write-Host "Deteniendo proceso Node.js anterior..."
         $existingNode | Stop-Process -Force -ErrorAction SilentlyContinue
         Start-Sleep -Seconds 2
-        Write-Host "OK: Proceso anterior detenido" -ForegroundColor Green
+        Write-Host "OK: Proceso anterior detenido"
     } else {
-        Write-Host "OK: No hay procesos Node.js previos" -ForegroundColor Green
+        Write-Host "OK: No hay procesos Node.js previos"
     }
     
     Write-Host ""
-    Write-Host "Verificando directorio: $WorkingDirectory" -ForegroundColor Yellow
+    Write-Host "Verificando directorio: $WorkingDirectory"
     
     if (-not (Test-Path $WorkingDirectory)) {
-        Write-Host "ERROR: Directorio no existe: $WorkingDirectory" -ForegroundColor Red
+        Write-Host "ERROR: Directorio no existe"
         exit 1
     }
     
-    # Verificar que exista package.json
     if (-not (Test-Path (Join-Path $WorkingDirectory "package.json"))) {
-        Write-Host "ERROR: No se encontro package.json en $WorkingDirectory" -ForegroundColor Red
+        Write-Host "ERROR: No se encontro package.json"
         exit 1
     }
     
-    Write-Host "OK: Directorio valido" -ForegroundColor Green
+    Write-Host "OK: Directorio valido"
     Write-Host ""
     
-    Write-Host "Iniciando servidor Node.js..." -ForegroundColor Yellow
-    Write-Host "  Directorio: $WorkingDirectory" -ForegroundColor White
-    Write-Host "  Puerto: $Port" -ForegroundColor White
+    Write-Host "Iniciando servidor Node.js..."
+    Write-Host "  Directorio: $WorkingDirectory"
+    Write-Host "  Puerto: $Port"
     Write-Host ""
     
-    # Establecer variable de ambiente
     [Environment]::SetEnvironmentVariable("PORT", $Port, "Process")
+    [Environment]::SetEnvironmentVariable("NODE_ENV", "production", "Process")
     
-    # Iniciar Node.js en background
     $nodeProcess = Start-Process -FilePath "node" `
                                  -ArgumentList "main.js" `
                                  -WorkingDirectory $WorkingDirectory `
@@ -57,11 +54,10 @@ try {
                                  -ErrorAction Stop
     
     $processId = $nodeProcess.Id
-    Write-Host "OK: Proceso Node.js iniciado (PID: $processId)" -ForegroundColor Green
+    Write-Host "OK: Proceso Node.js iniciado (PID: $processId)"
     
-    # Esperar a que esté listo
     Write-Host ""
-    Write-Host "Esperando a que el servidor este listo..." -ForegroundColor Yellow
+    Write-Host "Esperando a que el servidor este listo..."
     
     $startTime = Get-Date
     $isReady = $false
@@ -86,39 +82,26 @@ try {
     Write-Host ""
     
     if ($isReady) {
-        Write-Host "========================================" -ForegroundColor Green
-        Write-Host "OK: SERVIDOR INICIADO EXITOSAMENTE" -ForegroundColor Green
-        Write-Host "========================================" -ForegroundColor Green
+        Write-Host "========================================"
+        Write-Host "OK: SERVIDOR INICIADO EXITOSAMENTE"
+        Write-Host "========================================"
         Write-Host ""
-        Write-Host "Detalles:" -ForegroundColor Cyan
-        Write-Host "  URL: http://localhost:$Port/" -ForegroundColor White
-        Write-Host "  Health Check: http://localhost:$Port/api" -ForegroundColor White
-        Write-Host "  Swagger: http://localhost:$Port/api" -ForegroundColor White
-        Write-Host ""
-        Write-Host "Proxy Inverso (IIS):" -ForegroundColor Cyan
-        Write-Host "  Accede a: http://localhost/" -ForegroundColor White
-        Write-Host "  Redirige a: http://localhost:$Port/" -ForegroundColor White
+        Write-Host "URL: http://localhost:$Port/"
         Write-Host ""
         exit 0
     } else {
-        Write-Host "WARNING: Servidor no respondio en $TimeoutSeconds segundos" -ForegroundColor Yellow
-        Write-Host "El servidor podria estar iniciando aun..." -ForegroundColor Yellow
+        Write-Host "WARNING: Servidor no respondio en $TimeoutSeconds segundos"
+        Write-Host "El servidor podria estar iniciando aun..."
         Write-Host ""
-        exit 0  # No fallar, puede estar iniciando
+        exit 0
     }
 }
 catch {
     Write-Host ""
-    Write-Host "========================================" -ForegroundColor Red
-    Write-Host "ERROR: Fallo al iniciar servidor" -ForegroundColor Red
-    Write-Host "========================================" -ForegroundColor Red
+    Write-Host "========================================"
+    Write-Host "ERROR: Fallo al iniciar servidor"
+    Write-Host "========================================"
     Write-Host ""
-    Write-Host "Error: $_" -ForegroundColor Red
-    Write-Host ""
-    Write-Host "Soluciones:" -ForegroundColor Yellow
-    Write-Host "  1. Verifica que Node.js este instalado" -ForegroundColor Gray
-    Write-Host "  2. Verifica que exista package.json en $WorkingDirectory" -ForegroundColor Gray
-    Write-Host "  3. Verifica que exista main.js en $WorkingDirectory" -ForegroundColor Gray
-    Write-Host "  4. Verifica los logs en el directorio" -ForegroundColor Gray
+    Write-Host "Error: $($_.Exception.Message)"
     exit 1
 }

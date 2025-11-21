@@ -7,32 +7,28 @@ param(
     [string]$SourceBuild = ".\dist"
 )
 
-Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "FTP DEPLOYMENT SCRIPT (PowerShell)" -ForegroundColor Cyan
-Write-Host "========================================" -ForegroundColor Cyan
+Write-Host "========================================"
+Write-Host "FTP DEPLOYMENT SCRIPT"
+Write-Host "========================================"
 Write-Host ""
 
-# Verificar que el directorio de build existe
 if (-not (Test-Path $SourceBuild)) {
-    Write-Host "ERROR: Build directory not found at $SourceBuild" -ForegroundColor Red
+    Write-Host "ERROR: Build directory not found at $SourceBuild"
     exit 1
 }
 
-Write-Host "✓ Build directory found: $SourceBuild" -ForegroundColor Green
+Write-Host "Build directory found: $SourceBuild"
 
-# Obtener archivos a subir (recursivo)
 $filesToUpload = Get-ChildItem -Path $SourceBuild -File -Recurse
 $fileCount = $filesToUpload.Count
-Write-Host "✓ Found $fileCount files to upload" -ForegroundColor Green
+Write-Host "Found $fileCount files to upload"
 Write-Host ""
 
-Write-Host "Connecting to FTP server: $FtpHost`:$FtpPort" -ForegroundColor Yellow
-Write-Host "Remote path: $RemotePath" -ForegroundColor Yellow
-Write-Host "Using FTP Upload (not direct filesystem access)" -ForegroundColor Yellow
+Write-Host "Connecting to FTP server: $FtpHost`:$FtpPort"
+Write-Host "Remote path: $RemotePath"
 Write-Host ""
 
 try {
-    # Crear credenciales
     $securePassword = ConvertTo-SecureString $FtpPass -AsPlainText -Force
     $credential = New-Object System.Management.Automation.PSCredential($FtpUser, $securePassword)
     
@@ -42,23 +38,17 @@ try {
     $uploadedFiles = @()
     $failedFiles = @()
     
-    # Crear colecciones de directorios para crear en FTP
-    $remoteDirs = @()
-    
-    # Subir cada archivo vía FTP
     foreach ($file in $filesToUpload) {
         $relativePath = $file.FullName.Substring($SourceBuild.Length + 1)
         $relativeDir = Split-Path -Parent $relativePath
         $fileName = Split-Path -Leaf $relativePath
         
-        # Construir ruta FTP (reemplazar backslash con forward slash)
         $remoteDir = $RemotePath + "/" + $relativeDir.Replace("\", "/")
         $remoteFileUri = "$ftpUri$remoteDir/$fileName"
         
         try {
-            Write-Host "Uploading: $relativePath... " -NoNewline -ForegroundColor White
+            Write-Host "Uploading: $relativePath... " -NoNewline
             
-            # Crear request FTP para upload
             $ftpRequest = [System.Net.FtpWebRequest]::Create($remoteFileUri)
             $ftpRequest.Method = [System.Net.WebRequestMethods+Ftp]::UploadFile
             $ftpRequest.Credentials = $credential
@@ -67,74 +57,67 @@ try {
             $ftpRequest.KeepAlive = $true
             $ftpRequest.EnableSsl = $false
             
-            # Ignorar validación de certificado SSL si es necesario
             if ($ftpRequest.EnableSsl) {
                 [System.Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }
             }
             
-            # Leer archivo binario
             $fileContent = [System.IO.File]::ReadAllBytes($file.FullName)
             $ftpRequest.ContentLength = $fileContent.Length
             
-            # Enviar contenido
             $requestStream = $ftpRequest.GetRequestStream()
             $requestStream.Write($fileContent, 0, $fileContent.Length)
             $requestStream.Close()
             
-            # Obtener respuesta FTP
             $response = $ftpRequest.GetResponse()
             $statusCode = $response.StatusCode
             $response.Close()
             
-            Write-Host "✓ OK ($statusCode)" -ForegroundColor Green
+            Write-Host "OK"
             $uploadedCount++
             $uploadedFiles += $relativePath
         }
         catch {
-            Write-Host "✗ FAILED - $_" -ForegroundColor Red
+            Write-Host "FAILED"
             $failedCount++
             $failedFiles += $relativePath
         }
     }
     
     Write-Host ""
-    Write-Host "========================================" -ForegroundColor Green
-    Write-Host "FTP Upload Summary:" -ForegroundColor Cyan
-    Write-Host "  FTP Server: $FtpHost`:$FtpPort" -ForegroundColor White
-    Write-Host "  Remote Path: $RemotePath" -ForegroundColor White
-    Write-Host "  Total files: $fileCount" -ForegroundColor White
-    Write-Host "  Successfully uploaded: $uploadedCount" -ForegroundColor Green
-    Write-Host "  Failed: $failedCount" -ForegroundColor $(if ($failedCount -eq 0) { "Green" } else { "Red" })
-    Write-Host "========================================" -ForegroundColor Green
+    Write-Host "========================================"
+    Write-Host "FTP Upload Summary"
+    Write-Host "========================================"
+    Write-Host "Total files: $fileCount"
+    Write-Host "Successfully uploaded: $uploadedCount"
+    Write-Host "Failed: $failedCount"
+    Write-Host ""
     
     if ($uploadedCount -gt 0) {
-        Write-Host ""
-        Write-Host "Uploaded files (first 10):" -ForegroundColor Cyan
+        Write-Host "Uploaded files (first 10):"
         $uploadedFiles | Select-Object -First 10 | ForEach-Object {
-            Write-Host "  ✓ $_" -ForegroundColor Gray
+            Write-Host "  - $_"
         }
         if ($uploadedCount -gt 10) {
-            Write-Host "  ... and $($uploadedCount - 10) more files" -ForegroundColor Gray
+            Write-Host "  ... and $($uploadedCount - 10) more files"
         }
     }
     
     if ($failedCount -gt 0) {
         Write-Host ""
-        Write-Host "Failed files:" -ForegroundColor Red
+        Write-Host "Failed files:"
         $failedFiles | ForEach-Object {
-            Write-Host "  ✗ $_" -ForegroundColor Red
+            Write-Host "  - $_"
         }
         exit 1
     }
     
     Write-Host ""
-    Write-Host "✓ FTP deployment completed successfully" -ForegroundColor Green
-    Write-Host ""
-    Write-Host "All files uploaded to: $FtpHost`:$FtpPort$RemotePath" -ForegroundColor Green
+    Write-Host "FTP deployment completed successfully"
     exit 0
 }
 catch {
-    Write-Host "ERROR: FTP deployment failed: $_" -ForegroundColor Red
-    Write-Host "Stack trace: $($_.Exception.StackTrace)" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "ERROR: FTP deployment failed"
+    Write-Host $_.Exception.Message
     exit 1
 }
