@@ -10,3 +10,5 @@ def getJMeterResults() {
         return "[JMeter] No results file found at ${resultsFile}"
     }
 }
+
+return this
