@@ -29,11 +29,11 @@ pipeline {
                 bat '''
                     @echo off
                     echo.
-                    echo === Contenido del directorio jmeter-results ===
-                    if exist "jmeter-results" (
-                        dir jmeter-results
+                    echo === Contenido del directorio jenkins/tony/jmeter-results ===
+                    if exist "jenkins\tony\jmeter-results" (
+                        dir jenkins\tony\jmeter-results
                     ) else (
-                        echo Directorio jmeter-results NO existe
+                        echo Directorio jenkins/tony/jmeter-results NO existe
                     )
                     
                     echo.
