@@ -197,6 +197,11 @@ pipeline {
                     def deployIis = load("${WORKSPACE}/jenkins/tony/scripts/deploy-iis.groovy")
                     
                     try {
+                        echo '[PIPELINE] Pre-deployment validation...'
+                        deployIis.preDeploymentCheck()
+                        echo '[PIPELINE] Pre-deployment check completed'
+                        
+                        echo ''
                         echo '[PIPELINE] Iniciando FTP deployment...'
                         deployIis.deployToIIS(
                             env.FTP_HOST,
@@ -226,9 +231,11 @@ pipeline {
                     def deployIis = load("${WORKSPACE}/jenkins/tony/scripts/deploy-iis.groovy")
                     
                     try {
-                        echo '[PIPELINE] Iniciando servidor Node.js en puerto 3001...'
-                        deployIis.startNodeServer()
-                        echo '[PIPELINE] Servidor Node.js iniciado'
+                        echo '[PIPELINE] Starting Node.js server with new deployment...'
+                        deployIis.startNodeServer(
+                            env.SERVER_WAS_RUNNING == 'true' ? true : false
+                        )
+                        echo '[PIPELINE] Node.js server started'
                     } catch (Exception e) {
                         echo "[PIPELINE] Advertencia: Node.js startup falló pero continuando: ${e.message}"
                         // Continuar incluso si hay error, el servidor podría estar iniciando

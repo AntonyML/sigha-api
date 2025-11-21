@@ -1,3 +1,31 @@
+def preDeploymentCheck() {
+    echo "=========================================="
+    echo "PRE-DEPLOYMENT VALIDATION"
+    echo "=========================================="
+    
+    def scriptPath = ".\\jenkins\\tony\\scripts\\pre-deployment-check.ps1"
+    
+    def result = powershell(script: """
+        Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
+        & "${scriptPath}" -Port 3001
+        exit \$LASTEXITCODE
+    """, returnStatus: true)
+    
+    echo "Pre-deployment check exit code: ${result}"
+    
+    if (result == 0) {
+        echo "Server was RUNNING - gracefully stopped for deployment"
+        env.SERVER_WAS_RUNNING = 'true'
+    } else if (result == 1) {
+        echo "Server was NOT running - safe to deploy"
+        env.SERVER_WAS_RUNNING = 'false'
+    } else {
+        throw "Pre-deployment check failed with exit code: ${result}"
+    }
+    
+    return result
+}
+
 def deployToIIS(ftpHost, ftpUser, ftpPass, ftpPort, remotePath, sourceBuild) {
     echo "=========================================="
     echo "FTP DEPLOYMENT - ZIP OPTIMIZED"
@@ -25,9 +53,13 @@ def deployToIIS(ftpHost, ftpUser, ftpPass, ftpPort, remotePath, sourceBuild) {
     echo "FTP deployment completed successfully"
 }
 
-def startNodeServer() {
+def startNodeServer(Boolean wasRunning = false) {
     echo "=========================================="
-    echo "STARTING NODE.JS SERVER"
+    if (wasRunning) {
+        echo "RESTARTING NODE.JS SERVER"
+    } else {
+        echo "STARTING NODE.JS SERVER"
+    }
     echo "=========================================="
     
     def scriptPath = ".\\jenkins\\tony\\scripts\\start-node-server.ps1"
@@ -38,7 +70,8 @@ def startNodeServer() {
         & "${scriptPath}" `
             -WorkingDirectory "C:\\ProyectoAnalisis\\backend\\www" `
             -Port 3001 `
-            -TimeoutSeconds 10
+            -TimeoutSeconds 10 `
+            -WasRunning \$${wasRunning}
         
         if (\$LASTEXITCODE -ne 0) {
             echo "Warning: Node.js startup script reported issues but continuing..."

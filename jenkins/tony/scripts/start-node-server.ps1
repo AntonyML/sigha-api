@@ -1,46 +1,52 @@
 param(
     [string]$WorkingDirectory = "C:\ProyectoAnalisis\backend\www",
     [int]$Port = 3001,
-    [int]$TimeoutSeconds = 10
+    [int]$TimeoutSeconds = 10,
+    [bool]$WasRunning = $false
 )
 
 Write-Host "========================================"
-Write-Host "INICIAR SERVIDOR NODE.JS"
+if ($WasRunning) {
+    Write-Host "RESTARTING NODE.JS SERVER"
+} else {
+    Write-Host "STARTING NODE.JS SERVER"
+}
 Write-Host "========================================"
 Write-Host ""
 
 try {
-    Write-Host "Verificando procesos Node.js previos..."
-    $existingNode = Get-Process -Name "node" -ErrorAction SilentlyContinue
-    
-    if ($existingNode) {
-        Write-Host "Deteniendo proceso Node.js anterior..."
-        $existingNode | Stop-Process -Force -ErrorAction SilentlyContinue
-        Start-Sleep -Seconds 2
-        Write-Host "OK: Proceso anterior detenido"
-    } else {
-        Write-Host "OK: No hay procesos Node.js previos"
-    }
-    
-    Write-Host ""
-    Write-Host "Verificando directorio: $WorkingDirectory"
+    Write-Host "Verifying directory: $WorkingDirectory"
     
     if (-not (Test-Path $WorkingDirectory)) {
-        Write-Host "ERROR: Directorio no existe"
+        Write-Host "ERROR: Directory not found: $WorkingDirectory"
         exit 1
     }
     
     if (-not (Test-Path (Join-Path $WorkingDirectory "package.json"))) {
-        Write-Host "ERROR: No se encontro package.json"
+        Write-Host "ERROR: package.json not found in $WorkingDirectory"
         exit 1
     }
     
-    Write-Host "OK: Directorio valido"
+    Write-Host "OK: Directory structure valid"
     Write-Host ""
     
-    Write-Host "Iniciando servidor Node.js..."
-    Write-Host "  Directorio: $WorkingDirectory"
-    Write-Host "  Puerto: $Port"
+    # Asegurar que no hay procesos Node.js restantes
+    Write-Host "Checking for lingering Node.js processes..."
+    $existingNode = Get-Process -Name "node" -ErrorAction SilentlyContinue
+    
+    if ($existingNode) {
+        Write-Host "Found lingering Node.js process(es), terminating..."
+        $existingNode | Stop-Process -Force -ErrorAction SilentlyContinue
+        Start-Sleep -Seconds 2
+    } else {
+        Write-Host "OK: No lingering processes found"
+    }
+    
+    Write-Host ""
+    Write-Host "Starting Node.js server..."
+    Write-Host "  Directory: $WorkingDirectory"
+    Write-Host "  Port: $Port"
+    Write-Host "  Environment: production"
     Write-Host ""
     
     [Environment]::SetEnvironmentVariable("PORT", $Port, "Process")
@@ -54,15 +60,17 @@ try {
                                  -ErrorAction Stop
     
     $processId = $nodeProcess.Id
-    Write-Host "OK: Proceso Node.js iniciado (PID: $processId)"
+    Write-Host "OK: Node.js process started (PID: $processId)"
     
     Write-Host ""
-    Write-Host "Esperando a que el servidor este listo..."
+    Write-Host "Waiting for server to be ready..."
     
     $startTime = Get-Date
     $isReady = $false
+    $attemptCount = 0
     
     while ((Get-Date) -lt $startTime.AddSeconds($TimeoutSeconds)) {
+        $attemptCount++
         try {
             $response = Invoke-WebRequest -Uri "http://localhost:$Port/api" `
                                          -Method GET `
@@ -83,23 +91,35 @@ try {
     
     if ($isReady) {
         Write-Host "========================================"
-        Write-Host "OK: SERVIDOR INICIADO EXITOSAMENTE"
+        Write-Host "OK: SERVER STARTED SUCCESSFULLY"
         Write-Host "========================================"
         Write-Host ""
         Write-Host "URL: http://localhost:$Port/"
+        Write-Host "Status: Ready to serve requests"
         Write-Host ""
         exit 0
     } else {
-        Write-Host "WARNING: Servidor no respondio en $TimeoutSeconds segundos"
-        Write-Host "El servidor podria estar iniciando aun..."
+        Write-Host "WARNING: Server did not respond in $TimeoutSeconds seconds"
+        Write-Host "Attempts made: $attemptCount"
+        Write-Host "The server might still be starting..."
         Write-Host ""
-        exit 0
+        
+        # Verificar que el proceso sigue ejecutándose
+        $checkProcess = Get-Process -Id $processId -ErrorAction SilentlyContinue
+        if ($checkProcess) {
+            Write-Host "Process is still running (PID: $processId)"
+            Write-Host ""
+            exit 0
+        } else {
+            Write-Host "ERROR: Process is not running"
+            exit 1
+        }
     }
 }
 catch {
     Write-Host ""
     Write-Host "========================================"
-    Write-Host "ERROR: Fallo al iniciar servidor"
+    Write-Host "ERROR: Failed to start server"
     Write-Host "========================================"
     Write-Host ""
     Write-Host "Error: $($_.Exception.Message)"
