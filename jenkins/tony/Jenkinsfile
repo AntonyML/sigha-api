@@ -36,68 +36,7 @@ pipeline {
                 script {
                     echo 'Deploying to FTP Server'
                     powershell '''
-                        $ErrorActionPreference = "Stop"
-                        
-                        $FtpServer = "localhost"
-                        $FtpPort = 21
-                        $FtpUser = "ftpadmin"
-                        $FtpPassword = "Ftp@2025Proyecto"
-                        $SourcePath = "${env:WORKSPACE}\\\\dist"
-                        $ProductionPath = "C:\\\\ProyectoAnalisis\\\\backend\\\\www"
-                        $ZipPath = "${env:WORKSPACE}\\\\dist.zip"
-                        $RemotePath = "/backend/www"
-                        
-                        try {
-                            Write-Host "Step 1: Creating ZIP..." -ForegroundColor Green
-                            if (Test-Path $ZipPath) {
-                                Remove-Item $ZipPath -Force
-                            }
-                            [System.IO.Compression.ZipFile]::CreateFromDirectory($SourcePath, $ZipPath, "Optimal", $false)
-                            $ZipSize = (Get-Item $ZipPath).Length / 1MB
-                            Write-Host "ZIP created: $($ZipSize)MB" -ForegroundColor Green
-                            
-                            Write-Host "Step 2: Connecting to FTP..." -ForegroundColor Green
-                            $FtpUri = "ftp://${FtpServer}:${FtpPort}${RemotePath}/"
-                            $Credential = New-Object System.Net.NetworkCredential($FtpUser, $FtpPassword)
-                            
-                            Write-Host "Step 3: Uploading ZIP to FTP..." -ForegroundColor Green
-                            $FtpRequest = [System.Net.FtpWebRequest]::Create("${FtpUri}dist.zip")
-                            $FtpRequest.Method = [System.Net.WebRequestMethods+Ftp]::UploadFile
-                            $FtpRequest.Credentials = $Credential
-                            $FtpRequest.UseBinary = $true
-                            $FtpRequest.KeepAlive = $false
-                            
-                            $FileStream = [System.IO.File]::OpenRead($ZipPath)
-                            $UploadStream = $FtpRequest.GetRequestStream()
-                            $FileStream.CopyTo($UploadStream)
-                            $UploadStream.Close()
-                            $FileStream.Close()
-                            
-                            $FtpResponse = $FtpRequest.GetResponse()
-                            Write-Host "FTP Response: $($FtpResponse.StatusDescription)" -ForegroundColor Green
-                            $FtpResponse.Close()
-                            
-                            Write-Host "Step 4: Extracting ZIP in production..." -ForegroundColor Green
-                            if (Test-Path "${ProductionPath}\\\\dist.zip") {
-                                [System.IO.Compression.ZipFile]::ExtractToDirectory("${ProductionPath}\\\\dist.zip", $ProductionPath, $true)
-                                Write-Host "ZIP extracted successfully" -ForegroundColor Green
-                            } else {
-                                Write-Host "ERROR: ZIP not found" -ForegroundColor Red
-                                exit 1
-                            }
-                            
-                            Write-Host "Step 5: Cleaning temporary files..." -ForegroundColor Green
-                            Remove-Item $ZipPath -Force
-                            if (Test-Path "${ProductionPath}\\\\dist.zip") {
-                                Remove-Item "${ProductionPath}\\\\dist.zip" -Force
-                            }
-                            
-                            Write-Host "FTP deployment completed successfully" -ForegroundColor Green
-                            
-                        } catch {
-                            Write-Host "ERROR: $_" -ForegroundColor Red
-                            exit 1
-                        }
+                        & "${env:WORKSPACE}\\jenkins\\tony\\scripts\\deploy-ftp-zip.ps1" -SourceBuild "${env:WORKSPACE}\\dist" -FtpHost "localhost" -FtpUser "ftpadmin" -FtpPass "Ftp@2025Proyecto"
                     '''
                 }
             }
