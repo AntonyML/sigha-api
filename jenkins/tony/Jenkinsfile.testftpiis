@@ -1,0 +1,83 @@
+pipeline {
+    agent any
+    
+    options {
+        timestamps()
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+    }
+    
+    stages {
+        stage('Install Dependencies') {
+            steps {
+                script {
+                    echo 'Installing dependencies'
+                    bat '''
+                        cd %WORKSPACE%
+                        call npm install
+                    '''
+                }
+            }
+        }
+        
+        stage('Build Application') {
+            steps {
+                script {
+                    echo 'Building NestJS Application'
+                    bat '''
+                        cd %WORKSPACE%
+                        call npm run build
+                    '''
+                }
+            }
+        }
+        
+        stage('Deploy via FTP') {
+            steps {
+                script {
+                    echo 'Deploying to FTP Server'
+                    powershell '''
+                        & "${env:WORKSPACE}\\jenkins\\tony\\scripts\\deploy-ftp-zip.ps1" -SourceBuild "${env:WORKSPACE}\\dist" -FtpHost "localhost" -FtpUser "ftpadmin" -FtpPass "Ftp@2025Proyecto"
+                    '''
+                }
+            }
+        }
+        
+        stage('Verify Deployment') {
+            steps {
+                script {
+                    echo 'Verifying deployment'
+                    powershell '''
+                        $ProductionPath = "C:\\\\ProyectoAnalisis\\\\backend\\\\www"
+                        
+                        if (Test-Path $ProductionPath) {
+                            $FileCount = (Get-ChildItem $ProductionPath -Recurse -File).Count
+                            Write-Host "Files in production path: $FileCount" -ForegroundColor Green
+                            
+                            if ($FileCount -gt 0) {
+                                Write-Host "Deployment verified successfully" -ForegroundColor Green
+                            } else {
+                                Write-Host "ERROR: No files found in production path" -ForegroundColor Red
+                                exit 1
+                            }
+                        } else {
+                            Write-Host "ERROR: Production path not found" -ForegroundColor Red
+                            exit 1
+                        }
+                    '''
+                }
+            }
+        }
+    }
+    
+    post {
+        always {
+            cleanWs()
+        }
+        success {
+            echo 'Pipeline executed successfully'
+        }
+        failure {
+            echo 'Pipeline failed'
+        }
+    }
+}

@@ -18,7 +18,7 @@ pipeline {
         FTP_USER = 'ftpadmin'
         FTP_PASS = 'Ftp@2025Proyecto'
         FTP_PORT = '21'
-        REMOTE_PATH = '/backend/www'
+        REMOTE_PATH = '/'
         SOURCE_BUILD = 'dist'
     }
 
@@ -156,6 +156,18 @@ pipeline {
             }
         }
 
+        stage('Install Dependencies for Build') {
+            when {
+                expression { env.HAS_CHANGES == 'true' && env.MERGE_SUCCESS == 'true' }
+            }
+            steps {
+                script {
+                    echo 'Installing dependencies before build'
+                    bat '''npm install'''
+                }
+            }
+        }
+        
         stage('Build Application') {
             when {
                 expression { env.HAS_CHANGES == 'true' && env.MERGE_SUCCESS == 'true' }
@@ -176,7 +188,7 @@ pipeline {
             }
         }
 
-        stage('Deploy to IIS') {
+        stage('Deploy to IIS via FTP') {
             when {
                 expression { env.HAS_CHANGES == 'true' && env.BUILD_SUCCESS == 'true' }
             }
@@ -185,6 +197,12 @@ pipeline {
                     def deployIis = load("${WORKSPACE}/jenkins/tony/scripts/deploy-iis.groovy")
                     
                     try {
+                        echo '[PIPELINE] Pre-deployment validation...'
+                        deployIis.preDeploymentCheck()
+                        echo '[PIPELINE] Pre-deployment check completed'
+                        
+                        echo ''
+                        echo '[PIPELINE] Iniciando FTP deployment...'
                         deployIis.deployToIIS(
                             env.FTP_HOST,
                             env.FTP_USER,
@@ -193,13 +211,65 @@ pipeline {
                             env.REMOTE_PATH,
                             env.SOURCE_BUILD
                         )
-                        deployIis.restartIISService()
+                        echo '[PIPELINE] FTP deployment completed'
                         env.DEPLOY_SUCCESS = 'true'
                     } catch (Exception e) {
                         env.DEPLOY_SUCCESS = 'false'
                         currentBuild.result = 'FAILURE'
                         throw e
                     }
+                }
+            }
+        }
+
+        stage('Start Node.js Server') {
+            when {
+                expression { env.HAS_CHANGES == 'true' && env.DEPLOY_SUCCESS == 'true' }
+            }
+            steps {
+                script {
+                    def deployIis = load("${WORKSPACE}/jenkins/tony/scripts/deploy-iis.groovy")
+                    
+                    try {
+                        echo '[PIPELINE] Starting Node.js server with new deployment...'
+                        deployIis.startNodeServer(
+                            env.SERVER_WAS_RUNNING == 'true' ? true : false
+                        )
+                        echo '[PIPELINE] Node.js server started'
+                    } catch (Exception e) {
+                        echo "[PIPELINE] Advertencia: Node.js startup falló pero continuando: ${e.message}"
+                        // Continuar incluso si hay error, el servidor podría estar iniciando
+                    }
+                }
+            }
+        }
+
+        stage('Verify Deployment') {
+            when {
+                expression { env.HAS_CHANGES == 'true' && env.DEPLOY_SUCCESS == 'true' }
+            }
+            steps {
+                script {
+                    echo '[PIPELINE] Verificando deployment...'
+                    powershell '''
+                        $ProductionPath = "C:\\\\ProyectoAnalisis\\\\backend\\\\www"
+                        
+                        if (Test-Path $ProductionPath) {
+                            $FileCount = (Get-ChildItem $ProductionPath -Recurse -File).Count
+                            Write-Host "Files in production path: $FileCount" -ForegroundColor Green
+                            
+                            if ($FileCount -gt 0) {
+                                Write-Host "Deployment verified successfully" -ForegroundColor Green
+                            } else {
+                                Write-Host "ERROR: No files found in production path" -ForegroundColor Red
+                                exit 1
+                            }
+                        } else {
+                            Write-Host "ERROR: Production path not found" -ForegroundColor Red
+                            exit 1
+                        }
+                    '''
+                    echo '[PIPELINE] Deployment verificado'
                 }
             }
         }
