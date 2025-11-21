@@ -14,6 +14,12 @@ pipeline {
 
     environment {
         WORKSPACE_DIR = "${WORKSPACE}"
+        FTP_HOST = 'localhost'
+        FTP_USER = 'ftpadmin'
+        FTP_PASS = 'Ftp@2025Proyecto'
+        FTP_PORT = '21'
+        REMOTE_PATH = '/backend/www'
+        SOURCE_BUILD = 'dist'
     }
 
     stages {
@@ -119,9 +125,77 @@ pipeline {
             }
         }
 
-        stage('Push to Deploy Repository') {
+        stage('Merge Dev to Master') {
             when {
                 expression { env.HAS_CHANGES == 'true' && currentBuild.result == null }
+            }
+            steps {
+                script {
+                    def mergeAndBuild = load("${WORKSPACE}/jenkins/tony/scripts/merge-and-build.groovy")
+                    
+                    try {
+                        mergeAndBuild.mergeDevToMaster(env.SOURCE_REPO, 'git-credentials')
+                        env.MERGE_SUCCESS = 'true'
+                    } catch (Exception e) {
+                        env.MERGE_SUCCESS = 'false'
+                        currentBuild.result = 'FAILURE'
+                        throw e
+                    }
+                }
+            }
+        }
+
+        stage('Build Application') {
+            when {
+                expression { env.HAS_CHANGES == 'true' && env.MERGE_SUCCESS == 'true' }
+            }
+            steps {
+                script {
+                    def mergeAndBuild = load("${WORKSPACE}/jenkins/tony/scripts/merge-and-build.groovy")
+                    
+                    try {
+                        mergeAndBuild.buildApplication()
+                        env.BUILD_SUCCESS = 'true'
+                    } catch (Exception e) {
+                        env.BUILD_SUCCESS = 'false'
+                        currentBuild.result = 'FAILURE'
+                        throw e
+                    }
+                }
+            }
+        }
+
+        stage('Deploy to IIS') {
+            when {
+                expression { env.HAS_CHANGES == 'true' && env.BUILD_SUCCESS == 'true' }
+            }
+            steps {
+                script {
+                    def deployIis = load("${WORKSPACE}/jenkins/tony/scripts/deploy-iis.groovy")
+                    
+                    try {
+                        deployIis.deployToIIS(
+                            env.FTP_HOST,
+                            env.FTP_USER,
+                            env.FTP_PASS,
+                            env.FTP_PORT,
+                            env.REMOTE_PATH,
+                            env.SOURCE_BUILD
+                        )
+                        deployIis.restartIISService()
+                        env.DEPLOY_SUCCESS = 'true'
+                    } catch (Exception e) {
+                        env.DEPLOY_SUCCESS = 'false'
+                        currentBuild.result = 'FAILURE'
+                        throw e
+                    }
+                }
+            }
+        }
+
+        stage('Push to Deploy Repository') {
+            when {
+                expression { env.HAS_CHANGES == 'true' && env.DEPLOY_SUCCESS == 'true' }
             }
             steps {
                 script {
@@ -158,7 +232,8 @@ pipeline {
                         env.SOURCE_REPO,
                         testOutput,
                         unitTestOutput,
-                        jmeterOutput
+                        jmeterOutput,
+                        env.CURRENT_COMMIT
                     )
                 }
             }
@@ -172,13 +247,15 @@ pipeline {
                     
                     def testOutput = testRunner.getTestOutput('jest-results.log', 1000)
                     def unitTestOutput = testRunner.getTestOutput('unit-test-results.log', 1000)
+                    def failureStage = env.STAGE_NAME ?: 'Unknown'
                     
                     emailHandler.sendFailureEmail(
                         env.EMAIL_RECIPIENT,
                         env.SOURCE_BRANCH,
                         env.SOURCE_REPO,
                         testOutput,
-                        unitTestOutput
+                        unitTestOutput,
+                        failureStage
                     )
                 }
             }

@@ -1,13 +1,14 @@
-def sendSuccessEmail(emailRecipient, sourceBranch, sourceRepo, testOutput, unitTestOutput, jmeterOutput) {
+def sendSuccessEmail(emailRecipient, sourceBranch, sourceRepo, testOutput, unitTestOutput, jmeterOutput, commit) {
     emailext(
         to: emailRecipient,
-        subject: "Jenkins Pipeline - Rama ${sourceBranch}: BUILD EXITOSO",
+        subject: "Jenkins Pipeline - Rama ${sourceBranch}: DEPLOYMENT EXITOSO",
         body: """
             <html>
                 <body>
                     <h2>Pipeline Build - EXITOSO</h2>
                     <p><strong>Repositorio:</strong> ${sourceRepo}</p>
                     <p><strong>Rama:</strong> ${sourceBranch}</p>
+                    <p><strong>Commit:</strong> ${commit}</p>
                     <p><strong>Build Number:</strong> ${BUILD_NUMBER}</p>
                     <p><strong>Build URL:</strong> <a href="${BUILD_URL}">${BUILD_URL}</a></p>
                     
@@ -19,7 +20,11 @@ def sendSuccessEmail(emailRecipient, sourceBranch, sourceRepo, testOutput, unitT
                         <li>Jest Tests ejecutados exitosamente</li>
                         <li>Unit Tests de Users Service ejecutados exitosamente</li>
                         <li>Performance Tests (JMeter) ejecutados exitosamente</li>
-                        <li>Desplegado al repositorio de deploy</li>
+                        <li>Merge dev → master completado</li>
+                        <li>Aplicacion compilada</li>
+                        <li>Deployment a IIS vía FTP completado</li>
+                        <li>IIS reiniciado</li>
+                        <li>Push al repositorio de deploy completado</li>
                     </ul>
 
                     <h3>Detalles de los Tests Unitarios:</h3>
@@ -31,6 +36,9 @@ def sendSuccessEmail(emailRecipient, sourceBranch, sourceRepo, testOutput, unitT
                     <h3>Detalles Performance Tests - JMeter:</h3>
                     <pre>${jmeterOutput}</pre>
 
+                    <h3>Acceso al Sistema:</h3>
+                    <p>Aplicacion disponible en: <strong>http://localhost:8086</strong></p>
+
                     <hr>
                     <p><strong>Build ID:</strong> ${BUILD_NUMBER}</p>
                     <p><em>Este es un mensaje automático del sistema CI/CD</em></p>
@@ -41,7 +49,7 @@ def sendSuccessEmail(emailRecipient, sourceBranch, sourceRepo, testOutput, unitT
     )
 }
 
-def sendFailureEmail(emailRecipient, sourceBranch, sourceRepo, testOutput, unitTestOutput) {
+def sendFailureEmail(emailRecipient, sourceBranch, sourceRepo, testOutput, unitTestOutput, failureStage) {
     emailext(
         to: emailRecipient,
         subject: "Jenkins Pipeline - Rama ${sourceBranch}: BUILD FALLIDO",
@@ -53,8 +61,10 @@ def sendFailureEmail(emailRecipient, sourceBranch, sourceRepo, testOutput, unitT
                     <p><strong>Rama:</strong> ${sourceBranch}</p>
                     <p><strong>Build Number:</strong> ${BUILD_NUMBER}</p>
                     <p><strong>Build URL:</strong> <a href="${BUILD_URL}">${BUILD_URL}</a></p>
+                    <p><strong>Stage donde falló:</strong> ${failureStage}</p>
                     
                     <h3>Causa del Fallo:</h3>
+                    <p>El pipeline se detuvo en el stage: <strong>${failureStage}</strong></p>
                     <p>Revisa los logs detallados a continuación para identificar el problema.</p>
 
                     <h3>Salida de Jest Tests:</h3>
