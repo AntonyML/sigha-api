@@ -18,7 +18,7 @@ pipeline {
         FTP_USER = 'ftpadmin'
         FTP_PASS = 'Ftp@2025Proyecto'
         FTP_PORT = '21'
-        REMOTE_PATH = '/backend/www'
+        REMOTE_PATH = '/'
         SOURCE_BUILD = 'dist'
     }
 
