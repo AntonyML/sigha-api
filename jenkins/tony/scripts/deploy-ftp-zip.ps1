@@ -3,7 +3,7 @@ param(
     [string]$FtpUser = "ftpadmin",
     [string]$FtpPass = "Ftp@2025Proyecto",
     [int]$FtpPort = 21,
-    [string]$RemotePath = "/backend/www",
+    [string]$RemotePath = "/",
     [string]$SourceBuild = ".\dist",
     [string]$ProductionPath = "C:\ProyectoAnalisis\backend\www"
 )
