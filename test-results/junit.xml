@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="10" failures="0" errors="0" time="5.098">
+  <testsuite name="Entrada y salida " errors="0" failures="0" skipped="0" timestamp="2025-11-21T05:15:36" time="4.694" tests="10">
+    <testcase classname="Entrada y salida  › create - Prueba 1" name="debería crear un registro de entrada exitosamente" time="0.023">
+    </testcase>
+    <testcase classname="Entrada y salida  › create - Prueba 2" name="debería crear un registro de salida exitosamente" time="0.008">
+    </testcase>
+    <testcase classname="Entrada y salida  › create - Prueba 3" name="debería lanzar BadRequestException cuando entrada tiene fecha de salida" time="0.041">
+    </testcase>
+    <testcase classname="Entrada y salida  › create - Prueba 4" name="debería lanzar BadRequestException cuando salida tiene fecha de entrada" time="0.008">
+    </testcase>
+    <testcase classname="Entrada y salida  › create - Prueba 5" name="debería usar la fecha actual cuando no se proporciona fecha de entradaaa" time="0.007">
+    </testcase>
+    <testcase classname="Entrada y salida  › closeCycle - Prueba 6" name="debería cerrar el ciclo exitosamente" time="0.008">
+    </testcase>
+    <testcase classname="Entrada y salida  › closeCycle - Prueba 7" name="debería lanzar NotFoundException cuando el registro no existe" time="0.006">
+    </testcase>
+    <testcase classname="Entrada y salida  › closeCycle - Prueba 8" name="debería lanzar BadRequestException cuando intenta cerrar un ciclo ya cerrado" time="0.009">
+    </testcase>
+    <testcase classname="Entrada y salida  › getOpenEntrances - Prueba 9" name="debería retornar todos los registros de entrada abiertos" time="0.008">
+    </testcase>
+    <testcase classname="Entrada y salida  › remove - Prueba 10" name="debería eliminar un registro exitosamente" time="0.006">
+    </testcase>
+  </testsuite>
+</testsuites>
