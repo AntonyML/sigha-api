@@ -81,7 +81,7 @@ pipeline {
             }
         }
 
-        stage('Run Tests') {
+        stage('Run Unit Tests') {
             when {
                 expression { env.HAS_CHANGES == 'true' }
             }
@@ -96,6 +96,24 @@ pipeline {
                     } catch (Exception e) {
                         currentBuild.result = 'FAILURE'
                         throw e
+                    }
+                }
+            }
+        }
+
+        stage('Run Performance Tests') {
+            when {
+                expression { env.HAS_CHANGES == 'true' && currentBuild.result == null }
+            }
+            steps {
+                script {
+                    def jmeterRunner = load("${WORKSPACE}/jenkins/tony/scripts/jmeter-runner.groovy")
+                    
+                    try {
+                        jmeterRunner.runJMeterTests()
+                        env.JMETER_EXECUTED = 'true'
+                    } catch (Exception e) {
+                        env.JMETER_EXECUTED = 'false'
                     }
                 }
             }
@@ -128,16 +146,19 @@ pipeline {
                 if (env.HAS_CHANGES == 'true') {
                     def emailHandler = load("${WORKSPACE}/jenkins/tony/scripts/email-handler.groovy")
                     def testRunner = load("${WORKSPACE}/jenkins/tony/scripts/test-runner.groovy")
+                    def jmeterRunner = load("${WORKSPACE}/jenkins/tony/scripts/jmeter-runner.groovy")
                     
                     def testOutput = testRunner.getTestOutput('jest-results.log', 500)
                     def unitTestOutput = testRunner.getTestOutput('unit-test-results.log', 500)
+                    def jmeterOutput = jmeterRunner.getJMeterResults()
                     
                     emailHandler.sendSuccessEmail(
                         env.EMAIL_RECIPIENT,
                         env.SOURCE_BRANCH,
                         env.SOURCE_REPO,
                         testOutput,
-                        unitTestOutput
+                        unitTestOutput,
+                        jmeterOutput
                     )
                 }
             }

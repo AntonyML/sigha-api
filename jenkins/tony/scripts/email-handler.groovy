@@ -1,4 +1,4 @@
-def sendSuccessEmail(emailRecipient, sourceBranch, sourceRepo, testOutput, unitTestOutput) {
+def sendSuccessEmail(emailRecipient, sourceBranch, sourceRepo, testOutput, unitTestOutput, jmeterOutput) {
     emailext(
         to: emailRecipient,
         subject: "Jenkins Pipeline - Rama ${sourceBranch}: BUILD EXITOSO",
@@ -18,14 +18,18 @@ def sendSuccessEmail(emailRecipient, sourceBranch, sourceRepo, testOutput, unitT
                         <li>Dependencias instaladas</li>
                         <li>Jest Tests ejecutados exitosamente</li>
                         <li>Unit Tests de Users Service ejecutados exitosamente</li>
+                        <li>Performance Tests (JMeter) ejecutados exitosamente</li>
                         <li>Desplegado al repositorio de deploy</li>
                     </ul>
 
-                    <h3>Detalles de los Tests:</h3>
+                    <h3>Detalles de los Tests Unitarios:</h3>
                     <pre>${testOutput}</pre>
                     
                     <h3>Detalles Unit Tests - Users Service:</h3>
                     <pre>${unitTestOutput}</pre>
+
+                    <h3>Detalles Performance Tests - JMeter:</h3>
+                    <pre>${jmeterOutput}</pre>
 
                     <hr>
                     <p><strong>Build ID:</strong> ${BUILD_NUMBER}</p>
