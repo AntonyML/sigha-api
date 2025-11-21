@@ -8,6 +8,12 @@ def mergeDevToMaster(sourceRepo, credentialsId) {
             set "PASS_ENCODED=!PASS_ENCODED:?=%%3F!"
             set "URL_WITH_CREDS=https://%GIT_USER%:!PASS_ENCODED!@git.ucr.ac.cr/proyecto_analisis/backend_nest_js_hogar_de_ancianos.git"
             
+            REM Limpiar cambios locales y archivos generados
+            git clean -fd test-results jmeter-results 2>nul
+            git reset --hard HEAD
+            git checkout dev
+            git pull origin dev
+            
             git remote add origin-merge "!URL_WITH_CREDS!" 2>nul
             if errorlevel 1 (
                 git remote remove origin-merge 2>nul
