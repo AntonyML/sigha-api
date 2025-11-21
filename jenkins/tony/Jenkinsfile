@@ -10,7 +10,7 @@ pipeline {
         stage('Build Application') {
             steps {
                 script {
-                    echo '=== Building NestJS Application ==='
+                    echo 'Building NestJS Application'
                     bat '''
                         cd %WORKSPACE%
                         call npm run build
@@ -22,37 +22,33 @@ pipeline {
         stage('Deploy via FTP') {
             steps {
                 script {
-                    echo '=== Deploying to FTP Server ==='
+                    echo 'Deploying to FTP Server'
                     powershell '''
                         $ErrorActionPreference = "Stop"
                         
-                        # Configuración FTP
                         $FtpServer = "localhost"
                         $FtpPort = 21
                         $FtpUser = "ftpadmin"
                         $FtpPassword = "Ftp@2025Proyecto"
-                        $SourcePath = "${env:WORKSPACE}\\dist"
-                        $ProductionPath = "C:\\ProyectoAnalisis\\backend\\www"
-                        $ZipPath = "${env:WORKSPACE}\\dist.zip"
+                        $SourcePath = "${env:WORKSPACE}\\\\dist"
+                        $ProductionPath = "C:\\\\ProyectoAnalisis\\\\backend\\\\www"
+                        $ZipPath = "${env:WORKSPACE}\\\\dist.zip"
                         $RemotePath = "/backend/www"
                         
                         try {
-                            # 1. Crear ZIP
-                            Write-Host "Step 1: Creando ZIP..." -ForegroundColor Green
+                            Write-Host "Step 1: Creating ZIP..." -ForegroundColor Green
                             if (Test-Path $ZipPath) {
                                 Remove-Item $ZipPath -Force
                             }
                             [System.IO.Compression.ZipFile]::CreateFromDirectory($SourcePath, $ZipPath, "Optimal", $false)
                             $ZipSize = (Get-Item $ZipPath).Length / 1MB
-                            Write-Host "ZIP creado: $($ZipSize)MB" -ForegroundColor Green
+                            Write-Host "ZIP created: $($ZipSize)MB" -ForegroundColor Green
                             
-                            # 2. Conectar a FTP
-                            Write-Host "Step 2: Conectando a FTP..." -ForegroundColor Green
+                            Write-Host "Step 2: Connecting to FTP..." -ForegroundColor Green
                             $FtpUri = "ftp://${FtpServer}:${FtpPort}${RemotePath}/"
                             $Credential = New-Object System.Net.NetworkCredential($FtpUser, $FtpPassword)
                             
-                            # 3. Subir archivo
-                            Write-Host "Step 3: Subiendo archivo ZIP a FTP..." -ForegroundColor Green
+                            Write-Host "Step 3: Uploading ZIP to FTP..." -ForegroundColor Green
                             $FtpRequest = [System.Net.FtpWebRequest]::Create("${FtpUri}dist.zip")
                             $FtpRequest.Method = [System.Net.WebRequestMethods+Ftp]::UploadFile
                             $FtpRequest.Credentials = $Credential
@@ -66,27 +62,25 @@ pipeline {
                             $FileStream.Close()
                             
                             $FtpResponse = $FtpRequest.GetResponse()
-                            Write-Host "FTP Upload Response: $($FtpResponse.StatusDescription)" -ForegroundColor Green
+                            Write-Host "FTP Response: $($FtpResponse.StatusDescription)" -ForegroundColor Green
                             $FtpResponse.Close()
                             
-                            # 4. Extraer ZIP en producción
-                            Write-Host "Step 4: Extrayendo ZIP en producción..." -ForegroundColor Green
-                            if (Test-Path "${ProductionPath}\\dist.zip") {
-                                [System.IO.Compression.ZipFile]::ExtractToDirectory("${ProductionPath}\\dist.zip", $ProductionPath, $true)
-                                Write-Host "ZIP extraído correctamente" -ForegroundColor Green
+                            Write-Host "Step 4: Extracting ZIP in production..." -ForegroundColor Green
+                            if (Test-Path "${ProductionPath}\\\\dist.zip") {
+                                [System.IO.Compression.ZipFile]::ExtractToDirectory("${ProductionPath}\\\\dist.zip", $ProductionPath, $true)
+                                Write-Host "ZIP extracted successfully" -ForegroundColor Green
                             } else {
-                                Write-Host "ERROR: ZIP no encontrado en ${ProductionPath}" -ForegroundColor Red
+                                Write-Host "ERROR: ZIP not found" -ForegroundColor Red
                                 exit 1
                             }
                             
-                            # 5. Limpiar
-                            Write-Host "Step 5: Limpiando archivos temporales..." -ForegroundColor Green
+                            Write-Host "Step 5: Cleaning temporary files..." -ForegroundColor Green
                             Remove-Item $ZipPath -Force
-                            if (Test-Path "${ProductionPath}\\dist.zip") {
-                                Remove-Item "${ProductionPath}\\dist.zip" -Force
+                            if (Test-Path "${ProductionPath}\\\\dist.zip") {
+                                Remove-Item "${ProductionPath}\\\\dist.zip" -Force
                             }
                             
-                            Write-Host "Despliegue FTP completado exitosamente" -ForegroundColor Green
+                            Write-Host "FTP deployment completed successfully" -ForegroundColor Green
                             
                         } catch {
                             Write-Host "ERROR: $_" -ForegroundColor Red
@@ -100,15 +94,15 @@ pipeline {
         stage('Verify Deployment') {
             steps {
                 script {
-                    echo '=== Verificando despliegue ==='
+                    echo 'Verifying deployment'
                     powershell '''
-                        $ProductionPath = "C:\\ProyectoAnalisis\\backend\\www"
+                        $ProductionPath = "C:\\\\ProyectoAnalisis\\\\backend\\\\www"
                         
-                        if (Test-Path "${ProductionPath}\\dist") {
-                            $FileCount = (Get-ChildItem "${ProductionPath}\\dist" -Recurse).Count
-                            Write-Host "Archivos en dist: $FileCount" -ForegroundColor Green
+                        if (Test-Path "${ProductionPath}\\\\dist") {
+                            $FileCount = (Get-ChildItem "${ProductionPath}\\\\dist" -Recurse).Count
+                            Write-Host "Files in dist: $FileCount" -ForegroundColor Green
                         } else {
-                            Write-Host "ERROR: Carpeta dist no existe" -ForegroundColor Red
+                            Write-Host "ERROR: dist folder not found" -ForegroundColor Red
                             exit 1
                         }
                     '''
@@ -122,10 +116,10 @@ pipeline {
             cleanWs()
         }
         success {
-            echo '✅ Pipeline ejecutado exitosamente'
+            echo 'Pipeline executed successfully'
         }
         failure {
-            echo '❌ Pipeline falló'
+            echo 'Pipeline failed'
         }
     }
 }
