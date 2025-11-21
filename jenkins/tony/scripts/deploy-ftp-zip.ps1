@@ -97,13 +97,19 @@ try {
         New-Item -ItemType Directory -Path $ProductionPath -Force | Out-Null
     }
     
-    # Extraer ZIP local directamente
+    # Crear carpeta dist si no existe
+    $distPath = Join-Path $ProductionPath "dist"
+    if (-not (Test-Path $distPath)) {
+        New-Item -ItemType Directory -Path $distPath -Force | Out-Null
+    }
+    
+    # Extraer ZIP local en la carpeta dist
     Write-Host "Extracting ZIP file from: $zipPath"
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     
     try {
-        [System.IO.Compression.ZipFile]::ExtractToDirectory($zipPath, $ProductionPath)
-        Write-Host "ZIP extracted successfully to production directory"
+        [System.IO.Compression.ZipFile]::ExtractToDirectory($zipPath, $distPath)
+        Write-Host "ZIP extracted successfully to $distPath"
     } catch {
         Write-Host "Error extracting ZIP: $($_.Exception.Message)"
         throw

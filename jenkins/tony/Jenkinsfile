@@ -49,11 +49,18 @@ pipeline {
                     powershell '''
                         $ProductionPath = "C:\\\\ProyectoAnalisis\\\\backend\\\\www"
                         
-                        if (Test-Path "${ProductionPath}\\\\dist") {
-                            $FileCount = (Get-ChildItem "${ProductionPath}\\\\dist" -Recurse).Count
-                            Write-Host "Files in dist: $FileCount" -ForegroundColor Green
+                        if (Test-Path $ProductionPath) {
+                            $FileCount = (Get-ChildItem $ProductionPath -Recurse -File).Count
+                            Write-Host "Files in production path: $FileCount" -ForegroundColor Green
+                            
+                            if ($FileCount -gt 0) {
+                                Write-Host "Deployment verified successfully" -ForegroundColor Green
+                            } else {
+                                Write-Host "ERROR: No files found in production path" -ForegroundColor Red
+                                exit 1
+                            }
                         } else {
-                            Write-Host "ERROR: dist folder not found" -ForegroundColor Red
+                            Write-Host "ERROR: Production path not found" -ForegroundColor Red
                             exit 1
                         }
                     '''
