@@ -91,47 +91,32 @@ try {
     Write-Host "Extracting ZIP to production directory: $ProductionPath"
     
     if (Test-Path $ProductionPath) {
-        # Limpiar carpeta anterior
+        # Limpiar carpeta anterior (excepto web.config)
         Get-ChildItem -Path $ProductionPath -Exclude "web.config" | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
     } else {
         New-Item -ItemType Directory -Path $ProductionPath -Force | Out-Null
     }
     
-    # Descargar ZIP desde FTP local
-    $localZipPath = Join-Path $ProductionPath "dist.zip"
-    Write-Host "Downloading ZIP from FTP to: $localZipPath"
-    
-    $ftpDownloadUri = "ftp://$FtpHost`:$FtpPort$RemotePath/dist.zip"
-    $ftpDownloadRequest = [System.Net.FtpWebRequest]::Create($ftpDownloadUri)
-    $ftpDownloadRequest.Method = [System.Net.WebRequestMethods+Ftp]::DownloadFile
-    $ftpDownloadRequest.Credentials = $credential
-    $ftpDownloadRequest.UseBinary = $true
-    $ftpDownloadRequest.UsePassive = $true
-    $ftpDownloadRequest.KeepAlive = $false
-    $ftpDownloadRequest.EnableSsl = $false
-    
-    $downloadResponse = $ftpDownloadRequest.GetResponse()
-    $downloadStream = $downloadResponse.GetResponseStream()
-    $fileStream = [System.IO.File]::Create($localZipPath)
-    $downloadStream.CopyTo($fileStream)
-    $fileStream.Close()
-    $downloadStream.Close()
-    $downloadResponse.Close()
-    
-    Write-Host "ZIP downloaded from FTP"
-    Write-Host ""
-    
-    # Extraer ZIP
-    Write-Host "Extracting ZIP file..."
+    # Extraer ZIP local directamente
+    Write-Host "Extracting ZIP file from: $zipPath"
     Add-Type -AssemblyName System.IO.Compression.FileSystem
-    [System.IO.Compression.ZipFile]::ExtractToDirectory($localZipPath, $ProductionPath)
     
-    Write-Host "ZIP extracted to production directory"
+    try {
+        [System.IO.Compression.ZipFile]::ExtractToDirectory($zipPath, $ProductionPath)
+        Write-Host "ZIP extracted successfully to production directory"
+    } catch {
+        Write-Host "Error extracting ZIP: $($_.Exception.Message)"
+        throw
+    }
+    
     Write-Host ""
     
-    # Limpiar ZIP
-    Remove-Item $localZipPath -Force
-    Write-Host "Cleanup: Removed dist.zip"
+    # Limpiar ZIP local
+    if (Test-Path $zipPath) {
+        Remove-Item $zipPath -Force
+        Write-Host "Cleanup: Removed local dist.zip"
+    }
+    
     Write-Host ""
     
     Write-Host "========================================"
