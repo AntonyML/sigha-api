@@ -34,7 +34,13 @@ if (Test-Path $zipPath) {
 }
 
 Add-Type -AssemblyName System.IO.Compression.FileSystem
-[System.IO.Compression.ZipFile]::CreateFromDirectory((Resolve-Path $SourceBuild), (Resolve-Path -Path $zipPath -NewParameterSet), "Optimal", $false)
+$resolvedSource = (Resolve-Path $SourceBuild).Path
+$resolvedZip = (Get-Item -Path $zipPath -ErrorAction SilentlyContinue).FullName
+if (-not $resolvedZip) {
+    $resolvedZip = Join-Path (Get-Location) $zipPath
+}
+
+[System.IO.Compression.ZipFile]::CreateFromDirectory($resolvedSource, $resolvedZip, "Optimal", $false)
 
 $zipSize = (Get-Item $zipPath).Length / 1MB
 Write-Host "ZIP created successfully (Size: $($zipSize.ToString('F2')) MB)"
