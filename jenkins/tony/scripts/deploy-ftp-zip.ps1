@@ -1,0 +1,125 @@
+param(
+    [string]$FtpHost = "localhost",
+    [string]$FtpUser = "ftpadmin",
+    [string]$FtpPass = "Ftp@2025Proyecto",
+    [int]$FtpPort = 21,
+    [string]$RemotePath = "/backend/www",
+    [string]$SourceBuild = ".\dist",
+    [string]$ProductionPath = "C:\ProyectoAnalisis\backend\www"
+)
+
+Write-Host "========================================"
+Write-Host "FTP DEPLOYMENT - ZIP OPTIMIZED"
+Write-Host "========================================"
+Write-Host ""
+
+if (-not (Test-Path $SourceBuild)) {
+    Write-Host "ERROR: Build directory not found at $SourceBuild"
+    exit 1
+}
+
+Write-Host "Build directory found: $SourceBuild"
+
+$filesToUpload = Get-ChildItem -Path $SourceBuild -File -Recurse
+$fileCount = $filesToUpload.Count
+Write-Host "Found $fileCount files"
+Write-Host ""
+
+# Crear ZIP
+$zipPath = "dist.zip"
+Write-Host "Creating ZIP file: $zipPath"
+
+if (Test-Path $zipPath) {
+    Remove-Item $zipPath -Force
+}
+
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+[System.IO.Compression.ZipFile]::CreateFromDirectory((Resolve-Path $SourceBuild), (Resolve-Path -Path $zipPath -NewParameterSet), "Optimal", $false)
+
+$zipSize = (Get-Item $zipPath).Length / 1MB
+Write-Host "ZIP created successfully (Size: $($zipSize.ToString('F2')) MB)"
+Write-Host ""
+
+Write-Host "Connecting to FTP server: $FtpHost`:$FtpPort"
+Write-Host "Remote path: $RemotePath"
+Write-Host ""
+
+try {
+    $securePassword = ConvertTo-SecureString $FtpPass -AsPlainText -Force
+    $credential = New-Object System.Management.Automation.PSCredential($FtpUser, $securePassword)
+    
+    $ftpUri = "ftp://$FtpHost`:$FtpPort"
+    $remoteFileUri = "$ftpUri$RemotePath/dist.zip"
+    
+    Write-Host "Uploading ZIP file to FTP..."
+    Write-Host "Target: $remoteFileUri"
+    Write-Host ""
+    
+    $ftpRequest = [System.Net.FtpWebRequest]::Create($remoteFileUri)
+    $ftpRequest.Method = [System.Net.WebRequestMethods+Ftp]::UploadFile
+    $ftpRequest.Credentials = $credential
+    $ftpRequest.UseBinary = $true
+    $ftpRequest.UsePassive = $true
+    $ftpRequest.KeepAlive = $true
+    $ftpRequest.EnableSsl = $false
+    
+    $fileContent = [System.IO.File]::ReadAllBytes($zipPath)
+    $ftpRequest.ContentLength = $fileContent.Length
+    
+    $requestStream = $ftpRequest.GetRequestStream()
+    $requestStream.Write($fileContent, 0, $fileContent.Length)
+    $requestStream.Close()
+    
+    $response = $ftpRequest.GetResponse()
+    $statusCode = $response.StatusCode
+    $response.Close()
+    
+    Write-Host "ZIP uploaded successfully (Status: $statusCode)"
+    Write-Host ""
+    
+    # Descomprimir localmente en produccion
+    Write-Host "Extracting ZIP to production directory: $ProductionPath"
+    
+    if (Test-Path $ProductionPath) {
+        # Limpiar carpeta anterior
+        Get-ChildItem -Path $ProductionPath -Exclude "web.config" | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+    } else {
+        New-Item -ItemType Directory -Path $ProductionPath -Force | Out-Null
+    }
+    
+    $remoteZipPath = Join-Path $ProductionPath "dist.zip"
+    
+    # Crear ZIP temporal en la carpeta de produccion
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    [System.IO.Compression.ZipFile]::ExtractToDirectory($zipPath, $ProductionPath, $true)
+    
+    Write-Host "ZIP extracted to production directory"
+    Write-Host ""
+    
+    # Limpiar ZIP local
+    Remove-Item $zipPath -Force
+    Write-Host "Cleanup: Removed local dist.zip"
+    Write-Host ""
+    
+    Write-Host "========================================"
+    Write-Host "DEPLOYMENT COMPLETED SUCCESSFULLY"
+    Write-Host "========================================"
+    Write-Host ""
+    Write-Host "Files deployed: $fileCount"
+    Write-Host "Production path: $ProductionPath"
+    Write-Host ""
+    
+    exit 0
+}
+catch {
+    Write-Host ""
+    Write-Host "ERROR: Deployment failed"
+    Write-Host $_.Exception.Message
+    
+    # Limpiar ZIP si existe
+    if (Test-Path $zipPath) {
+        Remove-Item $zipPath -Force
+    }
+    
+    exit 1
+}

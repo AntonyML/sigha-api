@@ -1,9 +1,9 @@
 def deployToIIS(ftpHost, ftpUser, ftpPass, ftpPort, remotePath, sourceBuild) {
     echo "=========================================="
-    echo "FTP DEPLOYMENT - PowerShell Version"
+    echo "FTP DEPLOYMENT - ZIP OPTIMIZED"
     echo "=========================================="
     
-    def scriptPath = ".\\jenkins\\tony\\scripts\\deploy-ftp-powershell.ps1"
+    def scriptPath = ".\\jenkins\\tony\\scripts\\deploy-ftp-zip.ps1"
     
     powershell(script: """
         Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
@@ -14,7 +14,8 @@ def deployToIIS(ftpHost, ftpUser, ftpPass, ftpPort, remotePath, sourceBuild) {
             -FtpUser "${ftpUser}" `
             -FtpPass "${ftpPass}" `
             -RemotePath "${remotePath}" `
-            -SourceBuild ".\\${sourceBuild}"
+            -SourceBuild ".\\${sourceBuild}" `
+            -ProductionPath "C:\\ProyectoAnalisis\\backend\\www"
         
         if (\$LASTEXITCODE -ne 0) {
             throw "FTP deployment failed with exit code: \$LASTEXITCODE"
