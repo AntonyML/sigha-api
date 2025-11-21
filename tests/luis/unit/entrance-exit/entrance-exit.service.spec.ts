@@ -44,7 +44,7 @@ describe('EntranceExitService  unit', () => {
   });
 
   describe('create - Prueba 1', () => {
-    it('should create an entrance record successfully', async () => {
+    it('debería crear un registro de entrada exitosamente', async () => {
       const createDto: CreateEntranceExitDto = {
         eeType: EntranceExitType.EMPLOYEE,
         eeAccessType: AccessType.ENTRANCE,
@@ -58,53 +58,63 @@ describe('EntranceExitService  unit', () => {
       };
 
       const expectedResult = {
-        id: 1,
+        id: 999, 
         ...createDto,
         eeDatetimeEntrance: new Date('2024-10-26T08:00:00.000Z'),
         createAt: new Date(),
       };
 
-      mockRepository.save.mockResolvedValue(expectedResult);
-
-      const result = await service.create(createDto);
-
-      expect(mockRepository.save).toHaveBeenCalledWith(expect.any(EntranceExit));
-      expect(result).toEqual(expectedResult);
-    });
-  });
-
-  describe('create - Prueba 2', () => {
-    it('should create an exit record successfully', async () => {
-      const createDto: CreateEntranceExitDto = {
-        eeType: EntranceExitType.EMPLOYEE,
-        eeAccessType: AccessType.EXIT,
-        eeIdentification: '12345678',
-        eeName: 'Michelle',
-        eeFLastName: 'Arguedas',
-        eeSLastName: 'Murillo',
-        eeDatetimeExit: '2024-10-26T17:00:00.000Z',
-        eeClose: true,
-        eeObservations: 'Salida normal'
-      };
-
-      const expectedResult = {
-        id: 1,
+      mockRepository.save.mockResolvedValue({
+        id: 999,
         ...createDto,
-        eeDatetimeExit: new Date('2024-10-26T17:00:00.000Z'),
+        eeDatetimeEntrance: new Date('2024-10-26T08:00:00.000Z'),
         createAt: new Date(),
-      };
-
-      mockRepository.save.mockResolvedValue(expectedResult);
+      });
 
       const result = await service.create(createDto);
 
       expect(mockRepository.save).toHaveBeenCalledWith(expect.any(EntranceExit));
-      expect(result).toEqual(expectedResult);
+      expect(result).toEqual(expectedResult); 
     });
   });
+
+describe('create - Prueba 2', () => {
+  it('debería crear un registro de salida exitosamente', async () => {
+    const createDto: CreateEntranceExitDto = {
+      eeType: EntranceExitType.EMPLOYEE,
+      eeAccessType: AccessType.EXIT,
+      eeIdentification: '12345678',
+      eeName: 'Michelle',
+      eeFLastName: 'Arguedas',
+      eeSLastName: 'Murillo',
+      eeDatetimeExit: '2024-10-26T17:00:00.000Z',
+      eeClose: true,
+      eeObservations: 'Salida normal'
+    };
+
+    const expectedResult = {
+      id: 2,
+      ...createDto,
+      eeDatetimeExit: new Date('2024-10-26T17:00:00.000Z'),
+      createAt: new Date(),
+    };
+
+    mockRepository.save.mockResolvedValue({
+      id: 2, 
+      ...createDto,
+      eeDatetimeExit: new Date('2024-10-26T17:00:00.000Z'),
+      createAt: new Date(),
+    });
+
+    const result = await service.create(createDto);
+
+    expect(mockRepository.save).toHaveBeenCalledWith(expect.any(EntranceExit));
+    expect(result).toEqual(expectedResult); 
+  });
+});
 
   describe('create - Prueba 3', () => {
-    it('should throw BadRequestException when entrance has exit date', async () => {
+    it('debería lanzar BadRequestException cuando entrada tiene fecha de salida', async () => {
       const createDto: CreateEntranceExitDto = {
         eeType: EntranceExitType.EMPLOYEE,
         eeAccessType: AccessType.ENTRANCE,
@@ -121,13 +131,13 @@ describe('EntranceExitService  unit', () => {
       await expect(service.create(createDto))
         .rejects
         .toThrow(BadRequestException);
-      
+
       expect(mockRepository.save).not.toHaveBeenCalled();
     });
   });
 
   describe('create - Prueba 4', () => {
-    it('should throw BadRequestException when exit has entrance date', async () => {
+    it('debería lanzar BadRequestException cuando salida tiene fecha de entrada', async () => {
       const createDto: CreateEntranceExitDto = {
         eeType: EntranceExitType.EMPLOYEE,
         eeAccessType: AccessType.EXIT,
@@ -144,13 +154,13 @@ describe('EntranceExitService  unit', () => {
       await expect(service.create(createDto))
         .rejects
         .toThrow(BadRequestException);
-      
+
       expect(mockRepository.save).not.toHaveBeenCalled();
     });
   });
 
   describe('create - Prueba 5', () => {
-    it('should use current date when entrance date is not provided', async () => {
+    it('debería usar la fecha actual cuando no se proporciona fecha de entrada', async () => {
       const createDto: CreateEntranceExitDto = {
         eeType: EntranceExitType.VISITOR,
         eeAccessType: AccessType.ENTRANCE,
@@ -182,46 +192,47 @@ describe('EntranceExitService  unit', () => {
   });
 
   describe('closeCycle - Prueba 6', () => {
-    it('should close cycle successfully', async () => {
-      const id = 1;
-      const closeCycleDto: CloseCycleDto = {
-        eeDatetimeExit: '2024-10-26T17:00:00.000Z',
-        eeObservations: 'Ciclo cerrado exitosamente',
-        eeClose: true
-      };
+  it('debería cerrar el ciclo exitosamente', async () => {
+    const id = 1;
+    const closeCycleDto: CloseCycleDto = {
+      eeDatetimeExit: '2024-10-26T17:00:00.000Z',
+      eeObservations: 'Ciclo cerrado exitosamente',
+      eeClose: true
+    };
 
-      const existingRecord = {
-        id: 1,
-        eeType: EntranceExitType.EMPLOYEE,
-        eeAccessType: AccessType.ENTRANCE,
-        eeDatetimeEntrance: new Date('2024-10-26T08:00:00.000Z'),
-        eeClose: false
-      };
+    const existingRecord = {
+      id: 1,
+      eeType: EntranceExitType.EMPLOYEE,
+      eeAccessType: AccessType.ENTRANCE,
+      eeDatetimeEntrance: new Date('2024-10-26T08:00:00.000Z'),
+      eeClose: false
+    };
 
-      const updatedRecord = {
-        ...existingRecord,
-        eeDatetimeExit: new Date('2024-10-26T17:00:00.000Z'),
-        eeClose: true,
-        eeObservations: 'Ciclo cerrado exitosamente'
-      };
+    const updatedRecord = {
+      ...existingRecord,
+      id: 1, 
+      eeDatetimeExit: new Date('2024-10-26T17:00:00.000Z'),
+      eeClose: true,
+      eeObservations: 'Ciclo cerrado exitosamente'
+    };
 
-      mockRepository.findOne.mockResolvedValue(existingRecord);
-      mockRepository.save.mockResolvedValue(updatedRecord);
+    mockRepository.findOne.mockResolvedValue(existingRecord);
+    mockRepository.save.mockResolvedValue(updatedRecord);
 
-      const result = await service.closeCycle(id, closeCycleDto);
+    const result = await service.closeCycle(id, closeCycleDto);
 
-      expect(mockRepository.findOne).toHaveBeenCalledWith({ where: { id } });
-      expect(mockRepository.save).toHaveBeenCalledWith(expect.objectContaining({
-        eeDatetimeExit: new Date('2024-10-26T17:00:00.000Z'),
-        eeClose: true,
-        eeObservations: 'Ciclo cerrado exitosamente'
-      }));
-      expect(result).toEqual(updatedRecord);
-    });
+    expect(mockRepository.findOne).toHaveBeenCalledWith({ where: { id } });
+    expect(mockRepository.save).toHaveBeenCalledWith(expect.objectContaining({
+      eeDatetimeExit: new Date('2024-10-26T17:00:00.000Z'),
+      eeClose: true,
+      eeObservations: 'Ciclo cerrado exitosamente'
+    }));
+    expect(result).toEqual(updatedRecord); 
   });
+});
 
   describe('closeCycle - Prueba 7', () => {
-    it('should throw NotFoundException when record does not exist', async () => {
+    it('debería lanzar NotFoundException cuando el registro no existe', async () => {
       const id = 999;
       const closeCycleDto: CloseCycleDto = {
         eeDatetimeExit: '2024-10-26T17:00:00.000Z',
@@ -233,13 +244,13 @@ describe('EntranceExitService  unit', () => {
       await expect(service.closeCycle(id, closeCycleDto))
         .rejects
         .toThrow(NotFoundException);
-      
+
       expect(mockRepository.save).not.toHaveBeenCalled();
     });
   });
 
   describe('closeCycle - Prueba 8', () => {
-    it('should throw BadRequestException when trying to close already closed cycle', async () => {
+    it('debería lanzar BadRequestException cuando intenta cerrar un ciclo ya cerrado', async () => {
       const id = 1;
       const closeCycleDto: CloseCycleDto = {
         eeDatetimeExit: '2024-10-26T17:00:00.000Z',
@@ -249,7 +260,7 @@ describe('EntranceExitService  unit', () => {
       const existingRecord = {
         id: 1,
         eeType: EntranceExitType.EMPLOYEE,
-        eeClose: true 
+        eeClose: true
       };
 
       mockRepository.findOne.mockResolvedValue(existingRecord);
@@ -257,13 +268,13 @@ describe('EntranceExitService  unit', () => {
       await expect(service.closeCycle(id, closeCycleDto))
         .rejects
         .toThrow(BadRequestException);
-      
+
       expect(mockRepository.save).not.toHaveBeenCalled();
     });
   });
 
   describe('getOpenEntrances - Prueba 9', () => {
-    it('should return all open entrance records', async () => {
+    it('debería retornar todos los registros de entrada abiertos', async () => {
       const mockRecords = [
         {
           id: 1,
@@ -299,7 +310,7 @@ describe('EntranceExitService  unit', () => {
   });
 
   describe('remove - Prueba 10', () => {
-    it('should remove a record successfully', async () => {
+    it('debería eliminar un registro exitosamente', async () => {
       const id = 1;
       const mockRecord = {
         id: 1,
