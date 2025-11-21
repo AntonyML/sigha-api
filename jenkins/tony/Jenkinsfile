@@ -30,7 +30,7 @@ pipeline {
                     @echo off
                     setlocal enabledelayedexpansion
                     set "BASE_DIR=%CD%"
-                    set "JMETER_RESULTS=!BASE_DIR!\\\\jenkins\\\\tony\\\\jmeter-results"
+                    set "JMETER_RESULTS=!BASE_DIR!\\jenkins\\tony\\jmeter-results"
                     
                     echo.
                     echo === Contenido del directorio jmeter-results ===

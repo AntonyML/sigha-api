@@ -3,11 +3,11 @@ def installDependencies() {
 }
 
 def runJestTests() {
-    bat 'npm run test -- --coverage --testPathPatterns="tests/tony/unit" > jest-results.log 2>&1'
+    bat 'cmd /c jenkins\\tony\\scripts\\run-tests.bat'
 }
 
 def runUnitTests() {
-    bat 'npm run test -- tests/tony/unit/users/user.service.spec.ts --verbose > unit-test-results.log 2>&1'
+    bat 'npm run test -- tests/tony/unit/users/user.service.spec.ts --verbose'
 }
 
 def getTestOutput(logFile, maxLines = 500) {
