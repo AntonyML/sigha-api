@@ -110,6 +110,14 @@ try {
     try {
         [System.IO.Compression.ZipFile]::ExtractToDirectory($zipPath, $distPath)
         Write-Host "ZIP extracted successfully to $distPath"
+        
+        # Listar archivos extraidos
+        Write-Host ""
+        Write-Host "Extracted files:"
+        Get-ChildItem -Path $distPath -Recurse | ForEach-Object {
+            $relativePath = $_.FullName.Substring($distPath.Length)
+            Write-Host "  $relativePath"
+        }
     } catch {
         Write-Host "Error extracting ZIP: $($_.Exception.Message)"
         throw
