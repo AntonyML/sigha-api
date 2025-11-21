@@ -67,7 +67,11 @@ try {
     $ftpRequest.UseBinary = $true
     $ftpRequest.UsePassive = $true
     $ftpRequest.KeepAlive = $true
-    $ftpRequest.EnableSsl = $false
+    $ftpRequest.EnableSsl = $true
+    
+    # Ignorar validacion de certificado SSL auto-firmado
+    [System.Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }
+    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
     
     $fileContent = [System.IO.File]::ReadAllBytes($zipPath)
     $ftpRequest.ContentLength = $fileContent.Length
