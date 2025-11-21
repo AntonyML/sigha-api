@@ -7,6 +7,18 @@ pipeline {
     }
     
     stages {
+        stage('Install Dependencies') {
+            steps {
+                script {
+                    echo 'Installing dependencies'
+                    bat '''
+                        cd %WORKSPACE%
+                        call npm install
+                    '''
+                }
+            }
+        }
+        
         stage('Build Application') {
             steps {
                 script {
