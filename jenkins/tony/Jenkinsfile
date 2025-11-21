@@ -35,6 +35,11 @@ pipeline {
                     env.DEPLOY_REPO = config.getDeployRepo()
                     env.DEPLOY_BRANCH = config.getDeployBranch()
                     env.EMAIL_RECIPIENT = config.getEmailRecipient()
+                    
+                    env.TESTS_PASSED = 'false'
+                    env.MERGE_SUCCESS = 'false'
+                    env.BUILD_SUCCESS = 'false'
+                    env.DEPLOY_SUCCESS = 'false'
                 }
             }
         }
@@ -99,7 +104,9 @@ pipeline {
                         testRunner.runJestTests()
                         testRunner.runUnitTests()
                         testRunner.publishTestResults()
+                        env.TESTS_PASSED = 'true'
                     } catch (Exception e) {
+                        env.TESTS_PASSED = 'false'
                         currentBuild.result = 'FAILURE'
                         throw e
                     }
@@ -109,7 +116,7 @@ pipeline {
 
         stage('Run Performance Tests') {
             when {
-                expression { env.HAS_CHANGES == 'true' && currentBuild.result == null }
+                expression { env.HAS_CHANGES == 'true' && env.TESTS_PASSED == 'true' }
             }
             steps {
                 script {
@@ -127,7 +134,7 @@ pipeline {
 
         stage('Merge Dev to Master') {
             when {
-                expression { env.HAS_CHANGES == 'true' && currentBuild.result == null }
+                expression { env.HAS_CHANGES == 'true' && env.TESTS_PASSED == 'true' }
             }
             steps {
                 script {
@@ -233,7 +240,8 @@ pipeline {
                         testOutput,
                         unitTestOutput,
                         jmeterOutput,
-                        env.CURRENT_COMMIT
+                        env.CURRENT_COMMIT,
+                        env.DEPLOY_SUCCESS == 'true' ? 'COMPLETE' : 'PARTIAL'
                     )
                 }
             }

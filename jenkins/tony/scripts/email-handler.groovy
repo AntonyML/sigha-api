@@ -1,4 +1,4 @@
-def sendSuccessEmail(emailRecipient, sourceBranch, sourceRepo, testOutput, unitTestOutput, jmeterOutput, commit) {
+def sendSuccessEmail(emailRecipient, sourceBranch, sourceRepo, testOutput, unitTestOutput, jmeterOutput, commit, deployStatus) {
     emailext(
         to: emailRecipient,
         subject: "Jenkins Pipeline - Rama ${sourceBranch}: DEPLOYMENT EXITOSO",
@@ -11,6 +11,7 @@ def sendSuccessEmail(emailRecipient, sourceBranch, sourceRepo, testOutput, unitT
                     <p><strong>Commit:</strong> ${commit}</p>
                     <p><strong>Build Number:</strong> ${BUILD_NUMBER}</p>
                     <p><strong>Build URL:</strong> <a href="${BUILD_URL}">${BUILD_URL}</a></p>
+                    <p><strong>Estado del Deploy:</strong> <span style="color: ${deployStatus == 'COMPLETE' ? 'green' : 'orange'}"><strong>${deployStatus}</strong></span></p>
                     
                     <h3>Resumen de Ejecución:</h3>
                     <ul>
