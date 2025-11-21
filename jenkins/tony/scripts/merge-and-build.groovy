@@ -14,10 +14,10 @@ def mergeDevToMaster(sourceRepo, credentialsId) {
                 git remote add origin-merge "!URL_WITH_CREDS!"
             )
             
-            git fetch origin-merge master
-            git checkout master
+            git fetch origin-merge master dev
+            git checkout -b master-merge origin-merge/master
             git merge origin-merge/dev --no-edit
-            git push origin-merge master
+            git push origin-merge master-merge:master
         '''
     }
 }
