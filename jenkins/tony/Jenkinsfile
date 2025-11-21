@@ -182,18 +182,18 @@ pipeline {
             }
             steps {
                 script {
-                    def deployIis = load("${WORKSPACE}/jenkins/tony/scripts/deploy-iis.groovy")
-                    
                     try {
                         echo '[PIPELINE] Iniciando FTP deployment...'
-                        deployIis.deployToIIS(
-                            env.FTP_HOST,
-                            env.FTP_USER,
-                            env.FTP_PASS,
-                            env.FTP_PORT,
-                            env.REMOTE_PATH,
-                            env.SOURCE_BUILD
-                        )
+                        powershell '''
+                            & "${env:WORKSPACE}\\jenkins\\tony\\scripts\\deploy-ftp-zip.ps1" `
+                                -SourceBuild "${env:WORKSPACE}\\dist" `
+                                -FtpHost "localhost" `
+                                -FtpUser "ftpadmin" `
+                                -FtpPass "Ftp@2025Proyecto" `
+                                -FtpPort 21 `
+                                -RemotePath "/" `
+                                -ProductionPath "C:\\ProyectoAnalisis\\backend\\www"
+                        '''
                         echo '[PIPELINE] FTP deployment completed'
                         env.DEPLOY_SUCCESS = 'true'
                     } catch (Exception e) {
@@ -205,38 +205,33 @@ pipeline {
             }
         }
 
-        stage('Start Node.js Server') {
-            when {
-                expression { env.HAS_CHANGES == 'true' && env.DEPLOY_SUCCESS == 'true' }
-            }
-            steps {
-                script {
-                    def deployIis = load("${WORKSPACE}/jenkins/tony/scripts/deploy-iis.groovy")
-                    
-                    try {
-                        echo '[PIPELINE] Iniciando servidor Node.js en puerto 3001...'
-                        deployIis.startNodeServer()
-                        echo '[PIPELINE] Servidor Node.js iniciado'
-                    } catch (Exception e) {
-                        echo "[PIPELINE] Advertencia: Node.js startup falló pero continuando: ${e.message}"
-                        // Continuar incluso si hay error, el servidor podría estar iniciando
-                    }
-                }
-            }
-        }
-
         stage('Verify Deployment') {
             when {
                 expression { env.HAS_CHANGES == 'true' && env.DEPLOY_SUCCESS == 'true' }
             }
             steps {
                 script {
-                    def deployIis = load("${WORKSPACE}/jenkins/tony/scripts/deploy-iis.groovy")
-                    
                     try {
                         echo '[PIPELINE] Verificando deployment...'
                         sleep(time: 3, unit: 'SECONDS')
-                        deployIis.verifyDeployment()
+                        powershell '''
+                            $ProductionPath = "C:\\ProyectoAnalisis\\backend\\www"
+                            
+                            if (Test-Path $ProductionPath) {
+                                $FileCount = (Get-ChildItem $ProductionPath -Recurse -File).Count
+                                Write-Host "Files in production path: $FileCount" -ForegroundColor Green
+                                
+                                if ($FileCount -gt 0) {
+                                    Write-Host "Deployment verified successfully" -ForegroundColor Green
+                                } else {
+                                    Write-Host "ERROR: No files found in production path" -ForegroundColor Red
+                                    exit 1
+                                }
+                            } else {
+                                Write-Host "ERROR: Production path not found" -ForegroundColor Red
+                                exit 1
+                            }
+                        '''
                         echo '[PIPELINE] Deployment verificado'
                     } catch (Exception e) {
                         echo "[PIPELINE] Advertencia: Verificación falló pero continuando: ${e.message}"
