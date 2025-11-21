@@ -160,7 +160,7 @@ describe('create - Prueba 2', () => {
   });
 
   describe('create - Prueba 5', () => {
-    it('debería usar la fecha actual cuando no se proporciona fecha de entrada', async () => {
+    it('debería usar la fecha actual cuando no se proporciona fecha de entradaaa', async () => {
       const createDto: CreateEntranceExitDto = {
         eeType: EntranceExitType.VISITOR,
         eeAccessType: AccessType.ENTRANCE,
