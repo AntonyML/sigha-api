@@ -65,7 +65,7 @@ describe('Entrada y salida ', () => {
       };
 
       mockRepository.save.mockResolvedValue({
-        id: 1,
+        id: 999,
         ...createDto,
         eeDatetimeEntrance: new Date('2024-10-26T08:00:00.000Z'),
         createAt: new Date(),
