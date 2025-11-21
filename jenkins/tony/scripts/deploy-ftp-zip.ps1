@@ -97,18 +97,41 @@ try {
         New-Item -ItemType Directory -Path $ProductionPath -Force | Out-Null
     }
     
-    $remoteZipPath = Join-Path $ProductionPath "dist.zip"
+    # Descargar ZIP desde FTP local
+    $localZipPath = Join-Path $ProductionPath "dist.zip"
+    Write-Host "Downloading ZIP from FTP to: $localZipPath"
     
-    # Crear ZIP temporal en la carpeta de produccion
+    $ftpDownloadUri = "ftp://$FtpHost`:$FtpPort$RemotePath/dist.zip"
+    $ftpDownloadRequest = [System.Net.FtpWebRequest]::Create($ftpDownloadUri)
+    $ftpDownloadRequest.Method = [System.Net.WebRequestMethods+Ftp]::DownloadFile
+    $ftpDownloadRequest.Credentials = $credential
+    $ftpDownloadRequest.UseBinary = $true
+    $ftpDownloadRequest.UsePassive = $true
+    $ftpDownloadRequest.KeepAlive = $false
+    $ftpDownloadRequest.EnableSsl = $false
+    
+    $downloadResponse = $ftpDownloadRequest.GetResponse()
+    $downloadStream = $downloadResponse.GetResponseStream()
+    $fileStream = [System.IO.File]::Create($localZipPath)
+    $downloadStream.CopyTo($fileStream)
+    $fileStream.Close()
+    $downloadStream.Close()
+    $downloadResponse.Close()
+    
+    Write-Host "ZIP downloaded from FTP"
+    Write-Host ""
+    
+    # Extraer ZIP
+    Write-Host "Extracting ZIP file..."
     Add-Type -AssemblyName System.IO.Compression.FileSystem
-    [System.IO.Compression.ZipFile]::ExtractToDirectory($zipPath, $ProductionPath, $true)
+    [System.IO.Compression.ZipFile]::ExtractToDirectory($localZipPath, $ProductionPath)
     
     Write-Host "ZIP extracted to production directory"
     Write-Host ""
     
-    # Limpiar ZIP local
-    Remove-Item $zipPath -Force
-    Write-Host "Cleanup: Removed local dist.zip"
+    # Limpiar ZIP
+    Remove-Item $localZipPath -Force
+    Write-Host "Cleanup: Removed dist.zip"
     Write-Host ""
     
     Write-Host "========================================"
