@@ -4,7 +4,7 @@ import { EntranceExitService } from '../../../../src/ucr/ac/cr/ie/services/entra
 import { EntranceExit, EntranceExitType, AccessType } from '../../../../src/ucr/ac/cr/ie/domain/entrances-exits/entrance-exit.entity';
 import { CreateEntranceExitDto, CloseCycleDto } from '../../../../src/ucr/ac/cr/ie/dto/entrances-exits';
 
-describe('EntranceExitService  unit', () => {
+describe('Entrada y salida ', () => {
   let service: EntranceExitService;
   let mockRepository: any;
 
@@ -160,7 +160,7 @@ describe('create - Prueba 2', () => {
   });
 
   describe('create - Prueba 5', () => {
-    it('debería usar la fecha actual cuando no se proporciona fecha de entrada', async () => {
+    it('debería usar la fecha actual cuando no se proporciona fecha de entradaaa', async () => {
       const createDto: CreateEntranceExitDto = {
         eeType: EntranceExitType.VISITOR,
         eeAccessType: AccessType.ENTRANCE,
