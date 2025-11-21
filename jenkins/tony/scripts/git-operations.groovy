@@ -9,8 +9,11 @@ def checkoutSource(sourceRepo, sourceBranch) {
 }
 
 def getCurrentCommit() {
+    // Fetch remoto para sincronizar con cambios en GitLab
     bat '''
         @echo off
+        echo [GIT] Fetching latest changes from remote repository...
+        git fetch origin 2>nul
         git rev-parse HEAD > current_commit.txt
     '''
     return readFile('current_commit.txt').trim()
@@ -30,7 +33,21 @@ def saveCurrentCommit(workspace, commit) {
 }
 
 def hasChanges(currentCommit, lastCommit) {
-    return currentCommit != lastCommit
+    // Compara commit actual con último registrado
+    if (!lastCommit || lastCommit.isEmpty()) {
+        echo "[GIT] First build detected or no commit history"
+        return true
+    }
+    
+    def hasLocalChanges = currentCommit != lastCommit
+    
+    if (hasLocalChanges) {
+        echo "[GIT] New commit detected locally: ${currentCommit.take(8)} (was: ${lastCommit.take(8)})"
+    } else {
+        echo "[GIT] No new commits since last build"
+    }
+    
+    return hasLocalChanges
 }
 
 def pushToRepository(targetRepo, targetBranch, credentialsId) {
