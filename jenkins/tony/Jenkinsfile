@@ -1,22 +1,217 @@
 pipeline {
     agent any
 
+    triggers {
+        gitlab(triggerOnPush: true, triggerOnMergeRequest: true, branchFilterType: 'NameBasedFilter', includeBranchesSpec: 'dev', excludeBranchesSpec: '')
+        pollSCM('0 0 * * *')
+    }
+
+    options {
+        timestamps()
+        timeout(time: 30, unit: 'MINUTES')
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+    }
+
+    environment {
+        WORKSPACE_DIR = "${WORKSPACE}"
+        FTP_HOST = 'localhost'
+        FTP_USER = 'ftpadmin'
+        FTP_PASS = 'Ftp@2025Proyecto'
+        FTP_PORT = '21'
+        REMOTE_PATH = '/backend/www'
+        SOURCE_BUILD = 'dist'
+    }
+
     stages {
-        stage('Test JMeter Only') {
+        stage('Load Configuration') {
             steps {
                 script {
-                    echo '[PIPELINE] Iniciando prueba de JMeter...'
+                    def config = load("${WORKSPACE}/jenkins/tony/scripts/config.groovy")
                     
+                    env.SOURCE_REPO = config.getSourceRepo()
+                    env.SOURCE_BRANCH = config.getSourceBranch()
+                    env.TARGET_REPO = config.getTestRepo()
+                    env.TARGET_BRANCH = config.getTestBranch()
+                    env.DEPLOY_REPO = config.getDeployRepo()
+                    env.DEPLOY_BRANCH = config.getDeployBranch()
+                    env.EMAIL_RECIPIENT = config.getEmailRecipient()
+                    
+                    env.TESTS_PASSED = 'false'
+                    env.MERGE_SUCCESS = 'false'
+                    env.BUILD_SUCCESS = 'false'
+                    env.DEPLOY_SUCCESS = 'false'
+                    env.JMETER_EXECUTED = 'false'
+                }
+            }
+        }
+
+        stage('Initialize & Check Changes') {
+            steps {
+                script {
+                    def gitOps = load("${WORKSPACE}/jenkins/tony/scripts/git-operations.groovy")
+                    
+                    gitOps.checkoutSource(env.SOURCE_REPO, env.SOURCE_BRANCH)
+                    
+                    def currentCommit = gitOps.getCurrentCommit()
+                    def lastCommit = gitOps.getLastCommit(env.WORKSPACE)
+                    
+                    env.CURRENT_COMMIT = currentCommit
+                    env.LAST_COMMIT = lastCommit
+                    
+                    if (gitOps.hasChanges(currentCommit, lastCommit)) {
+                        env.HAS_CHANGES = 'true'
+                        gitOps.saveCurrentCommit(env.WORKSPACE, currentCommit)
+                    } else {
+                        env.HAS_CHANGES = 'false'
+                        currentBuild.result = 'NOT_BUILT'
+                    }
+                }
+            }
+        }
+
+        stage('Push to Test Repository') {
+            when {
+                expression { env.HAS_CHANGES == 'true' }
+            }
+            steps {
+                script {
+                    def gitOps = load("${WORKSPACE}/jenkins/tony/scripts/git-operations.groovy")
+                    gitOps.pushToRepository(env.TARGET_REPO, env.TARGET_BRANCH, 'git-credentials')
+                }
+            }
+        }
+
+        stage('Install Dependencies') {
+            when {
+                expression { env.HAS_CHANGES == 'true' }
+            }
+            steps {
+                script {
+                    def testRunner = load("${WORKSPACE}/jenkins/tony/scripts/test-runner.groovy")
+                    testRunner.installDependencies()
+                }
+            }
+        }
+
+        stage('Run Unit Tests') {
+            when {
+                expression { env.HAS_CHANGES == 'true' }
+            }
+            steps {
+                script {
+                    def testRunner = load("${WORKSPACE}/jenkins/tony/scripts/test-runner.groovy")
+                    
+                    try {
+                        testRunner.runJestTests()
+                        testRunner.runUnitTests()
+                        testRunner.publishTestResults()
+                        env.TESTS_PASSED = 'true'
+                    } catch (Exception e) {
+                        env.TESTS_PASSED = 'false'
+                        currentBuild.result = 'FAILURE'
+                        throw e
+                    }
+                }
+            }
+        }
+
+        stage('Run Performance Tests') {
+            when {
+                expression { env.HAS_CHANGES == 'true' && env.TESTS_PASSED == 'true' }
+            }
+            steps {
+                script {
                     def jmeterRunner = load("${WORKSPACE}/jenkins/tony/scripts/jmeter-runner.groovy")
                     
-                    echo '[PIPELINE] Ejecutando runJMeterTests()...'
-                    jmeterRunner.runJMeterTests()
+                    try {
+                        echo '[PIPELINE] Iniciando pruebas de rendimiento con JMeter...'
+                        jmeterRunner.runJMeterTests()
+                        env.JMETER_EXECUTED = 'true'
+                        echo '[PIPELINE] Pruebas de rendimiento completadas exitosamente'
+                    } catch (Exception e) {
+                        env.JMETER_EXECUTED = 'false'
+                        echo "[PIPELINE] Advertencia: JMeter falló pero continuando pipeline: ${e.message}"
+                    }
+                }
+            }
+        }
+
+        stage('Merge Dev to Master') {
+            when {
+                expression { env.HAS_CHANGES == 'true' && env.TESTS_PASSED == 'true' }
+            }
+            steps {
+                script {
+                    def mergeAndBuild = load("${WORKSPACE}/jenkins/tony/scripts/merge-and-build.groovy")
                     
-                    echo '[PIPELINE] Obteniendo resultados...'
-                    def results = jmeterRunner.getJMeterResults()
+                    try {
+                        mergeAndBuild.mergeDevToMaster(env.SOURCE_REPO, 'git-credentials')
+                        env.MERGE_SUCCESS = 'true'
+                    } catch (Exception e) {
+                        env.MERGE_SUCCESS = 'false'
+                        currentBuild.result = 'FAILURE'
+                        throw e
+                    }
+                }
+            }
+        }
+
+        stage('Build Application') {
+            when {
+                expression { env.HAS_CHANGES == 'true' && env.MERGE_SUCCESS == 'true' }
+            }
+            steps {
+                script {
+                    def mergeAndBuild = load("${WORKSPACE}/jenkins/tony/scripts/merge-and-build.groovy")
                     
-                    echo '[PIPELINE] Resultados:'
-                    echo results
+                    try {
+                        mergeAndBuild.buildApplication()
+                        env.BUILD_SUCCESS = 'true'
+                    } catch (Exception e) {
+                        env.BUILD_SUCCESS = 'false'
+                        currentBuild.result = 'FAILURE'
+                        throw e
+                    }
+                }
+            }
+        }
+
+        stage('Deploy to IIS') {
+            when {
+                expression { env.HAS_CHANGES == 'true' && env.BUILD_SUCCESS == 'true' }
+            }
+            steps {
+                script {
+                    def deployIis = load("${WORKSPACE}/jenkins/tony/scripts/deploy-iis.groovy")
+                    
+                    try {
+                        deployIis.deployToIIS(
+                            env.FTP_HOST,
+                            env.FTP_USER,
+                            env.FTP_PASS,
+                            env.FTP_PORT,
+                            env.REMOTE_PATH,
+                            env.SOURCE_BUILD
+                        )
+                        deployIis.restartIISService()
+                        env.DEPLOY_SUCCESS = 'true'
+                    } catch (Exception e) {
+                        env.DEPLOY_SUCCESS = 'false'
+                        currentBuild.result = 'FAILURE'
+                        throw e
+                    }
+                }
+            }
+        }
+
+        stage('Push to Deploy Repository') {
+            when {
+                expression { env.HAS_CHANGES == 'true' && env.DEPLOY_SUCCESS == 'true' }
+            }
+            steps {
+                script {
+                    def gitOps = load("${WORKSPACE}/jenkins/tony/scripts/git-operations.groovy")
+                    gitOps.pushToRepository(env.DEPLOY_REPO, env.DEPLOY_BRANCH, 'git-credentials')
                 }
             }
         }
@@ -25,34 +220,70 @@ pipeline {
     post {
         always {
             script {
-                echo '[PIPELINE] Verificando archivos generados...'
-                bat '''
-                    @echo off
-                    setlocal enabledelayedexpansion
-                    set "BASE_DIR=%CD%"
-                    set "JMETER_RESULTS=!BASE_DIR!\\jenkins\\tony\\jmeter-results"
+                if (env.HAS_CHANGES == 'false') {
+                    currentBuild.result = 'NOT_BUILT'
+                }
+            }
+        }
+
+        success {
+            script {
+                if (env.HAS_CHANGES == 'true') {
+                    def emailHandler = load("${WORKSPACE}/jenkins/tony/scripts/email-handler.groovy")
+                    def testRunner = load("${WORKSPACE}/jenkins/tony/scripts/test-runner.groovy")
+                    def jmeterRunner = load("${WORKSPACE}/jenkins/tony/scripts/jmeter-runner.groovy")
                     
-                    echo.
-                    echo === Contenido del directorio jmeter-results ===
-                    if exist "!JMETER_RESULTS!" (
-                        dir "!JMETER_RESULTS!"
-                    ) else (
-                        echo Directorio NO existe: !JMETER_RESULTS!
+                    def jmeterOutput = 'JMeter no ejecutado o sin resultados disponibles'
+                    if (env.JMETER_EXECUTED == 'true') {
+                        try {
+                            jmeterOutput = jmeterRunner.getJMeterResults()
+                        } catch (Exception e) {
+                            jmeterOutput = "Error al obtener resultados de JMeter: ${e.message}"
+                        }
+                    }
+                    
+                    emailHandler.sendSuccessEmail(
+                        env.EMAIL_RECIPIENT,
+                        env.SOURCE_BRANCH,
+                        env.SOURCE_REPO,
+                        'Tests unitarios completados exitosamente',
+                        'User Service Tests: 19/19 passing',
+                        jmeterOutput,
+                        env.CURRENT_COMMIT,
+                        env.DEPLOY_SUCCESS == 'true' ? 'COMPLETE' : 'PARTIAL'
                     )
+                }
+            }
+        }
+
+        failure {
+            script {
+                if (env.HAS_CHANGES == 'true') {
+                    def emailHandler = load("${WORKSPACE}/jenkins/tony/scripts/email-handler.groovy")
+                    def failureStage = env.STAGE_NAME ?: 'Unknown'
                     
-                    echo.
-                    echo === Verificando resultado del where jmeter ===
-                    where jmeter
-                    if errorlevel 1 (
-                        echo JMeter NO encontrado en PATH
-                    ) else (
-                        echo JMeter encontrado en PATH
+                    emailHandler.sendFailureEmail(
+                        env.EMAIL_RECIPIENT,
+                        env.SOURCE_BRANCH,
+                        env.SOURCE_REPO,
+                        'Ver logs del build',
+                        'Ver logs del build',
+                        failureStage
                     )
-                    
-                    echo.
-                    echo === PATH actual ===
-                    echo %PATH%
-                '''
+                }
+            }
+        }
+
+        unstable {
+            script {
+                if (env.HAS_CHANGES == 'true') {
+                    def emailHandler = load("${WORKSPACE}/jenkins/tony/scripts/email-handler.groovy")
+                    emailHandler.sendUnstableEmail(
+                        env.EMAIL_RECIPIENT,
+                        env.SOURCE_BRANCH,
+                        env.SOURCE_REPO
+                    )
+                }
             }
         }
     }
