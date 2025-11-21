@@ -31,16 +31,19 @@ if exist "!TEST_FILE!" (
     echo [JMeter] Guardando resultados en: !RESULTS_FILE!
     jmeter -n -t "!TEST_FILE!" -l "!RESULTS_FILE!" -j "!LOG_FILE!"
     
-    if exist "!RESULTS_FILE!" (
+    set "FULL_PATH=!BASE_DIR!\jenkins\tony\jmeter-results\results.jtl"
+    if exist "!FULL_PATH!" (
         echo [JMeter] Archivo de resultados creado exitosamente
         echo [JMeter] Contenido:
-        type "!RESULTS_FILE!"
+        type "!FULL_PATH!"
+        exit /b 0
     ) else (
-        echo [JMeter] ERROR: No se creo el archivo !RESULTS_FILE!
+        echo [JMeter] ERROR: No se creo el archivo !FULL_PATH!
         echo [JMeter] Verificando contenido del directorio:
         dir "!JMETER_DIR!"
+        exit /b 1
     )
 ) else (
     echo [JMeter] ERROR: Archivo de prueba no encontrado: !TEST_FILE!
-    exit /b 0
+    exit /b 1
 )
