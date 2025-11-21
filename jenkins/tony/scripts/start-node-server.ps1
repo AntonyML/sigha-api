@@ -15,19 +15,28 @@ Write-Host "========================================"
 Write-Host ""
 
 try {
-    Write-Host "Verifying directory: $WorkingDirectory"
+    Write-Host "Verifying directory structure..."
+    
+    # La carpeta dist se extrae dentro de WorkingDirectory
+    $distDirectory = Join-Path $WorkingDirectory "dist"
     
     if (-not (Test-Path $WorkingDirectory)) {
-        Write-Host "ERROR: Directory not found: $WorkingDirectory"
+        Write-Host "ERROR: Working directory not found: $WorkingDirectory"
         exit 1
     }
     
-    if (-not (Test-Path (Join-Path $WorkingDirectory "package.json"))) {
-        Write-Host "ERROR: package.json not found in $WorkingDirectory"
+    if (-not (Test-Path $distDirectory)) {
+        Write-Host "ERROR: dist directory not found: $distDirectory"
+        exit 1
+    }
+    
+    if (-not (Test-Path (Join-Path $distDirectory "main.js"))) {
+        Write-Host "ERROR: main.js not found in $distDirectory"
         exit 1
     }
     
     Write-Host "OK: Directory structure valid"
+    Write-Host "Working directory: $distDirectory"
     Write-Host ""
     
     # Asegurar que no hay procesos Node.js restantes
@@ -44,7 +53,7 @@ try {
     
     Write-Host ""
     Write-Host "Starting Node.js server..."
-    Write-Host "  Directory: $WorkingDirectory"
+    Write-Host "  Directory: $distDirectory"
     Write-Host "  Port: $Port"
     Write-Host "  Environment: production"
     Write-Host ""
@@ -54,7 +63,7 @@ try {
     
     $nodeProcess = Start-Process -FilePath "node" `
                                  -ArgumentList "main.js" `
-                                 -WorkingDirectory $WorkingDirectory `
+                                 -WorkingDirectory $distDirectory `
                                  -NoNewWindow `
                                  -PassThru `
                                  -ErrorAction Stop
