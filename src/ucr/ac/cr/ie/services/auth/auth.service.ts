@@ -36,6 +36,10 @@ export class AuthService {
      * Inicia sesión de usuario
      */
     async login(loginDto: LoginDto, ipAddress?: string, userAgent?: string): Promise<LoginResponse> {
+        if (!loginDto || !loginDto.uEmail || !loginDto.uPassword) {
+            throw new UnauthorizedException('Email y contraseña son requeridos');
+        }
+
         const { uEmail, uPassword, twoFactorCode } = loginDto;
 
         const user = await this.userRepository.findOne({
