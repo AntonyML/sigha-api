@@ -18,7 +18,9 @@ try {
     Write-Host "Verifying directory structure..."
     
     # La carpeta dist se extrae dentro de WorkingDirectory
+    # main.js está en dist/src/ debido a la estructura de NestJS
     $distDirectory = Join-Path $WorkingDirectory "dist"
+    $mainDirectory = Join-Path $distDirectory "src"
     
     if (-not (Test-Path $WorkingDirectory)) {
         Write-Host "ERROR: Working directory not found: $WorkingDirectory"
@@ -30,13 +32,13 @@ try {
         exit 1
     }
     
-    if (-not (Test-Path (Join-Path $distDirectory "main.js"))) {
-        Write-Host "ERROR: main.js not found in $distDirectory"
+    if (-not (Test-Path (Join-Path $mainDirectory "main.js"))) {
+        Write-Host "ERROR: main.js not found in $mainDirectory"
         exit 1
     }
     
     Write-Host "OK: Directory structure valid"
-    Write-Host "Working directory: $distDirectory"
+    Write-Host "Working directory: $mainDirectory"
     Write-Host ""
     
     # Asegurar que no hay procesos Node.js restantes
@@ -53,7 +55,7 @@ try {
     
     Write-Host ""
     Write-Host "Starting Node.js server..."
-    Write-Host "  Directory: $distDirectory"
+    Write-Host "  Directory: $mainDirectory"
     Write-Host "  Port: $Port"
     Write-Host "  Environment: production"
     Write-Host ""
@@ -63,7 +65,7 @@ try {
     
     $nodeProcess = Start-Process -FilePath "node" `
                                  -ArgumentList "main.js" `
-                                 -WorkingDirectory $distDirectory `
+                                 -WorkingDirectory $mainDirectory `
                                  -NoNewWindow `
                                  -PassThru `
                                  -ErrorAction Stop
