@@ -28,12 +28,16 @@ pipeline {
                 echo '[PIPELINE] Verificando archivos generados...'
                 bat '''
                     @echo off
+                    setlocal enabledelayedexpansion
+                    set "BASE_DIR=%CD%"
+                    set "JMETER_RESULTS=!BASE_DIR!\\jenkins\\tony\\jmeter-results"
+                    
                     echo.
-                    echo === Contenido del directorio jenkins/tony/jmeter-results ===
-                    if exist "jenkins/tony/jmeter-results" (
-                        dir jenkins/tony/jmeter-results
+                    echo === Contenido del directorio jmeter-results ===
+                    if exist "!JMETER_RESULTS!" (
+                        dir "!JMETER_RESULTS!"
                     ) else (
-                        echo Directorio jenkins/tony/jmeter-results NO existe
+                        echo Directorio NO existe: !JMETER_RESULTS!
                     )
                     
                     echo.

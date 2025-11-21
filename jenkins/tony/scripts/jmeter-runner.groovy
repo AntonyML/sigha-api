@@ -3,13 +3,14 @@ def runJMeterTests() {
         @echo off
         setlocal enabledelayedexpansion
         
-        set "JMETER_DIR=jenkins\\tony\\jmeter-results"
-        set "TEST_FILE=tests\\tony\\jmeter\\users-performance-test.jmx"
-        set "RESULTS_FILE=!JMETER_DIR!\\results.jtl"
-        set "LOG_FILE=!JMETER_DIR!\\jmeter.log"
+        set "BASE_DIR=%CD%"
+        set "JMETER_DIR=!BASE_DIR!\jenkins\tony\jmeter-results"
+        set "TEST_FILE=!BASE_DIR!\tests\tony\jmeter\users-performance-test.jmx"
+        set "RESULTS_FILE=!JMETER_DIR!\results.jtl"
+        set "LOG_FILE=!JMETER_DIR!\jmeter.log"
         
         if not exist "!JMETER_DIR!" mkdir "!JMETER_DIR!"
-        echo [JMeter] Directorio jmeter-results creado/verificado
+        echo [JMeter] Directorio creado: !JMETER_DIR!
         
         where jmeter >nul 2>&1
         if errorlevel 1 (
@@ -29,15 +30,20 @@ def runJMeterTests() {
         
         if exist "!TEST_FILE!" (
             echo [JMeter] Archivo de prueba encontrado. Ejecutando JMeter...
+            echo [JMeter] Guardando resultados en: !RESULTS_FILE!
             jmeter -n -t "!TEST_FILE!" -l "!RESULTS_FILE!" -j "!LOG_FILE!"
+            
             if exist "!RESULTS_FILE!" (
                 echo [JMeter] Archivo de resultados creado exitosamente
+                echo [JMeter] Contenido:
                 type "!RESULTS_FILE!"
             ) else (
-                echo [JMeter] ERROR: No se creo el archivo de resultados
+                echo [JMeter] ERROR: No se creo el archivo !RESULTS_FILE!
+                echo [JMeter] Verificando contenido del directorio:
+                dir "!JMETER_DIR!"
             )
         ) else (
-            echo [JMeter] ERROR: Archivo de prueba no encontrado en !TEST_FILE!
+            echo [JMeter] ERROR: Archivo de prueba no encontrado: !TEST_FILE!
             exit /b 0
         )
     '''
