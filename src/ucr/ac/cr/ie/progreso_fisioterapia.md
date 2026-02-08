@@ -5,10 +5,10 @@ Este archivo registra el progreso de implementación del módulo de fisioterapia
 - [x] Crear entidad PhysiotherapySession
 - [x] Agregar provider para PhysiotherapySessionRepository
 - [x] Crear servicio de fisioterapia
-- [ ] Crear controlador de fisioterapia
-- [ ] Crear DTOs para operaciones CRUD
-- [ ] Implementar endpoints REST
-- [ ] Agregar validaciones y guards
-- [ ] Crear pruebas unitarias
-- [ ] Integrar con módulo de citas especializadas
-- [ ] Documentar con Swagger
+- [x] Crear controlador de fisioterapia
+- [x] Crear DTOs para operaciones CRUD
+- [x] Implementar endpoints REST
+- [x] Agregar validaciones y guards
+- [x] Crear pruebas unitarias
+- [x] Integrar con módulo de citas especializadas
+- [x] Documentar con Swagger
