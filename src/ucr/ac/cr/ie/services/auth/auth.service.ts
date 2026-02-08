@@ -56,9 +56,10 @@ export class AuthService {
             throw new UnauthorizedException('Credenciales inválidas');
         }
 
-        const twoFactor = await this.twoFactorRepository.findOne({
+        const fa2Enabled = this.configService.get<string>('FA2_ENABLED') === 'true';
+        const twoFactor = fa2Enabled ? await this.twoFactorRepository.findOne({
             where: { userId: user.id, tfaEnabled: true },
-        });
+        }) : null;
 
         if (twoFactor && !twoFactorCode) {
             const tempToken = this.jwtService.sign(
@@ -120,6 +121,11 @@ export class AuthService {
 
             if (!user) {
                 throw new UnauthorizedException('Usuario no encontrado');
+            }
+
+            const fa2Enabled = this.configService.get<string>('FA2_ENABLED') === 'true';
+            if (!fa2Enabled) {
+                return this.generateTokens(user, ipAddress, userAgent);
             }
 
             const twoFactor = await this.twoFactorRepository.findOne({

@@ -1,5 +1,6 @@
 import { Injectable, BadRequestException, NotFoundException, Inject } from '@nestjs/common';
 import { Repository } from 'typeorm';
+import { ConfigService } from '@nestjs/config';
 import { Role, RoleType } from '../../domain/auth/core/role.entity';
 import { CreateRoleDto, UpdateRoleDto } from '../../dto/roles';
 import { SuccessResponse } from '../../interfaces';
@@ -12,6 +13,7 @@ export class RoleService {
         @Inject('RoleRepository')
         private roleRepository: Repository<Role>,
         private auditService: AuditService,
+        private configService: ConfigService,
     ) { }
 
     /**
@@ -199,6 +201,11 @@ export class RoleService {
      * Verificar si un rol requiere 2FA para operaciones sensibles
      */
     async requiresTwoFactor(roleId: number): Promise<boolean> {
+        const fa2Enabled = this.configService.get<string>('FA2_ENABLED') === 'true';
+        if (!fa2Enabled) {
+            return false;
+        }
+
         const role = await this.findById(roleId);
         const twoFactorRequiredRoles = [
             RoleType.SUPER_ADMIN,
