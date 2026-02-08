@@ -3,7 +3,8 @@ import {
     SpecializedArea,
     SpecializedAppointment,
     NursingRecord,
-    PhysiotherapySession
+    PhysiotherapySession,
+    PsychologySession
 } from '../../domain/nursing';
 
 export const nursingProviders = [
@@ -25,6 +26,11 @@ export const nursingProviders = [
     {
         provide: 'PhysiotherapySessionRepository',
         useFactory: (dataSource: DataSource) => dataSource.getRepository(PhysiotherapySession),
+        inject: ['DataSource'],
+    },
+    {
+        provide: 'PsychologySessionRepository',
+        useFactory: (dataSource: DataSource) => dataSource.getRepository(PsychologySession),
         inject: ['DataSource'],
     },
 ];

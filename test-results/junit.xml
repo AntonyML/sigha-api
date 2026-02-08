@@ -1,25 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="jest tests" tests="10" failures="0" errors="0" time="5.098">
-  <testsuite name="Entrada y salida " errors="0" failures="0" skipped="0" timestamp="2025-11-21T05:15:36" time="4.694" tests="10">
-    <testcase classname="Entrada y salida  › create - Prueba 1" name="debería crear un registro de entrada exitosamente" time="0.023">
+<testsuites name="jest tests" tests="11" failures="0" errors="0" time="4.893">
+  <testsuite name="PsychologyService" errors="0" failures="0" skipped="0" timestamp="2026-02-08T22:24:26" time="4.562" tests="11">
+    <testcase classname="PsychologyService" name="should be defined" time="0.018">
     </testcase>
-    <testcase classname="Entrada y salida  › create - Prueba 2" name="debería crear un registro de salida exitosamente" time="0.008">
+    <testcase classname="PsychologyService › createPsychologySession" name="should create a psychology session successfully" time="0.006">
     </testcase>
-    <testcase classname="Entrada y salida  › create - Prueba 3" name="debería lanzar BadRequestException cuando entrada tiene fecha de salida" time="0.041">
+    <testcase classname="PsychologyService › createPsychologySession" name="should throw error if appointment not found" time="0.017">
     </testcase>
-    <testcase classname="Entrada y salida  › create - Prueba 4" name="debería lanzar BadRequestException cuando salida tiene fecha de entrada" time="0.008">
+    <testcase classname="PsychologyService › createPsychologySession" name="should throw error if appointment does not belong to psychology" time="0.004">
     </testcase>
-    <testcase classname="Entrada y salida  › create - Prueba 5" name="debería usar la fecha actual cuando no se proporciona fecha de entradaaa" time="0.007">
+    <testcase classname="PsychologyService › getPsychologySessions" name="should return psychology sessions" time="0.004">
     </testcase>
-    <testcase classname="Entrada y salida  › closeCycle - Prueba 6" name="debería cerrar el ciclo exitosamente" time="0.008">
+    <testcase classname="PsychologyService › getPsychologySessionById" name="should return a psychology session by id" time="0.003">
     </testcase>
-    <testcase classname="Entrada y salida  › closeCycle - Prueba 7" name="debería lanzar NotFoundException cuando el registro no existe" time="0.006">
+    <testcase classname="PsychologyService › getPsychologySessionById" name="should throw error if session not found" time="0.003">
     </testcase>
-    <testcase classname="Entrada y salida  › closeCycle - Prueba 8" name="debería lanzar BadRequestException cuando intenta cerrar un ciclo ya cerrado" time="0.009">
+    <testcase classname="PsychologyService › updatePsychologySession" name="should update a psychology session" time="0.002">
     </testcase>
-    <testcase classname="Entrada y salida  › getOpenEntrances - Prueba 9" name="debería retornar todos los registros de entrada abiertos" time="0.008">
+    <testcase classname="PsychologyService › updatePsychologySession" name="should throw error if session not found" time="0.003">
     </testcase>
-    <testcase classname="Entrada y salida  › remove - Prueba 10" name="debería eliminar un registro exitosamente" time="0.006">
+    <testcase classname="PsychologyService › deletePsychologySession" name="should delete a psychology session" time="0.003">
+    </testcase>
+    <testcase classname="PsychologyService › deletePsychologySession" name="should throw error if session not found" time="0.003">
     </testcase>
   </testsuite>
 </testsuites>
