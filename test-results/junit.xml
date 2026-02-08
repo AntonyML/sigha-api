@@ -1,27 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="jest tests" tests="11" failures="0" errors="0" time="4.893">
-  <testsuite name="PsychologyService" errors="0" failures="0" skipped="0" timestamp="2026-02-08T22:24:26" time="4.562" tests="11">
-    <testcase classname="PsychologyService" name="should be defined" time="0.018">
+<testsuites name="jest tests" tests="12" failures="0" errors="0" time="5.57">
+  <testsuite name="MedicalRecordService" errors="0" failures="0" skipped="0" timestamp="2026-02-08T22:30:11" time="5.223" tests="12">
+    <testcase classname="MedicalRecordService" name="should be defined" time="0.017">
     </testcase>
-    <testcase classname="PsychologyService › createPsychologySession" name="should create a psychology session successfully" time="0.006">
+    <testcase classname="MedicalRecordService › createMedicalRecord" name="should create a medical record successfully" time="0.009">
     </testcase>
-    <testcase classname="PsychologyService › createPsychologySession" name="should throw error if appointment not found" time="0.017">
+    <testcase classname="MedicalRecordService › createMedicalRecord" name="should create a medical record without user" time="0.005">
     </testcase>
-    <testcase classname="PsychologyService › createPsychologySession" name="should throw error if appointment does not belong to psychology" time="0.004">
+    <testcase classname="MedicalRecordService › createMedicalRecord" name="should throw error if patient not found" time="0.022">
     </testcase>
-    <testcase classname="PsychologyService › getPsychologySessions" name="should return psychology sessions" time="0.004">
+    <testcase classname="MedicalRecordService › getMedicalRecords" name="should return medical records" time="0.004">
     </testcase>
-    <testcase classname="PsychologyService › getPsychologySessionById" name="should return a psychology session by id" time="0.003">
+    <testcase classname="MedicalRecordService › getMedicalRecords" name="should filter records by patient ID" time="0.004">
     </testcase>
-    <testcase classname="PsychologyService › getPsychologySessionById" name="should throw error if session not found" time="0.003">
+    <testcase classname="MedicalRecordService › getMedicalRecordById" name="should return a medical record by id" time="0.003">
     </testcase>
-    <testcase classname="PsychologyService › updatePsychologySession" name="should update a psychology session" time="0.002">
+    <testcase classname="MedicalRecordService › getMedicalRecordById" name="should throw error if record not found" time="0.003">
     </testcase>
-    <testcase classname="PsychologyService › updatePsychologySession" name="should throw error if session not found" time="0.003">
+    <testcase classname="MedicalRecordService › updateMedicalRecord" name="should update a medical record" time="0.003">
     </testcase>
-    <testcase classname="PsychologyService › deletePsychologySession" name="should delete a psychology session" time="0.003">
+    <testcase classname="MedicalRecordService › updateMedicalRecord" name="should throw error if record not found" time="0.003">
     </testcase>
-    <testcase classname="PsychologyService › deletePsychologySession" name="should throw error if session not found" time="0.003">
+    <testcase classname="MedicalRecordService › deleteMedicalRecord" name="should delete a medical record" time="0.003">
+    </testcase>
+    <testcase classname="MedicalRecordService › deleteMedicalRecord" name="should throw error if record not found" time="0.003">
     </testcase>
   </testsuite>
 </testsuites>
