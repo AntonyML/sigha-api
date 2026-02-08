@@ -4,7 +4,7 @@ ALWAYS prioritize MCP servers: backend/NestJS → filesystem, GitHub, memory; fr
 
 Auto-detect project type via package.json, file extensions, and folder structure; switch MCP tools accordingly; never explain selection unless asked.
 
-Start sessions reading Session_starter.md, then README.md, then project files; update logs with Date | Summary using 2025-11-16.
+Start sessions reading Session_starter.md, then README.md, then project files; update logs with Date | Summary using 2026-02-08.
 
 Follow established coding standards, architectural decisions, and design patterns; maintain consistent style; reference project backend_nest_js_hogar_de_ancianos, type Node.js Application, stack - Node.js
 - JavaScript/TypeScript
@@ -33,3 +33,5 @@ Maintain session memory, track technical constraints, solved problems, and MCP u
 2025-11-15 | Searched for Selenium tests — none found; added a Selenium skeleton test for `Users` (`tests/selenium/UsersTest/users-selenium.spec.ts`) and a script `test:selenium:users` in `package.json`.
 2025-11-16 | Reviewed `Session_starter.md` for project rules and patterns; updated session logging to include today's date and confirmed there is no `README.md` in the repository root. Next: continue exploring `src/` modules and update session log after implementing changes.
 2025-11-16 | Implemented comprehensive Jenkins pipeline (`jenkins/tony/Jenkinsfile`): Triggered on `dev` branch merge, pulls code, pushes to test repository, installs dependencies, runs Jest and unit tests, sends email notifications with detailed status and logs on success/failure/unstable. Pipeline includes: checkout source, push to test repo, dependency install, Jest execution, unit test execution (users service), and conditional email alerts with HTML formatting to antony.mongelopez@ucr.ac.cr.
+2026-02-08 | Reviewed Session_starter.md for project context, current status, and established patterns; prepared to maintain project continuity and follow documented technical decisions. Analyzed database schema and backend structure, identified missing modules (physiotherapy, psychology, social work, medical records), created general task list and specific progress files for implementation. Started implementation: created PhysiotherapySession entity in domain/nursing/, added PhysiotherapySessionRepository provider in nursing.providers.ts, created PhysiotherapyService in services/nursing/ and integrated into NursingModule.
+2026-02-08 | Reviewed Session_starter.md for project context, current status, and established patterns; prepared to maintain project continuity and follow documented technical decisions.

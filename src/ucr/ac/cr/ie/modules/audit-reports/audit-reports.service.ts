@@ -6,7 +6,7 @@ import { OlderAdultUpdate } from '../../domain/audit';
 import { User } from '../../domain/auth/core/user.entity';
 import { RoleChange } from '../../domain/roles/role-change.entity';
 import { LoginAttempt } from '../../domain/auth/security/login-attempt.entity';
-import { GenerateAuditReportDto, AuditReportFilterDto } from './dto/audit-report.dto';
+import { GenerateAuditReportRequestDto, AuditReportFilterDto } from './dto/audit-report.dto';
 import { AuditReportResponse, GenerateAuditReportResponse, AuditReportDetailResponse } from './interfaces/audit-report.interface';
 
 @Injectable()
@@ -28,7 +28,7 @@ export class AuditReportsService {
 
   async generateAuditReport(
     generatorId: number,
-    generateDto: GenerateAuditReportDto,
+    generateDto: GenerateAuditReportRequestDto,
   ): Promise<GenerateAuditReportResponse> {
     const { type, startDate, endDate } = generateDto;
 

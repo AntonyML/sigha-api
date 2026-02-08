@@ -1,7 +1,7 @@
 import { IsEnum, IsOptional, IsString, IsNumber } from 'class-validator';
 import { AuditReportType } from '../../../domain/audit';
 
-export class GenerateAuditReportDto {
+export class GenerateAuditReportRequestDto {
   @IsEnum(AuditReportType)
   type: AuditReportType;
 

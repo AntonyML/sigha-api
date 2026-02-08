@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { NursingController } from './controller/nursing';
-import { NursingService } from './services/nursing';
+import { NursingService, PhysiotherapyService } from './services/nursing';
 import { nursingProviders } from './repository/nursing';
 import { virtualRecordsProviders } from './repository/virtual-records';
 import { DatabaseModule } from './database.module';
@@ -10,11 +10,12 @@ import { DatabaseModule } from './database.module';
     controllers: [NursingController],
     providers: [
         NursingService,
+        PhysiotherapyService,
         ...nursingProviders,
-        ...virtualRecordsProviders.filter(provider => 
+        ...virtualRecordsProviders.filter(provider =>
             provider.provide === 'OlderAdultRepository'
         )
     ],
-    exports: [NursingService]
+    exports: [NursingService, PhysiotherapyService]
 })
 export class NursingModule {}

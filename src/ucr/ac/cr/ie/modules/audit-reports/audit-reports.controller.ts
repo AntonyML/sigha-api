@@ -21,7 +21,7 @@ import {
 } from '@nestjs/swagger';
 import { AuditReportsService } from './audit-reports.service';
 import {
-  GenerateAuditReportDto,
+  GenerateAuditReportRequestDto,
   AuditReportFilterDto,
 } from './dto/audit-report.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -49,7 +49,7 @@ export class AuditReportsController {
     status: 400,
     description: 'Bad request - Invalid date range or parameters',
   })
-  async generateAuditReport(@Req() req: any, @Body() generateDto: GenerateAuditReportDto) {
+  async generateAuditReport(@Req() req: any, @Body() generateDto: GenerateAuditReportRequestDto) {
     return this.auditReportsService.generateAuditReport(req.user.userId, generateDto);
   }
 

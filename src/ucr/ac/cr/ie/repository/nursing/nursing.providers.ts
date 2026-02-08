@@ -2,7 +2,8 @@ import { DataSource } from 'typeorm';
 import {
     SpecializedArea,
     SpecializedAppointment,
-    NursingRecord
+    NursingRecord,
+    PhysiotherapySession
 } from '../../domain/nursing';
 
 export const nursingProviders = [
@@ -19,6 +20,11 @@ export const nursingProviders = [
     {
         provide: 'NursingRecordRepository',
         useFactory: (dataSource: DataSource) => dataSource.getRepository(NursingRecord),
+        inject: ['DataSource'],
+    },
+    {
+        provide: 'PhysiotherapySessionRepository',
+        useFactory: (dataSource: DataSource) => dataSource.getRepository(PhysiotherapySession),
         inject: ['DataSource'],
     },
 ];
