@@ -6,3 +6,4 @@ export * from './complete-appointment.dto';
 export * from './physiotherapy.dto';
 export * from './psychology.dto';
 export * from './medical-record.dto';
+export * from './social-work.dto';

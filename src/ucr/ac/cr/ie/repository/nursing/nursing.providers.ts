@@ -5,7 +5,8 @@ import {
     NursingRecord,
     PhysiotherapySession,
     PsychologySession,
-    MedicalRecord
+    MedicalRecord,
+    SocialWorkReport
 } from '../../domain/nursing';
 
 export const nursingProviders = [
@@ -37,6 +38,11 @@ export const nursingProviders = [
     {
         provide: 'MedicalRecordRepository',
         useFactory: (dataSource: DataSource) => dataSource.getRepository(MedicalRecord),
+        inject: ['DataSource'],
+    },
+    {
+        provide: 'SocialWorkReportRepository',
+        useFactory: (dataSource: DataSource) => dataSource.getRepository(SocialWorkReport),
         inject: ['DataSource'],
     },
 ];

@@ -1,29 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="jest tests" tests="12" failures="0" errors="0" time="5.57">
-  <testsuite name="MedicalRecordService" errors="0" failures="0" skipped="0" timestamp="2026-02-08T22:30:11" time="5.223" tests="12">
-    <testcase classname="MedicalRecordService" name="should be defined" time="0.017">
+<testsuites name="jest tests" tests="14" failures="0" errors="0" time="4.581">
+  <testsuite name="SocialWorkService" errors="0" failures="0" skipped="0" timestamp="2026-02-09T01:19:34" time="4.247" tests="14">
+    <testcase classname="SocialWorkService › createSocialWorkReport" name="should create a social work report successfully" time="0.019">
     </testcase>
-    <testcase classname="MedicalRecordService › createMedicalRecord" name="should create a medical record successfully" time="0.009">
+    <testcase classname="SocialWorkService › createSocialWorkReport" name="should throw NotFoundException if patient not found" time="0.021">
     </testcase>
-    <testcase classname="MedicalRecordService › createMedicalRecord" name="should create a medical record without user" time="0.005">
+    <testcase classname="SocialWorkService › createSocialWorkReport" name="should throw NotFoundException if appointment not found" time="0.004">
     </testcase>
-    <testcase classname="MedicalRecordService › createMedicalRecord" name="should throw error if patient not found" time="0.022">
+    <testcase classname="SocialWorkService › createSocialWorkReport" name="should throw BadRequestException if appointment does not belong to social work" time="0.004">
     </testcase>
-    <testcase classname="MedicalRecordService › getMedicalRecords" name="should return medical records" time="0.004">
+    <testcase classname="SocialWorkService › createSocialWorkReport" name="should create report with null social_worker if user not found" time="0.003">
     </testcase>
-    <testcase classname="MedicalRecordService › getMedicalRecords" name="should filter records by patient ID" time="0.004">
+    <testcase classname="SocialWorkService › getSocialWorkReports" name="should return all reports if no patientId provided" time="0.008">
     </testcase>
-    <testcase classname="MedicalRecordService › getMedicalRecordById" name="should return a medical record by id" time="0.003">
+    <testcase classname="SocialWorkService › getSocialWorkReports" name="should filter reports by patientId" time="0.002">
     </testcase>
-    <testcase classname="MedicalRecordService › getMedicalRecordById" name="should throw error if record not found" time="0.003">
+    <testcase classname="SocialWorkService › getSocialWorkReportById" name="should return report by id" time="0.003">
     </testcase>
-    <testcase classname="MedicalRecordService › updateMedicalRecord" name="should update a medical record" time="0.003">
+    <testcase classname="SocialWorkService › getSocialWorkReportById" name="should throw NotFoundException if report not found" time="0.003">
     </testcase>
-    <testcase classname="MedicalRecordService › updateMedicalRecord" name="should throw error if record not found" time="0.003">
+    <testcase classname="SocialWorkService › updateSocialWorkReport" name="should update report successfully" time="0.003">
     </testcase>
-    <testcase classname="MedicalRecordService › deleteMedicalRecord" name="should delete a medical record" time="0.003">
+    <testcase classname="SocialWorkService › updateSocialWorkReport" name="should throw NotFoundException if report not found" time="0.002">
     </testcase>
-    <testcase classname="MedicalRecordService › deleteMedicalRecord" name="should throw error if record not found" time="0.003">
+    <testcase classname="SocialWorkService › updateSocialWorkReport" name="should throw BadRequestException if appointment does not belong to social work in update" time="0.002">
+    </testcase>
+    <testcase classname="SocialWorkService › deleteSocialWorkReport" name="should delete report successfully" time="0.002">
+    </testcase>
+    <testcase classname="SocialWorkService › deleteSocialWorkReport" name="should throw NotFoundException if report not found" time="0.003">
     </testcase>
   </testsuite>
 </testsuites>
