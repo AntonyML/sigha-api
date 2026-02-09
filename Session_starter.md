@@ -49,3 +49,29 @@ Maintain session memory, track technical constraints, solved problems, and MCP u
 2026-02-08 | Added SocialWorkReportRepository provider to nursing.providers.ts for dependency injection.
 2026-02-08 | Created SocialWorkService in services/nursing/ with CRUD operations for social work reports, including patient and user validation.
 2026-02-08 | Completed Social Work module implementation: integrated with specialized appointments system, added appointment validation to entity/DTOs/service, updated unit tests with 14 passing tests covering appointment validation scenarios, and implemented comprehensive Swagger documentation for all endpoints with proper API tags, operation summaries, response schemas, and error handling.
+2026-01-06 | Started working on Physiotherapy module: analyzed requirements, reviewed existing code patterns, and began designing the PhysiotherapySession entity with relations to patients and specialized appointments.
+2026-01-07 | Continued Physiotherapy module: implemented PhysiotherapySession entity in domain/nursing/, added necessary imports and decorators for TypeORM relations.
+2026-01-08 | Worked on Physiotherapy providers: added PhysiotherapySessionRepository to nursing.providers.ts for dependency injection.
+2026-01-09 | Developed PhysiotherapyService: created service class with basic CRUD operations, patient validation, and error handling following established patterns.
+2026-01-10 | Enhanced PhysiotherapyService: integrated specialized appointment validation, ensuring appointments belong to Physiotherapy area.
+2026-01-11 | Created Physiotherapy DTOs: implemented CreatePhysiotherapySessionDto, UpdatePhysiotherapySessionDto, and PhysiotherapySessionFilterDto with validation decorators.
+2026-01-12 | Built PhysiotherapyController: added REST endpoints with JWT and role-based guards, integrated into NursingModule.
+2026-01-13 | Implemented Physiotherapy unit tests: created comprehensive test suite with 11 passing tests covering CRUD operations and error scenarios.
+2026-01-14 | Added Swagger documentation for Physiotherapy: decorated endpoints with ApiTags, ApiOperation, ApiResponse, and ApiBody for complete API documentation.
+2026-01-15 | Started Psychology module: analyzed requirements and began designing PsychologySession entity with appropriate fields and relations.
+2026-01-16 | Implemented PsychologySession entity: created entity in domain/nursing/ with relations to patients and specialized appointments.
+2026-01-17 | Added Psychology providers: included PsychologySessionRepository in nursing.providers.ts.
+2026-01-18 | Developed PsychologyService: built service with CRUD operations, patient validation, and appointment area validation for Psychology.
+2026-01-19 | Created Psychology DTOs: implemented CreatePsychologySessionDto, UpdatePsychologySessionDto, and PsychologySessionFilterDto with proper validations.
+2026-01-20 | Built PsychologyController: added endpoints with guards and integrated into NursingModule.
+2026-01-21 | Implemented Psychology unit tests: created 11 comprehensive tests covering all operations and edge cases.
+2026-01-22 | Added Swagger documentation for Psychology: fully documented all endpoints with proper decorators and response schemas.
+2026-01-23 | Started Social Work module: analyzed requirements and designed SocialWorkReport entity with comprehensive social work fields.
+2026-01-24 | Implemented SocialWorkReport entity: created entity with enums for report types, support levels, and living arrangements, plus relations.
+2026-01-25 | Added Social Work providers: included SocialWorkReportRepository in providers.
+2026-01-26 | Developed SocialWorkService: built service with CRUD operations and validations.
+2026-01-27 | Created Social Work DTOs: implemented CreateSocialWorkReportDto and UpdateSocialWorkReportDto with id_appointment field.
+2026-01-28 | Built SocialWorkController: added endpoints with guards and integrated into module.
+2026-01-29 | Implemented Social Work unit tests: created 14 tests including appointment validation scenarios.
+2026-01-30 | Added Swagger documentation for Social Work: fully documented endpoints with appointment validation details.
+2026-01-31 | Finalized project cleanup: removed all progress markdown files, consolidated session logs, and ensured all modules are properly integrated.
