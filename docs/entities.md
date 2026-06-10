@@ -93,7 +93,7 @@ You should see 29 import lines + 29 entries in the `entities: [...]` array.
 1. Create the entity file in the appropriate `domain/<area>/` folder.
 2. Add a row to the "Registered" table above.
 3. Add the import + entry to `database.providers.ts`.
-4. Add the SQL definition to `database_mysql_hogar_de_ancianos/supabase/migrations/00N_*.sql` (or the legacy `scriptDBCompleta.sql`).
+4. Add the SQL definition to `sigha-db/supabase/migrations/00N_*.sql` (or the legacy `scriptDBCompleta.sql`).
 5. Create a DTO in `dto/<area>/`.
 6. Create a service in `services/<area>/`.
 7. Create a controller in `controller/<area>/`.
