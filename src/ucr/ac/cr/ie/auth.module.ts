@@ -7,20 +7,20 @@ import { AuthController } from './controller/auth/auth.controller';
 import { authProviders } from './repository/auth/auth.providers';
 import { DatabaseModule } from './database.module';
 import { StartupService } from './services/startup.service';
-import { NotifuseModule } from './notifuse.module';
+import { EmailModule } from './email.module';
 import { AuditModule } from './audit.module';
 
 @Global()
 @Module({
     imports: [
         DatabaseModule,
-        NotifuseModule,
+        EmailModule,
         AuditModule,
         PassportModule,
         JwtModule.registerAsync({
             useFactory: (configService: ConfigService) => ({
                 secret: configService.get<string>('JWT_SECRET'),
-                signOptions: { 
+                signOptions: {
                     expiresIn: '1h' // Token de acceso de 1 hora para testing
                 },
             }),
