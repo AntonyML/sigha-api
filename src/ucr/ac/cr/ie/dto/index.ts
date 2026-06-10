@@ -1,7 +1,7 @@
 // Auth DTOs
 export * from './auth';
 
-// User DTOs  
+// User DTOs
 export * from './users';
 
 // Role DTOs
@@ -25,8 +25,8 @@ export * from './clinical-conditions';
 // Vaccines DTOs
 export * from './vaccines';
 
-// Notifuse DTOs
-export * from './notifuse';
+// Email DTOs (Resend-backed; replaces legacy notifuse DTOs).
+export * from './email';
 
 // Notifications DTOs
 export * from './notifications';
