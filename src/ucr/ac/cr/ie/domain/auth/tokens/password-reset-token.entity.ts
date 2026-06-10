@@ -12,13 +12,13 @@ export class PasswordResetToken {
   @Column({ name: 'token', type: 'varchar', length: 255 })
   token: string;
 
-  @Column({ name: 'expires_at', type: 'datetime' })
+  @Column({ name: 'expires_at', type: 'timestamptz' })
   expiresAt: Date;
 
   @Column({ name: 'used', type: 'boolean', default: false })
   used: boolean;
 
-  @Column({ name: 'used_at', type: 'datetime', nullable: true })
+  @Column({ name: 'used_at', type: 'timestamptz', nullable: true })
   usedAt?: Date;
 
   @CreateDateColumn({ name: 'created_at' })

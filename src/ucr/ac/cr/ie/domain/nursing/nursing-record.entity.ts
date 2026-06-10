@@ -18,7 +18,7 @@ export class NursingRecord {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ name: 'nr_date', type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
+    @Column({ name: 'nr_date', type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
     nrDate: Date;
 
     @Column({ name: 'nr_temperature', type: 'decimal', precision: 4, scale: 1, nullable: true })
@@ -30,7 +30,7 @@ export class NursingRecord {
     @Column({ name: 'nr_heart_rate', type: 'smallint', unsigned: true, nullable: true })
     nrHeartRate?: number;
 
-    @Column({ name: 'nr_pain_level', type: 'tinyint', unsigned: true, nullable: true })
+    @Column({ name: 'nr_pain_level', type: 'smallint', nullable: true })
     nrPainLevel?: number;
 
     @Column({
@@ -60,7 +60,7 @@ export class NursingRecord {
     @Column({ name: 'nr_notes', type: 'text', nullable: true })
     nrNotes?: string;
 
-    @Column({ name: 'create_at', type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
+    @Column({ name: 'create_at', type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
     createAt: Date;
 
     @Column({ name: 'id_appointment', nullable: true })

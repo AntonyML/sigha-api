@@ -47,7 +47,7 @@ export class OlderAdultFamily {
     })
     pfKinship: KinshipType;
 
-    @Column({ name: 'create_at', type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
+    @Column({ name: 'create_at', type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
     createAt: Date;
 
     constructor(

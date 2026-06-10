@@ -63,10 +63,10 @@ export class AuditReport {
   @Column({ name: 'ar_observations', type: 'text', nullable: true })
   arObservations: string;
 
-  @Column({ name: 'ar_start_date', type: 'datetime' })
+  @Column({ name: 'ar_start_date', type: 'timestamptz' })
   arStartDate: Date;
 
-  @Column({ name: 'ar_end_date', type: 'datetime', nullable: true })
+  @Column({ name: 'ar_end_date', type: 'timestamptz', nullable: true })
   arEndDate: Date;
 
   @Column({ name: 'ar_duration_seconds', nullable: true })

@@ -34,7 +34,7 @@ export class SpecializedArea {
     @Column({ name: 'sa_is_active', default: true })
     saIsActive: boolean;
 
-    @Column({ name: 'create_at', type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
+    @Column({ name: 'create_at', type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
     createAt: Date;
 
     @Column({ name: 'id_manager', nullable: true })

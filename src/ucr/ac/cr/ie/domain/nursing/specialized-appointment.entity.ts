@@ -32,7 +32,7 @@ export class SpecializedAppointment {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ name: 'sa_appointment_date', type: 'datetime' })
+    @Column({ name: 'sa_appointment_date', type: 'timestamptz' })
     saAppointmentDate: Date;
 
     @Column({
@@ -68,10 +68,10 @@ export class SpecializedAppointment {
     @Column({ name: 'sa_duration_minutes', type: 'smallint', unsigned: true, nullable: true })
     saDurationMinutes?: number;
 
-    @Column({ name: 'sa_next_appointment', type: 'datetime', nullable: true })
+    @Column({ name: 'sa_next_appointment', type: 'timestamptz', nullable: true })
     saNextAppointment?: Date;
 
-    @Column({ name: 'create_at', type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
+    @Column({ name: 'create_at', type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
     createAt: Date;
 
     @Column({ name: 'id_area' })

@@ -30,7 +30,7 @@ export class PsychologySession {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
+    @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
     psy_date: Date;
 
     @Column({

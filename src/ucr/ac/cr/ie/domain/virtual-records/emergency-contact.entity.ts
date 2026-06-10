@@ -9,7 +9,7 @@ export class EmergencyContact {
     @Column({ name: 'en_phone_number', length: 20 })
     enPhoneNumber: string;
 
-    @Column({ name: 'create_at', type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
+    @Column({ name: 'create_at', type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
     createAt: Date;
 
     @Column({ name: 'id_older_adult', nullable: true })

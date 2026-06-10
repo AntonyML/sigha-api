@@ -21,7 +21,7 @@ export class PhysiotherapySession {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
+    @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
     ps_date: Date;
 
     @Column({
@@ -38,7 +38,7 @@ export class PhysiotherapySession {
     })
     ps_mobility_level: MobilityLevel;
 
-    @Column({ type: 'tinyint', unsigned: true, nullable: true })
+    @Column({ type: 'smallint', nullable: true })
     ps_pain_level: number | null;
 
     @Column({ type: 'text', nullable: true })
