@@ -1,4 +1,4 @@
-import { DataSource } from 'typeorm';
+import { DataSource, DataSourceOptions } from 'typeorm';
 import { User } from './domain/auth/core/user.entity';
 import { Role } from './domain/auth/core/role.entity';
 import { UserSession } from './domain/auth/sessions/user-session.entity';
@@ -8,69 +8,106 @@ import { PasswordResetToken } from './domain/auth/tokens/password-reset-token.en
 import { EntranceExit } from './domain/entrances-exits/entrance-exit.entity';
 import { RoleChange } from './domain/roles/role-change.entity';
 import { AuditReport, DigitalRecord, OlderAdultUpdate } from './domain/audit';
-import { 
-    Program, 
-    SubProgram, 
-    OlderAdult, 
-    OlderAdultFamily, 
-    ClinicalHistory, 
-    ClinicalCondition, 
-    Vaccine, 
-    ClinicalMedication, 
-    ClinicalHistoryAndCondition, 
-    VaccinesAndClinicalHistory, 
-    OlderAdultSubprogram, 
-    EmergencyContact 
+import {
+    Program,
+    SubProgram,
+    OlderAdult,
+    OlderAdultFamily,
+    ClinicalHistory,
+    ClinicalCondition,
+    Vaccine,
+    ClinicalMedication,
+    ClinicalHistoryAndCondition,
+    VaccinesAndClinicalHistory,
+    OlderAdultSubprogram,
+    EmergencyContact
 } from './domain/virtual-records';
 import { Notification, NotificationAttachment } from './domain/notifications';
 import { SpecializedArea, SpecializedAppointment, NursingRecord } from './domain/nursing';
+
+/**
+ * Build the TypeORM DataSource options from environment variables.
+ *
+ * Two connection modes are supported (in priority order):
+ *   1. `DATABASE_URL` — full Postgres URL. Preferred for Supabase / managed DBs.
+ *      If it contains `sslmode=require` or `ssl=true` (or DB_SSL=true is set),
+ *      SSL is enabled with `rejectUnauthorized: false` (Supabase pooler certs).
+ *   2. Discrete `DB_*` vars — host, port, username, password, database.
+ *      Used as a fallback (legacy / local docker).
+ */
+function buildDataSourceOptions(): DataSourceOptions {
+    const entities = [
+        User,
+        Role,
+        UserSession,
+        UserTwoFactor,
+        LoginAttempt,
+        PasswordResetToken,
+        EntranceExit,
+        RoleChange,
+        AuditReport,
+        DigitalRecord,
+        OlderAdultUpdate,
+        Program,
+        SubProgram,
+        OlderAdult,
+        OlderAdultFamily,
+        ClinicalHistory,
+        ClinicalCondition,
+        Vaccine,
+        ClinicalMedication,
+        ClinicalHistoryAndCondition,
+        VaccinesAndClinicalHistory,
+        OlderAdultSubprogram,
+        EmergencyContact,
+        Notification,
+        NotificationAttachment,
+        SpecializedArea,
+        SpecializedAppointment,
+        NursingRecord,
+    ];
+
+    const sslEnabled =
+        process.env.DB_SSL === 'true' ||
+        (process.env.DATABASE_URL || '').toLowerCase().includes('sslmode=require') ||
+        (process.env.DATABASE_URL || '').toLowerCase().includes('ssl=true');
+
+    const baseOptions: DataSourceOptions = {
+        type: 'postgres',
+        entities,
+        synchronize: false,
+        logging: process.env.NODE_ENV === 'development',
+    };
+
+    if (process.env.DATABASE_URL) {
+        return {
+            ...baseOptions,
+            url: process.env.DATABASE_URL,
+            ssl: sslEnabled ? { rejectUnauthorized: false } : false,
+            extra: sslEnabled ? { ssl: { rejectUnauthorized: false } } : undefined,
+        };
+    }
+
+    return {
+        ...baseOptions,
+        host: process.env.DB_HOST || 'localhost',
+        port: parseInt(process.env.DB_PORT || '5432', 10),
+        username: process.env.DB_USERNAME || 'postgres',
+        password: process.env.DB_PASSWORD || '',
+        database: process.env.DB_NAME || 'hogar_de_ancianos',
+        ssl: sslEnabled ? { rejectUnauthorized: false } : false,
+    };
+}
 
 export const databaseProviders = [
     {
         provide: 'DataSource',
         useFactory: async (): Promise<DataSource> => {
-            const dataSource = new DataSource({
-                type: 'mysql',
-                host: process.env.DB_HOST,
-                port: parseInt(process.env.DB_PORT),
-                username: process.env.DB_USERNAME,
-                password: process.env.DB_PASSWORD,
-                database: process.env.DB_NAME,
-                entities: [
-                    User,
-                    Role,
-                    UserSession,
-                    UserTwoFactor,
-                    LoginAttempt,
-                    PasswordResetToken,
-                    EntranceExit,
-                    RoleChange,
-                    AuditReport,
-                    DigitalRecord,
-                    OlderAdultUpdate,
-                    Program,
-                    SubProgram,
-                    OlderAdult,
-                    OlderAdultFamily,
-                    ClinicalHistory,
-                    ClinicalCondition,
-                    Vaccine,
-                    ClinicalMedication,
-                    ClinicalHistoryAndCondition,
-                    VaccinesAndClinicalHistory,
-                    OlderAdultSubprogram,
-                    EmergencyContact,
-                    Notification,
-                    NotificationAttachment,
-                    SpecializedArea,
-                    SpecializedAppointment,
-                    NursingRecord,
-                ],
-                synchronize: false,
-                logging: process.env.NODE_ENV === 'development',
-            });
-
+            const dataSource = new DataSource(buildDataSourceOptions());
             return dataSource.initialize();
         },
     },
 ];
+
+// Exposed for scripts (create-super-users, reset-database, check-schema).
+export const dataSourceOptions = buildDataSourceOptions();
