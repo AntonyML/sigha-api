@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, BadRequestException, Inject, NotFoundException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException, Inject, NotFoundException, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { Repository, MoreThan } from 'typeorm';
@@ -11,12 +11,14 @@ import { LoginDto, ForgotPasswordDto, ResetPasswordDto } from '../../dto/auth';
 import { LoginResponse, Setup2FAResponse, Enable2FAResponse, TwoFactorStatusResponse } from '../../interfaces/auth';
 import { SuccessResponse, MessageResponse } from '../../interfaces';
 import * as crypto from 'crypto';
-import { NotifuseService } from '../notifuse/notifuse.service';
+import { EmailService } from '../email/email.service';
 import { AuditService } from '../audit/audit.service';
 import { AuditReportType, AuditAction } from '../../domain/audit';
 
 @Injectable()
 export class AuthService {
+    private readonly logger = new Logger(AuthService.name);
+
     constructor(
         private jwtService: JwtService,
         private configService: ConfigService,
@@ -28,7 +30,7 @@ export class AuthService {
         private twoFactorRepository: Repository<UserTwoFactor>,
         @Inject('PasswordResetTokenRepository')
         private passwordResetTokenRepository: Repository<PasswordResetToken>,
-        private readonly notifuseService: NotifuseService,
+        private readonly emailService: EmailService,
         private readonly auditService: AuditService,
     ) { }
 
@@ -227,6 +229,11 @@ export class AuthService {
             throw new BadRequestException('2FA no configurado o ya habilitado');
         }
 
+        const user = await this.userRepository.findOne({ where: { id: userId } });
+        if (!user) {
+            throw new BadRequestException('Usuario no encontrado');
+        }
+
         let isValid = TwoFactorUtil.verifyToken(verificationCode, twoFactor.tfaSecret);
 
         let usedBackupCode = false;
@@ -251,6 +258,42 @@ export class AuthService {
         await this.twoFactorRepository.save(twoFactor);
 
         const backupCodes = JSON.parse(twoFactor.tfaBackupCodes || '[]');
+
+        // Enviar códigos de respaldo por email vía Resend (best-effort, no bloquea la habilitación).
+        if (Array.isArray(backupCodes) && backupCodes.length > 0) {
+            try {
+                const result = await this.emailService.sendBackupCodes({
+                    to: {
+                        email: user.uEmail,
+                        firstName: user.uName,
+                        lastName: user.uFLastName,
+                    },
+                    codes: backupCodes,
+                });
+                await this.auditService.createDigitalRecord(
+                    userId,
+                    {
+                        action: AuditAction.CREATE,
+                        tableName: 'notifications',
+                        recordId: userId,
+                        description: result.success
+                            ? `Envío email Resend: códigos de respaldo 2FA (${backupCodes.length})`
+                            : `Fallo envío email Resend: códigos de respaldo 2FA (${result.error ?? 'sin detalle'})`,
+                    }
+                );
+            } catch (err) {
+                this.logger.error('Error enviando códigos de respaldo por email:', err);
+                await this.auditService.createDigitalRecord(
+                    userId,
+                    {
+                        action: AuditAction.CREATE,
+                        tableName: 'notifications',
+                        recordId: userId,
+                        description: 'Fallo envío email Resend: códigos de respaldo 2FA',
+                    }
+                );
+            }
+        }
 
         // Registrar auditoría de habilitación de 2FA
         await this.auditService.createDigitalRecord(
@@ -437,34 +480,41 @@ export class AuthService {
         });
         await this.passwordResetTokenRepository.save(resetToken);
 
-        // Enviar email con el token usando notifuse
+        // Enviar email con el token usando Resend (best-effort, no bloquea la solicitud).
         try {
-            await this.notifuseService.sendCodeVerifyEmail(user.id, {
-                workspace_id: 'proyectoanalisis',
-                notification: {
-                    id: 'code_verifiy_email',
-                    contact: {
-                        email: user.uEmail,
-                        first_name: user.uName,
-                        last_name: '', // Asumir no hay apellido
-                    },
-                    data: {
-                        titulo_principal: 'Recuperación de Contraseña',
-                        nombre_usuario: user.uName,
-                        mensaje_contexto: 'Usa este código para resetear tu contraseña.',
-                        codigo_verificacion: token.slice(0, 4) + ' ' + token.slice(4), // Formateado con espacio
-                        tiempo_expiracion: '15 minutos',
-                        ubicacion: 'Sistema Hogar de Ancianos',
-                        fecha_hora: new Date().toISOString(),
-                        url_privacidad: 'https://tuapp.com/privacidad',
-                        url_terminos: 'https://tuapp.com/terminos',
-                        url_soporte: 'https://tuapp.com/soporte',
-                    },
+            const result = await this.emailService.sendPasswordReset({
+                to: {
+                    email: user.uEmail,
+                    firstName: user.uName,
+                    lastName: user.uFLastName,
                 },
+                code: token,
+                expirationLabel: '15 minutos',
             });
+
+            // Registrar auditoría del envío de email.
+            await this.auditService.createDigitalRecord(
+                user.id,
+                {
+                    action: AuditAction.CREATE,
+                    tableName: 'notifications',
+                    recordId: user.id,
+                    description: result.success
+                        ? 'Envío email Resend: código de recuperación de contraseña'
+                        : `Fallo envío email Resend: código de recuperación (${result.error ?? 'sin detalle'})`,
+                }
+            );
         } catch (error) {
-            // Log error but don't fail the request
-            console.error('Error sending reset email:', error);
+            this.logger.error('Error enviando email de recuperación de contraseña:', error);
+            await this.auditService.createDigitalRecord(
+                user.id,
+                {
+                    action: AuditAction.CREATE,
+                    tableName: 'notifications',
+                    recordId: user.id,
+                    description: 'Fallo envío email Resend: código de recuperación de contraseña',
+                }
+            );
         }
 
         // Registrar auditoría de solicitud de recuperación de contraseña
