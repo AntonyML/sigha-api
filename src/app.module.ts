@@ -18,6 +18,7 @@ import { AuditLogsModule } from './ucr/ac/cr/ie/modules/audit-logs/audit-logs.mo
 import { AuditReportsModule } from './ucr/ac/cr/ie/modules/audit-reports/audit-reports.module';
 import { SecurityAuditModule } from './ucr/ac/cr/ie/modules/security-audit/security-audit.module';
 import { NursingModule } from './ucr/ac/cr/ie/nursing.module';
+import { PermissionsModule } from './ucr/ac/cr/ie/permissions.module';
 import { JwtAuthGuard } from './ucr/ac/cr/ie/common/guards/jwt-auth.guard';
 
 @Module({
@@ -42,6 +43,7 @@ import { JwtAuthGuard } from './ucr/ac/cr/ie/common/guards/jwt-auth.guard';
     AuditReportsModule,
     SecurityAuditModule,
     NursingModule,
+    PermissionsModule,
   ],
   providers: [
     {

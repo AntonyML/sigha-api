@@ -24,6 +24,7 @@ import {
 } from './domain/virtual-records';
 import { Notification, NotificationAttachment } from './domain/notifications';
 import { SpecializedArea, SpecializedAppointment, NursingRecord } from './domain/nursing';
+import { Permission, RolePermission } from './domain/permissions';
 
 /**
  * Build the TypeORM DataSource options from environment variables.
@@ -65,6 +66,8 @@ function buildDataSourceOptions(): DataSourceOptions {
         SpecializedArea,
         SpecializedAppointment,
         NursingRecord,
+        Permission,
+        RolePermission,
     ];
 
     const sslEnabled =
