@@ -3,7 +3,7 @@ export * from './users';
 export * from './roles';
 export * from './entrances-exits';
 export * from './virtual-records';
-// Export notifuse controller explicitly to avoid TS module resolution edge cases in the editor
-export * from './notifuse/notifuse.controller';
+// Email controller (Resend-backed; replaces legacy notifuse controller).
+export * from './email/email.controller';
 // Export notifications controller explicitly
 export * from './notifications/notification.controller';

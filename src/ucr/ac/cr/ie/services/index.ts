@@ -4,5 +4,6 @@ export * from './users';
 export * from './roles';
 export * from './entrances-exits';
 export * from './virtual-records';
-export * from './notifuse';
+// Email service (Resend-backed; replaces legacy notifuse service).
+export * from './email';
 export * from './notifications';
