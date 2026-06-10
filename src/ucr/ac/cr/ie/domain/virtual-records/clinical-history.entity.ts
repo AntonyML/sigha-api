@@ -53,7 +53,7 @@ export class ClinicalHistory {
     @Column({ name: 'ch_vision_hearing', default: false })
     chVisionHearing: boolean;
 
-    @Column({ name: 'create_at', type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
+    @Column({ name: 'create_at', type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
     createAt: Date;
 
     @Column({ name: 'id_older_adult', nullable: true })

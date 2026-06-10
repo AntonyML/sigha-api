@@ -105,7 +105,7 @@ export class OlderAdult {
     @Column({ name: 'oa_area_of_origin', length: 300, nullable: true })
     oaAreaOfOrigin?: string;
 
-    @Column({ name: 'oa_children_count', type: 'tinyint', unsigned: true, default: 0 })
+    @Column({ name: 'oa_children_count', type: 'smallint', default: 0 })
     oaChildrenCount: number;
 
     @Column({
@@ -147,7 +147,7 @@ export class OlderAdult {
     })
     oaBloodType: BloodType;
 
-    @Column({ name: 'create_at', type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
+    @Column({ name: 'create_at', type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
     createAt: Date;
 
     @Column({ name: 'id_program', nullable: true })

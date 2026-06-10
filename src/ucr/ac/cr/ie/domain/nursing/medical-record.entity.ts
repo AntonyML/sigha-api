@@ -24,7 +24,7 @@ export class MedicalRecord {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
+    @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
     record_date: Date;
 
     @Column({

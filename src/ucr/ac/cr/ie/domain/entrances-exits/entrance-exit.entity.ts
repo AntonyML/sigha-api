@@ -46,10 +46,10 @@ export class EntranceExit {
     @Column({ name: 'ee_s_last_name', length: 50, nullable: true })
     eeSLastName?: string;
 
-    @Column({ name: 'ee_datetime_entrance', type: 'datetime', nullable: true })
+    @Column({ name: 'ee_datetime_entrance', type: 'timestamptz', nullable: true })
     eeDatetimeEntrance?: Date;
 
-    @Column({ name: 'ee_datetime_exit', type: 'datetime', nullable: true })
+    @Column({ name: 'ee_datetime_exit', type: 'timestamptz', nullable: true })
     eeDatetimeExit?: Date;
 
     @Column({ name: 'ee_close', default: false })
@@ -58,7 +58,7 @@ export class EntranceExit {
     @Column({ name: 'ee_observations', type: 'text', nullable: true })
     eeObservations?: string;
 
-    @Column({ name: 'create_at', type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
+    @Column({ name: 'create_at', type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
     createAt: Date;
 
     constructor(

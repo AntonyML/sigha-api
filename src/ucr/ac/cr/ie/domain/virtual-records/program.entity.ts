@@ -9,7 +9,7 @@ export class Program {
     @Column({ name: 'p_name', length: 300 })
     pName: string;
 
-    @Column({ name: 'create_at', type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
+    @Column({ name: 'create_at', type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
     createAt: Date;
 
     @OneToMany(() => SubProgram, subProgram => subProgram.program)

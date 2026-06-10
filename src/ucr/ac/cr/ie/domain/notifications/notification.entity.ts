@@ -13,7 +13,7 @@ export class Notification {
     @Column({ name: 'n_message', type: 'text' })
     nMessage: string;
 
-    @Column({ name: 'n_send_date', type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
+    @Column({ name: 'n_send_date', type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
     nSendDate: Date;
 
     @Column({ name: 'n_sent', default: false })

@@ -34,7 +34,7 @@ export class SocialWorkReport {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
+    @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
     report_date: Date;
 
     @Column({
