@@ -208,3 +208,7 @@ docs/generated/
 
 *.tmp
 *.temp
+
+Session_starter.md
+
+docs/
