@@ -9,21 +9,22 @@ import { PasswordResetToken } from '../src/ucr/ac/cr/ie/domain/auth/tokens/passw
 import { EntranceExit } from '../src/ucr/ac/cr/ie/domain/entrances-exits/entrance-exit.entity';
 import { RoleChange } from '../src/ucr/ac/cr/ie/domain/roles/role-change.entity';
 import { AuditReport, DigitalRecord, OlderAdultUpdate } from '../src/ucr/ac/cr/ie/domain/audit';
-import { 
-    Program, 
-    SubProgram, 
-    OlderAdult, 
-    OlderAdultFamily, 
-    ClinicalHistory, 
-    ClinicalCondition, 
-    Vaccine, 
-    ClinicalMedication, 
-    ClinicalHistoryAndCondition, 
-    VaccinesAndClinicalHistory, 
-    OlderAdultSubprogram, 
-    EmergencyContact 
+import {
+    Program,
+    SubProgram,
+    OlderAdult,
+    OlderAdultFamily,
+    ClinicalHistory,
+    ClinicalCondition,
+    Vaccine,
+    ClinicalMedication,
+    ClinicalHistoryAndCondition,
+    VaccinesAndClinicalHistory,
+    OlderAdultSubprogram,
+    EmergencyContact
 } from '../src/ucr/ac/cr/ie/domain/virtual-records';
 import { Notification, NotificationAttachment } from '../src/ucr/ac/cr/ie/domain/notifications';
+import { buildScriptDataSourceOptions } from './script-data-source';
 
 config();
 
@@ -34,44 +35,40 @@ async function resetDatabase() {
     console.log('DB_NAME:', process.env.DB_NAME || 'undefined');
     console.log();
 
-    const dataSource = new DataSource({
-        type: 'mysql',
-        host: process.env.DB_HOST || 'localhost',
-        port: parseInt(process.env.DB_PORT || '3306'),
-        username: process.env.DB_USERNAME || 'root',
-        password: process.env.DB_PASSWORD || '',
-        database: process.env.DB_NAME || 'hogar_de_ancianos',
-        entities: [
-            User,
-            Role,
-            UserSession,
-            UserTwoFactor,
-            LoginAttempt,
-            PasswordResetToken,
-            EntranceExit,
-            RoleChange,
-            AuditReport,
-            DigitalRecord,
-            OlderAdultUpdate,
-            Program,
-            SubProgram,
-            OlderAdult,
-            OlderAdultFamily,
-            ClinicalHistory,
-            ClinicalCondition,
-            Vaccine,
-            ClinicalMedication,
-            ClinicalHistoryAndCondition,
-            VaccinesAndClinicalHistory,
-            OlderAdultSubprogram,
-            EmergencyContact,
-            Notification,
-            NotificationAttachment,
-        ],
-        synchronize: true,
-        dropSchema: true,
-        logging: true,
-    });
+    const dataSource = new DataSource(
+        buildScriptDataSourceOptions({
+            entities: [
+                User,
+                Role,
+                UserSession,
+                UserTwoFactor,
+                LoginAttempt,
+                PasswordResetToken,
+                EntranceExit,
+                RoleChange,
+                AuditReport,
+                DigitalRecord,
+                OlderAdultUpdate,
+                Program,
+                SubProgram,
+                OlderAdult,
+                OlderAdultFamily,
+                ClinicalHistory,
+                ClinicalCondition,
+                Vaccine,
+                ClinicalMedication,
+                ClinicalHistoryAndCondition,
+                VaccinesAndClinicalHistory,
+                OlderAdultSubprogram,
+                EmergencyContact,
+                Notification,
+                NotificationAttachment,
+            ],
+            synchronize: true,
+            dropSchema: true,
+            logging: true,
+        }),
+    );
 
     try {
         console.log('[INFO] Conectando a la base de datos...');

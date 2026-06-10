@@ -1,34 +1,26 @@
 import { DataSource } from 'typeorm';
 import { config } from 'dotenv';
+import { buildScriptDataSourceOptions } from './script-data-source';
 
 // Cargar variables de entorno
 config();
 
-const dataSource = new DataSource({
-    type: 'mysql',
-    host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT || '3306'),
-    username: process.env.DB_USERNAME || 'root',
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME || 'hogar_de_ancianos',
-    synchronize: false,
-    logging: true,
-});
+const dataSource = new DataSource(buildScriptDataSourceOptions({ logging: true }));
 
 async function disable2FAForUser(email: string) {
     try {
         await dataSource.initialize();
         console.log(`\n=== DESHABILITANDO 2FA PARA ${email} ===`);
 
-        // Buscar el usuario
+        // Buscar el usuario (Postgres: $1, $2 placeholders).
         const userQuery = `
-            SELECT id, u_email, u_name 
-            FROM users 
-            WHERE u_email = ? AND u_is_active = 1
+            SELECT id, u_email, u_name
+            FROM users
+            WHERE u_email = $1 AND u_is_active = TRUE
         `;
-        
+
         const users = await dataSource.query(userQuery, [email]);
-        
+
         if (!users || users.length === 0) {
             console.log('[ERROR] Usuario no encontrado o inactivo');
             return;
@@ -39,20 +31,20 @@ async function disable2FAForUser(email: string) {
 
         // Verificar si tiene 2FA habilitado
         const twoFactorQuery = `
-            SELECT id, tfa_enabled 
-            FROM user_two_factor 
-            WHERE user_id = ?
+            SELECT id, tfa_enabled
+            FROM user_two_factor
+            WHERE user_id = $1
         `;
-        
+
         const twoFactorRecords = await dataSource.query(twoFactorQuery, [user.id]);
-        
+
         if (!twoFactorRecords || twoFactorRecords.length === 0) {
             console.log('[INFO] Usuario no tiene configuración 2FA');
             return;
         }
 
         const twoFactor = twoFactorRecords[0];
-        
+
         if (!twoFactor.tfa_enabled) {
             console.log('[INFO] 2FA ya está deshabilitado para este usuario');
             return;
@@ -60,10 +52,10 @@ async function disable2FAForUser(email: string) {
 
         // Deshabilitar 2FA
         const disableQuery = `
-            DELETE FROM user_two_factor 
-            WHERE user_id = ?
+            DELETE FROM user_two_factor
+            WHERE user_id = $1
         `;
-        
+
         await dataSource.query(disableQuery, [user.id]);
         
         console.log('[SUCCESS] 2FA deshabilitado exitosamente');

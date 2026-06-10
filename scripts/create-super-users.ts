@@ -5,21 +5,14 @@ import { User } from '../src/ucr/ac/cr/ie/domain/auth/core/user.entity';
 import { UserSession } from '../src/ucr/ac/cr/ie/domain/auth/sessions/user-session.entity';
 import { UserTwoFactor } from '../src/ucr/ac/cr/ie/domain/auth/security/user-two-factor.entity';
 import { PasswordUtil } from '../src/ucr/ac/cr/ie/common/utils/password.util';
+import { buildScriptDataSourceOptions } from './script-data-source';
 
 config();
 
 async function disable2FAForUser(email: string) {
-    const dataSource = new DataSource({
-        type: 'mysql',
-        host: process.env.DB_HOST,
-        port: parseInt(process.env.DB_PORT),
-        username: process.env.DB_USERNAME,
-        password: process.env.DB_PASSWORD,
-        database: process.env.DB_NAME,
-        entities: [User, Role, UserSession, UserTwoFactor],
-        synchronize: false,
-        dropSchema: false,
-    });
+    const dataSource = new DataSource(
+        buildScriptDataSourceOptions({ entities: [User, Role, UserSession, UserTwoFactor] }),
+    );
 
     try {
         await dataSource.initialize();
@@ -56,17 +49,9 @@ async function createSuperUsers() {
     console.log('DB_NAME:', process.env.DB_NAME || 'undefined');
     console.log();
 
-    const dataSource = new DataSource({
-        type: 'mysql',
-        host: process.env.DB_HOST || 'localhost',
-        port: parseInt(process.env.DB_PORT || '3306'),
-        username: process.env.DB_USERNAME || 'root',
-        password: process.env.DB_PASSWORD || '',
-        database: process.env.DB_NAME || 'hogar_de_ancianos',
-        entities: [User, Role, UserSession, UserTwoFactor],
-        synchronize: false,
-        dropSchema: false,
-    });
+    const dataSource = new DataSource(
+        buildScriptDataSourceOptions({ entities: [User, Role, UserSession, UserTwoFactor] }),
+    );
 
     try {
         await dataSource.initialize();
