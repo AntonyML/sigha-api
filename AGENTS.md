@@ -1,4 +1,4 @@
-# AGENTS.md — Backend (`backend_nest_js_hogar_de_ancianos/`)
+# AGENTS.md — Backend (`sigha-api/`)
 
 > **You are an AI agent working on the NestJS backend of the Hogar de Ancianos platform.**
 > Read the root `AGENTS.md` first, then this file. This file is the source of truth for backend-specific rules.
@@ -7,7 +7,7 @@
 
 ## 0. Scope and authority
 
-- **You work only inside `E:\Dev\TCU\backend_nest_js_hogar_de_ancianos\`.**
+- **You work only inside `E:\Dev\TCU\sigha-api\`.**
 - **You do not edit** `frontend/`, `database/`, or root files (except when you must, and only with explicit user permission).
 - **You do not push** to the remote. The user reviews and pushes.
 - **You do not amend** published commits.
@@ -31,7 +31,7 @@
 ## 2. Folder map (this repo)
 
 ```
-backend_nest_js_hogar_de_ancianos/
+sigha-api/
 ├── AGENTS.md                                # this file
 ├── docs/                                    # AI-facing reference docs
 │   ├── modules.md                           # NestJS modules catalog
@@ -156,7 +156,7 @@ Full step-by-step in `WORKFLOWS.md` §1, §4.
   1. `DATABASE_URL` (full Postgres URL — preferred for Supabase / managed DBs). SSL auto-enabled when the URL contains `sslmode=require` or `ssl=true`.
   2. Discrete `DB_HOST`, `DB_PORT` (5432), `DB_USERNAME`, `DB_PASSWORD`, `DB_NAME` (fallback).
   3. `DB_SSL=true` forces SSL.
-- Schema lives in `database_mysql_hogar_de_ancianos/supabase/migrations/` (ÉPICA 2). The legacy `scriptDBCompleta.sql` is the MySQL reference.
+- Schema lives in `sigha-db/supabase/migrations/` (ÉPICA 2). The legacy `scriptDBCompleta.sql` is the MySQL reference.
 - `synchronize: false` — schema is owned by the SQL migrations.
 - `logging: process.env.NODE_ENV === 'development'` — verbose SQL in dev.
 
@@ -190,7 +190,7 @@ For ops scripts, use the shared helper in `scripts/script-data-source.ts` so the
 ## 9. Running locally
 
 ```bash
-cd backend_nest_js_hogar_de_ancianos
+cd sigha-api
 npm install
 npm run start:dev   # http://localhost:3000
 # Swagger: http://localhost:3000/api
