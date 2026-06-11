@@ -42,7 +42,7 @@ export class SessionManagementService {
       this.logger.log(`Session created successfully with ID: ${session.id}`);
       return session;
     } catch (error) {
-      this.logger.error(`Failed to create session for user ${sessionData.userId}`, error.stack);
+      this.logger.error(`Failed to create session for user ${sessionData.userId}`, (error as Error).stack);
       throw error;
     }
   }
@@ -72,7 +72,7 @@ export class SessionManagementService {
 
       return session;
     } catch (error) {
-      this.logger.error(`Failed to validate session with token: ${sessionToken}`, error.stack);
+      this.logger.error(`Failed to validate session with token: ${sessionToken}`, (error as Error).stack);
       throw error;
     }
   }
@@ -113,7 +113,7 @@ export class SessionManagementService {
       this.logger.log(`Session refreshed for user ${session.userId}`);
       return updatedSession;
     } catch (error) {
-      this.logger.error(`Failed to refresh session with refresh token`, error.stack);
+      this.logger.error(`Failed to refresh session with refresh token`, (error as Error).stack);
       throw error;
     }
   }
@@ -135,7 +135,7 @@ export class SessionManagementService {
 
       this.logger.log(`Session ${sessionId} invalidated for user ${session.userId}. Reason: ${reason || 'No reason provided'}`);
     } catch (error) {
-      this.logger.error(`Failed to invalidate session ${sessionId}`, error.stack);
+      this.logger.error(`Failed to invalidate session ${sessionId}`, (error as Error).stack);
       throw error;
     }
   }
@@ -151,7 +151,7 @@ export class SessionManagementService {
 
       return invalidatedCount;
     } catch (error) {
-      this.logger.error(`Failed to invalidate all sessions for user ${userId}`, error.stack);
+      this.logger.error(`Failed to invalidate all sessions for user ${userId}`, (error as Error).stack);
       throw error;
     }
   }
@@ -163,7 +163,7 @@ export class SessionManagementService {
     try {
       return await this.sessionRepository.getActiveUserSessions(userId);
     } catch (error) {
-      this.logger.error(`Failed to get active sessions for user ${userId}`, error.stack);
+      this.logger.error(`Failed to get active sessions for user ${userId}`, (error as Error).stack);
       throw error;
     }
   }
@@ -184,7 +184,7 @@ export class SessionManagementService {
     try {
       return await this.sessionRepository.getUserSessions(userId, filters);
     } catch (error) {
-      this.logger.error(`Failed to get sessions for user ${userId}`, error.stack);
+      this.logger.error(`Failed to get sessions for user ${userId}`, (error as Error).stack);
       throw error;
     }
   }
@@ -212,7 +212,7 @@ export class SessionManagementService {
     try {
       return await this.sessionRepository.getSessionStatistics(filters);
     } catch (error) {
-      this.logger.error('Failed to get session statistics', error.stack);
+      this.logger.error('Failed to get session statistics', (error as Error).stack);
       throw error;
     }
   }
@@ -237,7 +237,7 @@ export class SessionManagementService {
 
       this.logger.log(`Session ${sessionId} extended by ${additionalMinutes} minutes`);
     } catch (error) {
-      this.logger.error(`Failed to extend session ${sessionId}`, error.stack);
+      this.logger.error(`Failed to extend session ${sessionId}`, (error as Error).stack);
       throw error;
     }
   }
@@ -255,7 +255,7 @@ export class SessionManagementService {
 
       return cleanedCount;
     } catch (error) {
-      this.logger.error('Failed to cleanup expired sessions', error.stack);
+      this.logger.error('Failed to cleanup expired sessions', (error as Error).stack);
       throw error;
     }
   }
@@ -305,7 +305,7 @@ export class SessionManagementService {
         actionsTaken,
       };
     } catch (error) {
-      this.logger.error('Failed to handle suspicious sessions', error.stack);
+      this.logger.error('Failed to handle suspicious sessions', (error as Error).stack);
       throw error;
     }
   }
@@ -327,7 +327,7 @@ export class SessionManagementService {
 
       this.logger.log(`Updated session info for session ${sessionId}`);
     } catch (error) {
-      this.logger.error(`Failed to update session info for session ${sessionId}`, error.stack);
+      this.logger.error(`Failed to update session info for session ${sessionId}`, (error as Error).stack);
       throw error;
     }
   }
@@ -341,7 +341,7 @@ export class SessionManagementService {
 
       this.logger.log(`2FA verified for session ${sessionId}`);
     } catch (error) {
-      this.logger.error(`Failed to verify 2FA for session ${sessionId}`, error.stack);
+      this.logger.error(`Failed to verify 2FA for session ${sessionId}`, (error as Error).stack);
       throw error;
     }
   }
@@ -374,7 +374,7 @@ export class SessionManagementService {
 
       return loggedOutCount;
     } catch (error) {
-      this.logger.error('Failed to force logout inactive sessions', error.stack);
+      this.logger.error('Failed to force logout inactive sessions', (error as Error).stack);
       throw error;
     }
   }
@@ -392,7 +392,7 @@ export class SessionManagementService {
 
       return cleanedCount;
     } catch (error) {
-      this.logger.error('Failed to cleanup old sessions', error.stack);
+      this.logger.error('Failed to cleanup old sessions', (error as Error).stack);
       throw error;
     }
   }
@@ -443,8 +443,9 @@ export class SessionManagementService {
         recentActivity,
       };
     } catch (error) {
-      this.logger.error('Failed to get session dashboard summary', error.stack);
+      this.logger.error('Failed to get session dashboard summary', (error as Error).stack);
       throw error;
+    }
   }
 
   /**
@@ -461,7 +462,7 @@ export class SessionManagementService {
         purged: result[0]?.purged || 0,
       };
     } catch (error) {
-      this.logger.error('Failed to clean expired sessions via DB function', error.stack);
+      this.logger.error('Failed to clean expired sessions via DB function', (error as Error).stack);
       throw error;
     }
   }
@@ -479,7 +480,7 @@ export class SessionManagementService {
         evtokenDeleted: result[0]?.evtoken_deleted || 0,
       };
     } catch (error) {
-      this.logger.error('Failed to clean expired tokens via DB function', error.stack);
+      this.logger.error('Failed to clean expired tokens via DB function', (error as Error).stack);
       throw error;
     }
   }
