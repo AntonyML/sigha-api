@@ -386,6 +386,28 @@ export class AuthService {
                     description: `Logout desde IP: ${ipAddress || session.ipAddress || 'unknown'}`
                 }
             );
+
+            // Calcular duración de la sesión abierta y registrarla en audit_reports.
+            // (compute_audit_session_duration definida en la migración 009.)
+            try {
+                const duration = await this.auditService.computeSessionDuration(session.userId);
+                if (duration > 0) {
+                    await this.auditService.logAuditDbFunction({
+                        userId: session.userId,
+                        drAction: AuditAction.LOGOUT,
+                        arType: AuditReportType.LOGIN_ATTEMPTS,
+                        arAction: AuditAction.LOGOUT,
+                        arEntityName: 'users',
+                        arEntityId: session.userId,
+                        arObservations: `Sesión cerrada tras ${duration} segundos`,
+                        arIpAddress: ipAddress || session.ipAddress,
+                        arUserAgent: userAgent,
+                    });
+                }
+            } catch (err) {
+                // Non-fatal: log and continue.
+                console.error('Error stamping session duration on logout:', err);
+            }
         }
 
         return { success: true };

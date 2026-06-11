@@ -21,16 +21,16 @@ export class OlderAdultFamily {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ name: 'pf_identification', length: 20 })
+    @Column({ name: 'pf_identification', length: 20, nullable: false })
     pfIdentification: string;
 
-    @Column({ name: 'pf_name', length: 50 })
+    @Column({ name: 'pf_name', length: 50, nullable: false })
     pfName: string;
 
-    @Column({ name: 'pf_f_last_name', length: 50 })
+    @Column({ name: 'pf_f_last_name', length: 50, nullable: false })
     pfFLastName: string;
 
-    @Column({ name: 'pf_s_last_name', length: 50 })
+    @Column({ name: 'pf_s_last_name', length: 50, nullable: false })
     pfSLastName: string;
 
     @Column({ name: 'pf_phone_number', length: 20, nullable: true })
@@ -43,9 +43,13 @@ export class OlderAdultFamily {
         name: 'pf_kinship',
         type: 'enum',
         enum: KinshipType,
+        nullable: false,
         default: KinshipType.NOT_SPECIFIED
     })
     pfKinship: KinshipType;
+
+    @Column({ name: 'pf_is_active', nullable: false, default: true })
+    pfIsActive: boolean;
 
     @Column({ name: 'create_at', type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
     createAt: Date;
@@ -59,6 +63,7 @@ export class OlderAdultFamily {
         pfPhoneNumber?: string,
         pfEmail?: string,
         pfKinship?: KinshipType,
+        pfIsActive?: boolean,
         createAt?: Date
     ) {
         this.id = id;
@@ -69,6 +74,7 @@ export class OlderAdultFamily {
         this.pfPhoneNumber = pfPhoneNumber;
         this.pfEmail = pfEmail;
         this.pfKinship = pfKinship || KinshipType.NOT_SPECIFIED;
+        this.pfIsActive = pfIsActive !== undefined ? pfIsActive : true;
         this.createAt = createAt || new Date();
     }
 }

@@ -14,136 +14,105 @@ export class PhysiotherapyService {
     ) {}
 
     async createPhysiotherapySession(dto: CreatePhysiotherapySessionDto): Promise<{ message: string; data: PhysiotherapySession }> {
-        try {
-            // Validar que la cita existe y pertenece a fisioterapia
-            const appointment = await this.appointmentRepository.findOne({
-                where: { id: dto.id_appointment },
-                relations: ['area']
-            });
+        const appointment = await this.appointmentRepository.findOne({
+            where: { id: dto.id_appointment },
+            relations: ['area']
+        });
 
-            if (!appointment) {
-                throw new NotFoundException('Appointment not found');
-            }
-
-            if (appointment.area.saName !== 'physiotherapy') {
-                throw new BadRequestException('Appointment does not belong to physiotherapy');
-            }
-
-            // Create session data
-            const sessionData: Partial<PhysiotherapySession> = {
-                ps_date: dto.ps_date ? new Date(dto.ps_date) : new Date(),
-                ps_type: dto.ps_type,
-                ps_mobility_level: dto.ps_mobility_level,
-                ps_pain_level: dto.ps_pain_level,
-                ps_treatment_description: dto.ps_treatment_description,
-                ps_exercise_plan: dto.ps_exercise_plan,
-                ps_progress_notes: dto.ps_progress_notes,
-                id_appointment: appointment
-            };
-
-            const session = this.physiotherapyRepository.create(sessionData);
-            const savedSession = await this.physiotherapyRepository.save(session);
-
-            return {
-                message: 'Physiotherapy session created successfully',
-                data: savedSession
-            };
-        } catch (error) {
-            throw error;
+        if (!appointment) {
+            throw new NotFoundException('Appointment not found');
         }
+
+        if (appointment.area.saName !== 'physiotherapy') {
+            throw new BadRequestException('Appointment does not belong to physiotherapy');
+        }
+
+        const session = this.physiotherapyRepository.create({
+            psDate: dto.ps_date ? new Date(dto.ps_date) : new Date(),
+            psType: dto.ps_type,
+            psMobilityLevel: dto.ps_mobility_level,
+            psPainLevel: dto.ps_pain_level,
+            psTreatmentDescription: dto.ps_treatment_description,
+            psExercisePlan: dto.ps_exercise_plan,
+            psProgressNotes: dto.ps_progress_notes,
+            idAppointment: appointment.id,
+        });
+
+        const savedSession = await this.physiotherapyRepository.save(session);
+
+        return {
+            message: 'Physiotherapy session created successfully',
+            data: savedSession
+        };
     }
 
     async getPhysiotherapySessions(appointmentId?: number): Promise<{ message: string; data: PhysiotherapySession[] }> {
-        try {
-            const query = this.physiotherapyRepository
-                .createQueryBuilder('session')
-                .leftJoinAndSelect('session.id_appointment', 'appointment')
-                .leftJoinAndSelect('appointment.patient', 'patient')
-                .leftJoinAndSelect('appointment.staff', 'staff');
-
-            if (appointmentId) {
-                query.andWhere('appointment.id = :appointmentId', { appointmentId });
-            }
-
-            const sessions = await query.getMany();
-
-            return {
-                message: 'Physiotherapy sessions retrieved successfully',
-                data: sessions
-            };
-        } catch (error) {
-            throw error;
+        const where: any = {};
+        if (appointmentId) {
+            where.idAppointment = appointmentId;
         }
+
+        const sessions = await this.physiotherapyRepository.find({
+            where,
+            relations: ['appointment', 'appointment.patient', 'appointment.staff'],
+        });
+
+        return {
+            message: 'Physiotherapy sessions retrieved successfully',
+            data: sessions
+        };
     }
 
     async getPhysiotherapySessionById(id: number): Promise<{ message: string; data: PhysiotherapySession }> {
-        try {
-            const session = await this.physiotherapyRepository.findOne({
-                where: { id },
-                relations: ['id_appointment', 'id_appointment.patient', 'id_appointment.staff']
-            });
+        const session = await this.physiotherapyRepository.findOne({
+            where: { id },
+            relations: ['appointment', 'appointment.patient', 'appointment.staff']
+        });
 
-            if (!session) {
-                throw new NotFoundException('Physiotherapy session not found');
-            }
-
-            return {
-                message: 'Physiotherapy session retrieved successfully',
-                data: session
-            };
-        } catch (error) {
-            throw error;
+        if (!session) {
+            throw new NotFoundException('Physiotherapy session not found');
         }
+
+        return {
+            message: 'Physiotherapy session retrieved successfully',
+            data: session
+        };
     }
 
     async updatePhysiotherapySession(id: number, dto: UpdatePhysiotherapySessionDto): Promise<{ message: string; data: PhysiotherapySession }> {
-        try {
-            const session = await this.physiotherapyRepository.findOne({ where: { id } });
+        const session = await this.physiotherapyRepository.findOne({ where: { id } });
 
-            if (!session) {
-                throw new NotFoundException('Physiotherapy session not found');
-            }
-
-            // Create update data
-            const updateData: Partial<PhysiotherapySession> = {};
-            if (dto.ps_date !== undefined) updateData.ps_date = new Date(dto.ps_date);
-            if (dto.ps_type !== undefined) updateData.ps_type = dto.ps_type;
-            if (dto.ps_mobility_level !== undefined) updateData.ps_mobility_level = dto.ps_mobility_level;
-            if (dto.ps_pain_level !== undefined) updateData.ps_pain_level = dto.ps_pain_level;
-            if (dto.ps_treatment_description !== undefined) updateData.ps_treatment_description = dto.ps_treatment_description;
-            if (dto.ps_exercise_plan !== undefined) updateData.ps_exercise_plan = dto.ps_exercise_plan;
-            if (dto.ps_progress_notes !== undefined) updateData.ps_progress_notes = dto.ps_progress_notes;
-
-            await this.physiotherapyRepository.update(id, updateData);
-            const updatedSession = await this.physiotherapyRepository.findOne({
-                where: { id },
-                relations: ['id_appointment']
-            });
-
-            return {
-                message: 'Physiotherapy session updated successfully',
-                data: updatedSession
-            };
-        } catch (error) {
-            throw error;
+        if (!session) {
+            throw new NotFoundException('Physiotherapy session not found');
         }
+
+        if (dto.ps_date !== undefined) session.psDate = new Date(dto.ps_date);
+        if (dto.ps_type !== undefined) session.psType = dto.ps_type;
+        if (dto.ps_mobility_level !== undefined) session.psMobilityLevel = dto.ps_mobility_level;
+        if (dto.ps_pain_level !== undefined) session.psPainLevel = dto.ps_pain_level;
+        if (dto.ps_treatment_description !== undefined) session.psTreatmentDescription = dto.ps_treatment_description;
+        if (dto.ps_exercise_plan !== undefined) session.psExercisePlan = dto.ps_exercise_plan;
+        if (dto.ps_progress_notes !== undefined) session.psProgressNotes = dto.ps_progress_notes;
+
+        const updatedSession = await this.physiotherapyRepository.save(session);
+
+        return {
+            message: 'Physiotherapy session updated successfully',
+            data: updatedSession
+        };
     }
 
     async deletePhysiotherapySession(id: number): Promise<{ message: string }> {
-        try {
-            const session = await this.physiotherapyRepository.findOne({ where: { id } });
+        const session = await this.physiotherapyRepository.findOne({ where: { id } });
 
-            if (!session) {
-                throw new NotFoundException('Physiotherapy session not found');
-            }
-
-            await this.physiotherapyRepository.delete(id);
-
-            return {
-                message: 'Physiotherapy session deleted successfully'
-            };
-        } catch (error) {
-            throw error;
+        if (!session) {
+            throw new NotFoundException('Physiotherapy session not found');
         }
+
+        await this.physiotherapyRepository.remove(session);
+
+        return {
+            message: 'Physiotherapy session deleted successfully'
+        };
     }
 }

@@ -533,5 +533,24 @@ export class AuditService {
       throw error;
     }
   }
+
+  /**
+   * Calcula la duración (en segundos) de la sesión abierta más reciente del
+   * usuario invocando la función `compute_audit_session_duration` definida
+   * en la migración 009. Devuelve 0 cuando no hay login abierto.
+   */
+  async computeSessionDuration(userId: number): Promise<number> {
+    try {
+      const result = await this.auditReportRepository.query(
+        `SELECT compute_audit_session_duration($1::int) AS duration`,
+        [userId],
+      );
+      const row = result[0] as { duration?: number } | undefined;
+      return row?.duration ?? 0;
+    } catch (error) {
+      console.error('Error computing session duration:', error);
+      return 0;
+    }
+  }
 }
 

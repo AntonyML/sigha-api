@@ -4,6 +4,7 @@ import { Role } from './domain/auth/core/role.entity';
 import { UserSession } from './domain/auth/sessions/user-session.entity';
 import { UserTwoFactor } from './domain/auth/security/user-two-factor.entity';
 import { LoginAttempt } from './domain/auth/security/login-attempt.entity';
+import { EmailVerificationToken } from './domain/auth/tokens/email-verification-token.entity';
 import { PasswordResetToken } from './domain/auth/tokens/password-reset-token.entity';
 import { EntranceExit } from './domain/entrances-exits/entrance-exit.entity';
 import { RoleChange } from './domain/roles/role-change.entity';
@@ -23,7 +24,15 @@ import {
     EmergencyContact
 } from './domain/virtual-records';
 import { Notification, NotificationAttachment } from './domain/notifications';
-import { SpecializedArea, SpecializedAppointment, NursingRecord } from './domain/nursing';
+import {
+    SpecializedArea,
+    SpecializedAppointment,
+    NursingRecord,
+    PhysiotherapySession,
+    PsychologySession,
+    SocialWorkReport,
+    MedicalRecord,
+} from './domain/nursing';
 import { Permission, RolePermission } from './domain/permissions';
 
 /**
@@ -43,6 +52,7 @@ function buildDataSourceOptions(): DataSourceOptions {
         UserSession,
         UserTwoFactor,
         LoginAttempt,
+        EmailVerificationToken,
         PasswordResetToken,
         EntranceExit,
         RoleChange,
@@ -66,6 +76,10 @@ function buildDataSourceOptions(): DataSourceOptions {
         SpecializedArea,
         SpecializedAppointment,
         NursingRecord,
+        PhysiotherapySession,
+        PsychologySession,
+        SocialWorkReport,
+        MedicalRecord,
         Permission,
         RolePermission,
     ];

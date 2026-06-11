@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, ParseIntPipe, UseGuards, Query, Request } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, ParseIntPipe, UseGuards, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { MedicalRecordService } from '../../services/nursing';
 import { CreateMedicalRecordDto, UpdateMedicalRecordDto, MedicalRecordFilterDto } from '../../dto/nursing';
@@ -17,7 +17,7 @@ export class MedicalRecordController {
     @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.NURSE)
     @ApiOperation({
         summary: 'Create a new medical record',
-        description: 'Creates a new medical record for a patient'
+        description: 'Creates a new medical record for a patient. The optional id_staff / id_appointment fields link the record to a staff member and a specialized appointment.'
     })
     @ApiResponse({
         status: 201,
@@ -29,31 +29,30 @@ export class MedicalRecordController {
     })
     @ApiResponse({
         status: 404,
-        description: 'Patient not found'
+        description: 'Older adult (patient) not found'
     })
-    async createRecord(@Body() createDto: CreateMedicalRecordDto, @Request() req: any) {
-        const userId = req.user?.id;
-        return this.medicalRecordService.createMedicalRecord(createDto, userId);
+    async createRecord(@Body() createDto: CreateMedicalRecordDto) {
+        return this.medicalRecordService.createMedicalRecord(createDto);
     }
 
     @Get()
     @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.NURSE)
     @ApiOperation({
         summary: 'Get medical records',
-        description: 'Retrieve medical records, optionally filtered by patient ID'
+        description: 'Retrieve medical records, optionally filtered by older adult ID'
     })
     @ApiResponse({
         status: 200,
         description: 'Records retrieved successfully'
     })
     @ApiQuery({
-        name: 'patientId',
+        name: 'olderAdultId',
         required: false,
         type: Number,
-        description: 'Filter by patient ID'
+        description: 'Filter by older adult (patient) ID'
     })
-    async getRecords(@Query('patientId') patientId?: number) {
-        return this.medicalRecordService.getMedicalRecords(patientId);
+    async getRecords(@Query() filter: MedicalRecordFilterDto) {
+        return this.medicalRecordService.getMedicalRecords(filter.olderAdultId);
     }
 
     @Get(':id')

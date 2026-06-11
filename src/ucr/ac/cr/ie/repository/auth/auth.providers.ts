@@ -3,6 +3,8 @@ import { User } from '../../domain/auth/core/user.entity';
 import { Role } from '../../domain/auth/core/role.entity';
 import { UserSession } from '../../domain/auth/sessions/user-session.entity';
 import { UserTwoFactor } from '../../domain/auth/security/user-two-factor.entity';
+import { LoginAttempt } from '../../domain/auth/security/login-attempt.entity';
+import { EmailVerificationToken } from '../../domain/auth/tokens/email-verification-token.entity';
 import { PasswordResetToken } from '../../domain/auth/tokens/password-reset-token.entity';
 import { RoleChange } from '../../domain/roles/role-change.entity';
 
@@ -25,6 +27,16 @@ export const authProviders = [
     {
         provide: 'UserTwoFactorRepository',
         useFactory: (dataSource: DataSource) => dataSource.getRepository(UserTwoFactor),
+        inject: ['DataSource'],
+    },
+    {
+        provide: 'LoginAttemptRepository',
+        useFactory: (dataSource: DataSource) => dataSource.getRepository(LoginAttempt),
+        inject: ['DataSource'],
+    },
+    {
+        provide: 'EmailVerificationTokenRepository',
+        useFactory: (dataSource: DataSource) => dataSource.getRepository(EmailVerificationToken),
         inject: ['DataSource'],
     },
     {

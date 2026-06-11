@@ -1,114 +1,86 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, Index } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn, Index } from 'typeorm';
 import { OlderAdult } from '../virtual-records/older-adult.entity';
 import { User } from '../auth/core/user.entity';
+import { SpecializedAppointment } from './specialized-appointment.entity';
 
-export enum RecordType {
-    INITIAL_CONSULTATION = 'initial consultation',
-    FOLLOW_UP = 'follow up',
-    EMERGENCY = 'emergency',
-    ROUTINE_CHECK = 'routine check',
-    SPECIALIST_REFERRAL = 'specialist referral'
-}
-
-export enum VitalSignsStatus {
-    NORMAL = 'normal',
-    ABNORMAL = 'abnormal',
-    CRITICAL = 'critical'
-}
-
-@Entity('medical_records')
+@Entity('medical_record')
 @Index(['create_at'])
-@Index(['record_date'])
-@Index(['record_type'])
+@Index(['mr_record_date'])
+@Index(['id_older_adult'])
 export class MedicalRecord {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
-    record_date: Date;
+    @Column({ name: 'mr_record_date', type: 'timestamptz', nullable: false, default: () => 'CURRENT_TIMESTAMP' })
+    mrRecordDate: Date;
 
-    @Column({
-        type: 'enum',
-        enum: RecordType,
-        default: RecordType.ROUTINE_CHECK
-    })
-    record_type: RecordType;
+    @Column({ name: 'mr_summary', type: 'text', nullable: false })
+    mrSummary: string;
 
-    @Column({ type: 'text', nullable: true })
-    chief_complaint: string | null;
+    @Column({ name: 'mr_diagnosis', type: 'text', nullable: true })
+    mrDiagnosis?: string;
 
-    @Column({ type: 'text', nullable: true })
-    medical_history: string | null;
+    @Column({ name: 'mr_treatment', type: 'text', nullable: true })
+    mrTreatment?: string;
 
-    @Column({ type: 'text', nullable: true })
-    current_medications: string | null;
+    @Column({ name: 'mr_observations', type: 'text', nullable: true })
+    mrObservations?: string;
 
-    @Column({ type: 'text', nullable: true })
-    allergies: string | null;
+    @Column({ name: 'mr_origin_area', length: 60, nullable: false })
+    mrOriginArea: string;
 
-    @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
-    temperature: number | null;
-
-    @Column({ type: 'int', unsigned: true, nullable: true })
-    blood_pressure_systolic: number | null;
-
-    @Column({ type: 'int', unsigned: true, nullable: true })
-    blood_pressure_diastolic: number | null;
-
-    @Column({ type: 'int', unsigned: true, nullable: true })
-    heart_rate: number | null;
-
-    @Column({ type: 'int', unsigned: true, nullable: true })
-    respiratory_rate: number | null;
-
-    @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
-    weight_kg: number | null;
-
-    @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
-    height_cm: number | null;
-
-    @Column({
-        type: 'enum',
-        enum: VitalSignsStatus,
-        nullable: true
-    })
-    vital_signs_status: VitalSignsStatus | null;
-
-    @Column({ type: 'text', nullable: true })
-    physical_examination: string | null;
-
-    @Column({ type: 'text', nullable: true })
-    diagnosis: string | null;
-
-    @Column({ type: 'text', nullable: true })
-    treatment_plan: string | null;
-
-    @Column({ type: 'text', nullable: true })
-    prescribed_medications: string | null;
-
-    @Column({ type: 'text', nullable: true })
-    laboratory_tests: string | null;
-
-    @Column({ type: 'text', nullable: true })
-    imaging_studies: string | null;
-
-    @Column({ type: 'text', nullable: true })
-    follow_up_instructions: string | null;
-
-    @Column({ type: 'text', nullable: true })
-    notes: string | null;
+    @Column({ name: 'mr_signed_by', length: 150, nullable: true })
+    mrSignedBy?: string;
 
     @CreateDateColumn({ name: 'create_at' })
-    create_at: Date;
+    createAt: Date;
 
-    @UpdateDateColumn({ name: 'update_at' })
-    update_at: Date;
+    @Column({ name: 'id_older_adult', nullable: false })
+    idOlderAdult: number;
+
+    @Column({ name: 'id_appointment', nullable: true })
+    idAppointment?: number | null;
+
+    @Column({ name: 'id_staff', nullable: true })
+    idStaff?: number | null;
 
     @ManyToOne(() => OlderAdult, { onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'patient_id' })
-    patient: OlderAdult;
+    @JoinColumn({ name: 'id_older_adult' })
+    olderAdult: OlderAdult;
+
+    @ManyToOne(() => SpecializedAppointment)
+    @JoinColumn({ name: 'id_appointment' })
+    appointment?: SpecializedAppointment | null;
 
     @ManyToOne(() => User, { onDelete: 'SET NULL' })
-    @JoinColumn({ name: 'created_by' })
-    created_by: User | null;
+    @JoinColumn({ name: 'id_staff' })
+    staff?: User | null;
+
+    constructor(
+        id?: number,
+        mrRecordDate?: Date,
+        mrSummary?: string,
+        mrDiagnosis?: string,
+        mrTreatment?: string,
+        mrObservations?: string,
+        mrOriginArea?: string,
+        mrSignedBy?: string,
+        createAt?: Date,
+        idOlderAdult?: number,
+        idAppointment?: number | null,
+        idStaff?: number | null,
+    ) {
+        this.id = id;
+        this.mrRecordDate = mrRecordDate || new Date();
+        this.mrSummary = mrSummary;
+        this.mrDiagnosis = mrDiagnosis;
+        this.mrTreatment = mrTreatment;
+        this.mrObservations = mrObservations;
+        this.mrOriginArea = mrOriginArea;
+        this.mrSignedBy = mrSignedBy;
+        this.createAt = createAt || new Date();
+        this.idOlderAdult = idOlderAdult;
+        this.idAppointment = idAppointment ?? null;
+        this.idStaff = idStaff ?? null;
+    }
 }

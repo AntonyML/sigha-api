@@ -66,189 +66,114 @@ export class VirtualRecordsService {
 
 
     async createVirtualRecordDirect(createDto: CreateVirtualRecordDirectDto): Promise<{ message: string; data: OlderAdult }> {
-        // Check if older adult already exists
-        const existingOlderAdult = await this.olderAdultRepository.findOne({
-            where: { oaIdentification: createDto.oa_identification }
-        });
-
-        if (existingOlderAdult) {
-            throw new ConflictException('An older adult with this identification already exists');
-        }
-
+        // Delegate to the create_virtual_file() SQL function (migration 009).
+        // The function runs the whole creation in a single transaction, validates
+        // identifiers / required fields, and returns the new ids.
         const queryRunner = this.dataSource.createQueryRunner();
         await queryRunner.connect();
-        await queryRunner.startTransaction();
 
         try {
-            // 1. Handle Program - first try to find existing program
-            let program: Program;
-            if (createDto.program?.id) {
-                program = await queryRunner.manager.findOne(Program, {
-                    where: { id: createDto.program.id }
-                });
-                if (!program) {
-                    throw new NotFoundException(`Program with ID ${createDto.program.id} not found`);
-                }
-            } else {
-                // Create a default program if none specified
-                program = new Program(undefined, 'General Program');
-                program = await queryRunner.manager.save(Program, program);
-            }
+            const ch = createDto.clinical_history;
+            const medicationsJson = ch?.medications
+                ? JSON.stringify(ch.medications)
+                : null;
 
-            // 2. Handle Family (optional)
-            let family: OlderAdultFamily | undefined;
-            if (createDto.family && createDto.family.pf_identification) {
-                // Check if family member already exists
-                family = await queryRunner.manager.findOne(OlderAdultFamily, {
-                    where: { pfIdentification: createDto.family.pf_identification }
-                });
-
-                if (!family) {
-                    family = new OlderAdultFamily(
-                        undefined,
-                        createDto.family.pf_identification,
-                        createDto.family.pf_name,
-                        createDto.family.pf_f_last_name,
-                        createDto.family.pf_s_last_name,
-                        createDto.family.pf_phone_number,
-                        createDto.family.pf_email,
-                        createDto.family.pf_kinship as KinshipType
-                    );
-                    family = await queryRunner.manager.save(OlderAdultFamily, family);
-                }
-            }
-
-            // 3. Create Older Adult
-            const olderAdult = new OlderAdult(
-                undefined,
-                createDto.oa_identification,
-                createDto.oa_name,
-                createDto.oa_f_last_name,
-                createDto.oa_previous_work,
-                createDto.oa_s_last_name,
-                createDto.oa_birthdate ? new Date(createDto.oa_birthdate) : undefined,
-                createDto.oa_marital_status as MaritalStatus,
-                createDto.oa_dwelling,
-                createDto.oa_years_schooling as YearsSchooling,
-                createDto.oa_is_retired,
-                createDto.oa_has_pension,
-                createDto.oa_other,
-                createDto.oa_other_description,
-                createDto.oa_area_of_origin,
-                createDto.oa_children_count,
-                createDto.oa_status as OlderAdultStatus,
-                createDto.oa_death_date ? new Date(createDto.oa_death_date) : undefined,
-                createDto.oa_economic_income,
-                createDto.oa_phone_numner, // Note: there's a typo in the entity (numner instead of number)
-                createDto.oa_email,
-                createDto.oa_profile_photo_url,
-                createDto.oa_gender as Gender,
-                createDto.oa_blood_type as BloodType,
-                undefined, // createAt defaults to now
-                program.id,
-                family?.id
+            const result = await queryRunner.query(
+                `SELECT * FROM create_virtual_file(
+                    $1::varchar, $2::varchar, $3::varchar, $4::varchar,
+                    $5::date, $6::e_oa_marital_status, $7::text, $8::e_oa_years_schooling,
+                    $9::varchar, $10::bool, $11::bool, $12::bool,
+                    $13::varchar, $14::varchar, $15::smallint, $16::e_oa_status,
+                    $17::date, $18::numeric,
+                    $19::varchar, $20::varchar, $21::varchar,
+                    $22::e_oa_gender, $23::e_oa_blood_type,
+                    $24::int,
+                    $25::varchar, $26::varchar, $27::varchar, $28::varchar,
+                    $29::varchar, $30::varchar, $31::e_pf_kinship,
+                    $32::bool, $33::numeric, $34::numeric, $35::numeric,
+                    $36::varchar, $37::bool, $38::varchar, $39::text, $40::e_clinical_rcvg,
+                    $41::bool, $42::bool,
+                    $43::int[], $44::int[], $45::int[], $46::jsonb
+                )`,
+                [
+                    createDto.oa_identification,
+                    createDto.oa_name,
+                    createDto.oa_f_last_name,
+                    createDto.oa_s_last_name,
+                    createDto.oa_birthdate ?? null,
+                    createDto.oa_marital_status,
+                    createDto.oa_dwelling ?? null,
+                    createDto.oa_years_schooling,
+                    createDto.oa_previous_work,
+                    createDto.oa_is_retired,
+                    createDto.oa_has_pension,
+                    createDto.oa_other,
+                    createDto.oa_other_description ?? null,
+                    createDto.oa_area_of_origin ?? null,
+                    createDto.oa_children_count,
+                    createDto.oa_status,
+                    createDto.oa_death_date ?? null,
+                    createDto.oa_economic_income,
+                    createDto.oa_phone_numner ?? null,
+                    createDto.oa_email ?? null,
+                    createDto.oa_profile_photo_url ?? null,
+                    createDto.oa_gender,
+                    createDto.oa_blood_type,
+                    createDto.program?.id ?? null,
+                    createDto.family?.pf_identification ?? null,
+                    createDto.family?.pf_name ?? null,
+                    createDto.family?.pf_f_last_name ?? null,
+                    createDto.family?.pf_s_last_name ?? null,
+                    createDto.family?.pf_phone_number ?? null,
+                    createDto.family?.pf_email ?? null,
+                    createDto.family?.pf_kinship ?? null,
+                    ch?.ch_frequent_falls ?? false,
+                    ch?.ch_weight ?? null,
+                    ch?.ch_height ?? null,
+                    ch?.ch_imc ?? null,
+                    ch?.ch_blood_pressure ?? null,
+                    ch?.ch_neoplasms ?? false,
+                    ch?.ch_neoplasms_description ?? null,
+                    ch?.ch_observations ?? null,
+                    ch?.ch_rcvg ?? null,
+                    ch?.ch_vision_problems ?? false,
+                    ch?.ch_vision_hearing ?? false,
+                    ch?.clinical_conditions?.map(c => c.id) ?? null,
+                    ch?.vaccines?.map(v => v.id) ?? null,
+                    createDto.program?.sub_programs?.map(s => s.id) ?? null,
+                    medicationsJson,
+                ],
             );
 
-            const savedOlderAdult = await queryRunner.manager.save(OlderAdult, olderAdult);
+            const row = result[0] as { older_adult_id: number; status: string; message: string };
 
-            // 4. Handle Sub-programs - Solo si el programa es "Hogar larga instancia"
-            if (createDto.program?.sub_programs?.length > 0) {
-                for (const subProgramRef of createDto.program.sub_programs) {
-                    const subProgram = await queryRunner.manager.findOne(SubProgram, {
-                        where: { id: subProgramRef.id }
-                    });
-
-                    if (subProgram) {
-                        const olderAdultSubprogram = new OlderAdultSubprogram(
-                            savedOlderAdult.id,
-                            subProgram.id
-                        );
-                        await queryRunner.manager.save(OlderAdultSubprogram, olderAdultSubprogram);
-                    }
-                }
+            if (row.status !== 'SUCCESS') {
+                throw new InternalServerErrorException(row.message || 'Failed to create virtual record');
             }
 
-            // 5. Handle Clinical History (optional)
-            if (createDto.clinical_history) {
-                const clinicalHistory = new ClinicalHistory(
-                    undefined,
-                    createDto.clinical_history.ch_frequent_falls,
-                    createDto.clinical_history.ch_weight,
-                    createDto.clinical_history.ch_height,
-                    createDto.clinical_history.ch_imc,
-                    createDto.clinical_history.ch_blood_pressure,
-                    createDto.clinical_history.ch_neoplasms,
-                    createDto.clinical_history.ch_neoplasms_description,
-                    createDto.clinical_history.ch_observations,
-                    createDto.clinical_history.ch_rcvg as RcvgType,
-                    createDto.clinical_history.ch_vision_problems,
-                    createDto.clinical_history.ch_vision_hearing,
-                    undefined, // createAt defaults to now
-                    savedOlderAdult.id
-                );
-
-                const savedClinicalHistory = await queryRunner.manager.save(ClinicalHistory, clinicalHistory);
-
-                // 6. Handle Clinical Conditions by ID (can be empty array)
-                if (createDto.clinical_history.clinical_conditions && createDto.clinical_history.clinical_conditions.length > 0) {
-                    for (const conditionRef of createDto.clinical_history.clinical_conditions) {
-                        const condition = await queryRunner.manager.findOne(ClinicalCondition, {
-                            where: { id: conditionRef.id }
-                        });
-
-                        if (condition) {
-                            const historyCondition = new ClinicalHistoryAndCondition(
-                                savedClinicalHistory.id,
-                                condition.id
-                            );
-                            await queryRunner.manager.save(ClinicalHistoryAndCondition, historyCondition);
-                        }
-                    }
-                }
-
-                // 7. Handle Vaccines by ID (can be empty array)
-                if (createDto.clinical_history.vaccines && createDto.clinical_history.vaccines.length > 0) {
-                    for (const vaccineRef of createDto.clinical_history.vaccines) {
-                        const vaccine = await queryRunner.manager.findOne(Vaccine, {
-                            where: { id: vaccineRef.id }
-                        });
-
-                        if (vaccine) {
-                            const historyVaccine = new VaccinesAndClinicalHistory(
-                                savedClinicalHistory.id,
-                                vaccine.id
-                            );
-                            await queryRunner.manager.save(VaccinesAndClinicalHistory, historyVaccine);
-                        }
-                    }
-                }
-
-                // 8. Handle Medications - Crear medicamentos directamente relacionados (can be empty array)
-                if (createDto.clinical_history.medications && createDto.clinical_history.medications.length > 0) {
-                    for (const medicationData of createDto.clinical_history.medications) {
-                        const medication = new ClinicalMedication(
-                            undefined,
-                            medicationData.m_medication,
-                            medicationData.m_dosage,
-                            medicationData.m_treatment_type as TreatmentType,
-                            savedClinicalHistory.id
-                        );
-                        await queryRunner.manager.save(ClinicalMedication, medication);
-                    }
-                }
+            const savedOlderAdult = await this.olderAdultRepository.findOne({
+                where: { id: row.older_adult_id },
+            });
+            if (!savedOlderAdult) {
+                throw new InternalServerErrorException('Virtual record created but could not be loaded');
             }
-
-            await queryRunner.commitTransaction();
-
             return {
-                message: 'Virtual record created successfully',
-                data: savedOlderAdult
+                message: row.message,
+                data: savedOlderAdult,
             };
-
         } catch (error) {
-            await queryRunner.rollbackTransaction();
+            if (error instanceof NotFoundException) throw error;
+            if (
+                error instanceof ConflictException ||
+                (error && (error as any).code === 'P0001' && (error as any).message?.includes('Ya existe'))
+            ) {
+                throw new ConflictException((error as any).message?.replace(/^Error:\s*/, ''));
+            }
             console.error('Error creating virtual record:', error);
-            throw new InternalServerErrorException('Failed to create virtual record');
+            throw new InternalServerErrorException(
+                (error as any).message?.replace(/^Error:\s*/, '') ??
+                    'Failed to create virtual record',
+            );
         } finally {
             await queryRunner.release();
         }
@@ -860,85 +785,46 @@ export class VirtualRecordsService {
     }
 
     async deleteVirtualRecord(id: number): Promise<{ message: string }> {
-        // Check if older adult exists
-        const existingOlderAdult = await this.olderAdultRepository.findOne({
-            where: { id: id }
-        });
-
-        if (!existingOlderAdult) {
+        // Delegate to the delete_virtual_file() SQL function (migration 009).
+        // The function deletes the older adult (and its clinical history, M:N
+        // relations and the family if the family is not referenced by any
+        // other older adult) in a single transaction and uses id_older_adult
+        // for safety so we can never touch another patient's data.
+        const existing = await this.olderAdultRepository.findOne({ where: { id } });
+        if (!existing) {
             throw new NotFoundException(`Older adult with ID ${id} not found`);
         }
 
         const queryRunner = this.dataSource.createQueryRunner();
         await queryRunner.connect();
-        await queryRunner.startTransaction();
 
         try {
-            // 1. Find and delete clinical history related data first
-            const clinicalHistory = await queryRunner.manager.findOne(ClinicalHistory, {
-                where: { idOlderAdult: id }
-            });
-
-            if (clinicalHistory) {
-                // Delete medications related to this clinical history
-                await queryRunner.manager.delete(ClinicalMedication, { 
-                    idClinicalHistory: clinicalHistory.id 
-                });
-
-                // Delete clinical conditions associations
-                await queryRunner.manager.delete(ClinicalHistoryAndCondition, { 
-                    idCHistory: clinicalHistory.id 
-                });
-
-                // Delete vaccines associations
-                await queryRunner.manager.delete(VaccinesAndClinicalHistory, { 
-                    idCHistory: clinicalHistory.id 
-                });
-
-                // Delete the clinical history itself
-                await queryRunner.manager.delete(ClinicalHistory, { 
-                    id: clinicalHistory.id 
-                });
+            const result = await queryRunner.query(
+                `SELECT * FROM delete_virtual_file($1::varchar)`,
+                [existing.oaIdentification],
+            );
+            const row = (result[0] as { status?: string; message?: string }) || {};
+            if (row.status && row.status !== 'SUCCESS') {
+                throw new InternalServerErrorException(row.message || 'Failed to delete virtual record');
             }
-
-            // 2. Delete sub-program associations for this older adult
-            await queryRunner.manager.delete(OlderAdultSubprogram, { 
-                idOlderAdult: id 
-            });
-
-            // 3. Handle family deletion - only delete if this is the only older adult using this family
-            if (existingOlderAdult.idFamily) {
-                // Check if any other older adult is using the same family
-                const otherAdultsWithSameFamily = await queryRunner.manager.find(OlderAdult, {
-                    where: { idFamily: existingOlderAdult.idFamily }
-                });
-
-                // If this is the only older adult using this family, delete the family
-                if (otherAdultsWithSameFamily.length === 1 && otherAdultsWithSameFamily[0].id === id) {
-                    await queryRunner.manager.delete(OlderAdultFamily, { 
-                        id: existingOlderAdult.idFamily 
-                    });
-                }
-            }
-
-            // 4. Finally, delete the older adult record itself
-            await queryRunner.manager.delete(OlderAdult, { id: id });
-
-            await queryRunner.commitTransaction();
-
-            return {
-                message: 'Virtual record deleted successfully'
-            };
-
+            return { message: row.message || 'Virtual record deleted successfully' };
         } catch (error) {
-            await queryRunner.rollbackTransaction();
-            console.error('Error deleting virtual record:', error);
-            
-            if (error instanceof NotFoundException) {
-                throw error;
+            if (error instanceof NotFoundException) throw error;
+            if (
+                error &&
+                (error as any).code === 'P0001' &&
+                typeof (error as any).message === 'string' &&
+                (error as any).message.includes('No existe')
+            ) {
+                throw new NotFoundException(
+                    (error as any).message.replace(/^Error:\s*/, ''),
+                );
             }
-            
-            throw new InternalServerErrorException('Failed to delete virtual record');
+            console.error('Error deleting virtual record:', error);
+            throw new InternalServerErrorException(
+                (error as any).message?.replace(/^Error:\s*/, '') ??
+                    'Failed to delete virtual record',
+            );
         } finally {
             await queryRunner.release();
         }

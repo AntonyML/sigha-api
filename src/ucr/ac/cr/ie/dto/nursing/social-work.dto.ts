@@ -1,299 +1,133 @@
-import { IsEnum, IsOptional, IsInt, IsString, IsDateString, IsNumber } from 'class-validator';
+import { IsEnum, IsOptional, IsInt, IsString, IsDateString } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { SocialWorkReportType, SupportLevel, LivingArrangement } from '../../domain/nursing';
+import { SocialWorkVisitType } from '../../domain/nursing';
 import { Type } from 'class-transformer';
 
 export class CreateSocialWorkReportDto {
-    @ApiProperty({
-        description: 'ID of the patient (older adult)',
-        example: 1
-    })
-    @IsNumber()
-    patient_id: number;
-
     @ApiPropertyOptional({
         description: 'Date and time of the social work report',
-        example: '2025-02-08T10:00:00.000Z'
+        example: '2025-02-08T10:00:00.000Z',
     })
     @IsOptional()
     @IsDateString()
-    report_date?: string;
+    sw_date?: string;
 
     @ApiProperty({
-        description: 'Type of social work report',
-        enum: SocialWorkReportType,
-        example: SocialWorkReportType.INITIAL_ASSESSMENT
+        description: 'Type of visit',
+        enum: SocialWorkVisitType,
+        example: SocialWorkVisitType.INTERVIEW,
     })
-    @IsEnum(SocialWorkReportType)
-    report_type: SocialWorkReportType;
+    @IsEnum(SocialWorkVisitType)
+    sw_visit_type: SocialWorkVisitType;
 
     @ApiPropertyOptional({
-        description: 'Social assessment of the patient',
-        example: 'Patient shows signs of social isolation and requires community support'
+        description: 'Family relationship assessment',
+        example: 'Buena relación con hija que visita semanalmente',
     })
     @IsOptional()
     @IsString()
-    social_assessment?: string;
+    sw_family_relationship?: string;
 
     @ApiPropertyOptional({
-        description: 'Family dynamics assessment',
-        example: 'Family provides moderate support but needs education on patient care'
+        description: 'Economic / financial assessment',
+        example: 'Recibe pensión del régimen no contributivo',
     })
     @IsOptional()
     @IsString()
-    family_dynamics?: string;
+    sw_economic_assessment?: string;
 
     @ApiPropertyOptional({
-        description: 'Level of family support',
-        enum: SupportLevel,
-        example: SupportLevel.MODERATE
-    })
-    @IsOptional()
-    @IsEnum(SupportLevel)
-    family_support_level?: SupportLevel;
-
-    @ApiPropertyOptional({
-        description: 'Current living arrangement',
-        enum: LivingArrangement,
-        example: LivingArrangement.NURSING_HOME
-    })
-    @IsOptional()
-    @IsEnum(LivingArrangement)
-    current_living_arrangement?: LivingArrangement;
-
-    @ApiPropertyOptional({
-        description: 'Financial situation assessment',
-        example: 'Patient receives pension but has limited additional income'
+        description: 'Social support network description',
+        example: 'Apoyo de vecinos y centro diurno',
     })
     @IsOptional()
     @IsString()
-    financial_situation?: string;
+    sw_social_support?: string;
 
     @ApiPropertyOptional({
-        description: 'Available community resources',
-        example: 'Access to local senior center and meal delivery services'
+        description: 'General observations of the visit',
+        example: 'Adulto mayor colaborador',
     })
     @IsOptional()
     @IsString()
-    community_resources?: string;
+    sw_observations?: string;
 
     @ApiPropertyOptional({
-        description: 'Social services needed',
-        example: 'Transportation assistance and home care services'
+        description: 'Recommendations from the social worker',
+        example: 'Acercamiento a programa de cuido diurno',
     })
     @IsOptional()
     @IsString()
-    social_services_needed?: string;
-
-    @ApiPropertyOptional({
-        description: 'Recommendations from social worker',
-        example: 'Increase family involvement and connect with community resources'
-    })
-    @IsOptional()
-    @IsString()
-    recommendations?: string;
-
-    @ApiPropertyOptional({
-        description: 'Action plan for implementation',
-        example: 'Schedule family meeting and contact local social services'
-    })
-    @IsOptional()
-    @IsString()
-    action_plan?: string;
-
-    @ApiPropertyOptional({
-        description: 'Follow-up notes',
-        example: 'Patient responded well to initial assessment'
-    })
-    @IsOptional()
-    @IsString()
-    follow_up_notes?: string;
-
-    @ApiPropertyOptional({
-        description: 'Next follow-up date',
-        example: '2025-02-15'
-    })
-    @IsOptional()
-    @IsDateString()
-    next_follow_up_date?: string;
-
-    @ApiPropertyOptional({
-        description: 'Referrals made to other services',
-        example: 'Referred to nutrition program and physical therapy'
-    })
-    @IsOptional()
-    @IsString()
-    referrals_made?: string;
-
-    @ApiPropertyOptional({
-        description: 'Barriers identified during assessment',
-        example: 'Transportation limitations and lack of family support'
-    })
-    @IsOptional()
-    @IsString()
-    barriers_identified?: string;
-
-    @ApiPropertyOptional({
-        description: 'Strengths identified during assessment',
-        example: 'Strong family bonds and positive attitude'
-    })
-    @IsOptional()
-    @IsString()
-    strengths_identified?: string;
-
-    @ApiPropertyOptional({
-        description: 'ID of the social worker (optional, will be set from authenticated user)',
-        example: 2
-    })
-    @IsOptional()
-    @IsNumber()
-    social_worker_id?: number;
+    sw_recommendations?: string;
 
     @ApiProperty({
-        description: 'ID of the specialized appointment',
-        example: 1
+        description: 'ID of the specialized appointment (FK to specialized_appointment)',
+        example: 1,
     })
-    @IsNumber()
+    @IsInt()
+    @Type(() => Number)
     id_appointment: number;
 }
 
 export class UpdateSocialWorkReportDto {
     @ApiPropertyOptional({
         description: 'Date and time of the social work report',
-        example: '2025-02-08T10:00:00.000Z'
+        example: '2025-02-08T10:00:00.000Z',
     })
     @IsOptional()
     @IsDateString()
-    report_date?: string;
+    sw_date?: string;
 
     @ApiPropertyOptional({
-        description: 'Type of social work report',
-        enum: SocialWorkReportType,
-        example: SocialWorkReportType.FOLLOW_UP
+        description: 'Type of visit',
+        enum: SocialWorkVisitType,
     })
     @IsOptional()
-    @IsEnum(SocialWorkReportType)
-    report_type?: SocialWorkReportType;
+    @IsEnum(SocialWorkVisitType)
+    sw_visit_type?: SocialWorkVisitType;
 
-    @ApiPropertyOptional({
-        description: 'Social assessment of the patient',
-        example: 'Patient shows signs of social isolation and requires community support'
-    })
+    @ApiPropertyOptional({ description: 'Family relationship assessment' })
     @IsOptional()
     @IsString()
-    social_assessment?: string;
+    sw_family_relationship?: string;
 
-    @ApiPropertyOptional({
-        description: 'Family dynamics assessment',
-        example: 'Family provides moderate support but needs education on patient care'
-    })
+    @ApiPropertyOptional({ description: 'Economic / financial assessment' })
     @IsOptional()
     @IsString()
-    family_dynamics?: string;
+    sw_economic_assessment?: string;
 
-    @ApiPropertyOptional({
-        description: 'Level of family support',
-        enum: SupportLevel,
-        example: SupportLevel.MODERATE
-    })
-    @IsOptional()
-    @IsEnum(SupportLevel)
-    family_support_level?: SupportLevel;
-
-    @ApiPropertyOptional({
-        description: 'Current living arrangement',
-        enum: LivingArrangement,
-        example: LivingArrangement.NURSING_HOME
-    })
-    @IsOptional()
-    @IsEnum(LivingArrangement)
-    current_living_arrangement?: LivingArrangement;
-
-    @ApiPropertyOptional({
-        description: 'Financial situation assessment',
-        example: 'Patient receives pension but has limited additional income'
-    })
+    @ApiPropertyOptional({ description: 'Social support network description' })
     @IsOptional()
     @IsString()
-    financial_situation?: string;
+    sw_social_support?: string;
 
-    @ApiPropertyOptional({
-        description: 'Available community resources',
-        example: 'Access to local senior center and meal delivery services'
-    })
+    @ApiPropertyOptional({ description: 'General observations of the visit' })
     @IsOptional()
     @IsString()
-    community_resources?: string;
+    sw_observations?: string;
 
-    @ApiPropertyOptional({
-        description: 'Social services needed',
-        example: 'Transportation assistance and home care services'
-    })
+    @ApiPropertyOptional({ description: 'Recommendations from the social worker' })
     @IsOptional()
     @IsString()
-    social_services_needed?: string;
-
-    @ApiPropertyOptional({
-        description: 'Recommendations from social worker',
-        example: 'Increase family involvement and connect with community resources'
-    })
-    @IsOptional()
-    @IsString()
-    recommendations?: string;
-
-    @ApiPropertyOptional({
-        description: 'Action plan for implementation',
-        example: 'Schedule family meeting and contact local social services'
-    })
-    @IsOptional()
-    @IsString()
-    action_plan?: string;
-
-    @ApiPropertyOptional({
-        description: 'Follow-up notes',
-        example: 'Patient responded well to initial assessment'
-    })
-    @IsOptional()
-    @IsString()
-    follow_up_notes?: string;
-
-    @ApiPropertyOptional({
-        description: 'Next follow-up date',
-        example: '2025-02-15'
-    })
-    @IsOptional()
-    @IsDateString()
-    next_follow_up_date?: string;
-
-    @ApiPropertyOptional({
-        description: 'Referrals made to other services',
-        example: 'Referred to nutrition program and physical therapy'
-    })
-    @IsOptional()
-    @IsString()
-    referrals_made?: string;
-
-    @ApiPropertyOptional({
-        description: 'Barriers identified during assessment',
-        example: 'Transportation limitations and lack of family support'
-    })
-    @IsOptional()
-    @IsString()
-    barriers_identified?: string;
-
-    @ApiPropertyOptional({
-        description: 'Strengths identified during assessment',
-        example: 'Strong family bonds and positive attitude'
-    })
-    @IsOptional()
-    @IsString()
-    strengths_identified?: string;
+    sw_recommendations?: string;
 
     @ApiPropertyOptional({
         description: 'ID of the specialized appointment',
-        example: 1
+        example: 1,
     })
     @IsOptional()
-    @IsNumber()
+    @IsInt()
+    @Type(() => Number)
     id_appointment?: number;
+}
+
+export class SocialWorkReportFilterDto {
+    @ApiPropertyOptional({
+        description: 'Filter by appointment ID',
+        example: 1,
+    })
+    @IsOptional()
+    @IsInt()
+    @Type(() => Number)
+    appointmentId?: number;
 }
