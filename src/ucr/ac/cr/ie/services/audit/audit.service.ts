@@ -491,5 +491,47 @@ export class AuditService {
     };
 
   }
+
+  /**
+   * Invoca la función log_audit en la base de datos para registrar un digital record y un reporte de auditoría en una transacción.
+   */
+  async logAuditDbFunction(params: {
+    userId: number;
+    drAction: string;
+    drTableName?: string;
+    drRecordId?: number;
+    drDescription?: string;
+    arType?: string;
+    arAction?: string;
+    arEntityName?: string;
+    arEntityId?: number;
+    arObservations?: string;
+    arIpAddress?: string;
+    arUserAgent?: string;
+  }): Promise<number> {
+    try {
+      const result = await this.digitalRecordRepository.query(
+        `SELECT log_audit($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) AS dr_id`,
+        [
+          params.userId,
+          params.drAction,
+          params.drTableName || null,
+          params.drRecordId || null,
+          params.drDescription || null,
+          params.arType || 'other',
+          params.arAction || 'other',
+          params.arEntityName || null,
+          params.arEntityId || null,
+          params.arObservations || null,
+          params.arIpAddress || null,
+          params.arUserAgent || null,
+        ],
+      );
+      return result[0]?.dr_id || 0;
+    } catch (error) {
+      console.error('Error invoking log_audit function in database:', error);
+      throw error;
+    }
+  }
 }
 

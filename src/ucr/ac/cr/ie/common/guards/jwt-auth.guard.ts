@@ -74,11 +74,15 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
 
             const user = await this.userRepository.findOne({
                 where: { id: payload.sub, uIsActive: true },
-                relations: ['role'],
+                relations: ['role', 'twoFactor'],
             });
 
             if (!user) {
                 throw new UnauthorizedException('Usuario no encontrado');
+            }
+
+            if (user.twoFactor && user.twoFactor.tfaEnabled && !payload.twoFactorVerified) {
+                throw new UnauthorizedException('Se requiere verificación de dos factores');
             }
 
             request.user = {
