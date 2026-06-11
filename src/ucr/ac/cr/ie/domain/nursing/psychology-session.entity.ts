@@ -5,7 +5,7 @@ export enum PsychologySessionType {
     EVALUATION = 'evaluation',
     THERAPY = 'therapy',
     FOLLOW_UP = 'follow_up',
-    GROUP_THERAPY = 'group therapy'
+    GROUP_THERAPY = 'group therapy',
 }
 
 export enum Mood {
@@ -13,14 +13,14 @@ export enum Mood {
     ANXIOUS = 'anxious',
     DEPRESSED = 'depressed',
     IRRITABLE = 'irritable',
-    OTHER = 'other'
+    OTHER = 'other',
 }
 
 export enum CognitiveStatus {
     NORMAL = 'normal',
     MILD_IMPAIRMENT = 'mild impairment',
     MODERATE_IMPAIRMENT = 'moderate impairment',
-    SEVERE_IMPAIRMENT = 'severe impairment'
+    SEVERE_IMPAIRMENT = 'severe impairment',
 }
 
 @Entity('psychology_sessions')
@@ -30,43 +30,76 @@ export class PsychologySession {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
-    psy_date: Date;
+    @Column({ name: 'psy_date', type: 'timestamptz', nullable: false, default: () => 'CURRENT_TIMESTAMP' })
+    psyDate: Date;
 
     @Column({
+        name: 'psy_session_type',
         type: 'enum',
         enum: PsychologySessionType,
-        default: PsychologySessionType.EVALUATION
+        nullable: false,
+        default: PsychologySessionType.EVALUATION,
     })
-    psy_session_type: PsychologySessionType;
+    psySessionType: PsychologySessionType;
 
     @Column({
+        name: 'psy_mood',
         type: 'enum',
         enum: Mood,
-        default: Mood.STABLE
+        nullable: false,
+        default: Mood.STABLE,
     })
-    psy_mood: Mood;
+    psyMood: Mood;
 
     @Column({
+        name: 'psy_cognitive_status',
         type: 'enum',
         enum: CognitiveStatus,
-        default: CognitiveStatus.NORMAL
+        nullable: false,
+        default: CognitiveStatus.NORMAL,
     })
-    psy_cognitive_status: CognitiveStatus;
+    psyCognitiveStatus: CognitiveStatus;
 
-    @Column({ type: 'text', nullable: true })
-    psy_observations: string | null;
+    @Column({ name: 'psy_observations', type: 'text', nullable: true })
+    psyObservations?: string;
 
-    @Column({ type: 'text', nullable: true })
-    psy_therapy_goal: string | null;
+    @Column({ name: 'psy_therapy_goal', type: 'text', nullable: true })
+    psyTherapyGoal?: string;
 
-    @Column({ type: 'text', nullable: true })
-    psy_progress: string | null;
+    @Column({ name: 'psy_progress', type: 'text', nullable: true })
+    psyProgress?: string;
 
     @CreateDateColumn({ name: 'create_at' })
-    create_at: Date;
+    createAt: Date;
+
+    @Column({ name: 'id_appointment', nullable: true })
+    idAppointment?: number | null;
 
     @ManyToOne(() => SpecializedAppointment, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'id_appointment' })
-    id_appointment: SpecializedAppointment;
+    appointment?: SpecializedAppointment;
+
+    constructor(
+        id?: number,
+        psyDate?: Date,
+        psySessionType?: PsychologySessionType,
+        psyMood?: Mood,
+        psyCognitiveStatus?: CognitiveStatus,
+        psyObservations?: string,
+        psyTherapyGoal?: string,
+        psyProgress?: string,
+        createAt?: Date,
+        idAppointment?: number,
+    ) {
+        this.id = id;
+        this.psyDate = psyDate || new Date();
+        this.psySessionType = psySessionType || PsychologySessionType.EVALUATION;
+        this.psyMood = psyMood || Mood.STABLE;
+        this.psyCognitiveStatus = psyCognitiveStatus || CognitiveStatus.NORMAL;
+        this.psyObservations = psyObservations;
+        this.psyTherapyGoal = psyTherapyGoal;
+        this.psyProgress = psyProgress;
+        this.createAt = createAt || new Date();
+        this.idAppointment = idAppointment;
+    }
 }

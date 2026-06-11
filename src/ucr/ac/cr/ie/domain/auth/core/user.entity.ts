@@ -11,36 +11,36 @@ export class User {
   @Column({ name: 'u_identification', unique: true, nullable: false })
   uIdentification: string;
 
-  @Column({ name: 'u_name' })
+  @Column({ name: 'u_name', nullable: false })
   uName: string;
 
-  @Column({ name: 'u_f_last_name' })
+  @Column({ name: 'u_f_last_name', nullable: false })
   uFLastName: string;
 
   @Column({ name: 'u_s_last_name', nullable: true })
   uSLastName?: string;
 
-  @Column({ name: 'u_email', unique: true })
+  @Column({ name: 'u_email', unique: true, nullable: false })
   uEmail: string;
 
-  @Column({ name: 'u_email_verified', default: false })
+  @Column({ name: 'u_email_verified', nullable: false, default: false })
   uEmailVerified: boolean;
 
-  @Column({ name: 'u_password' })
+  @Column({ name: 'u_password', nullable: false })
   uPassword: string;
 
-  @Column({ name: 'u_is_active', default: true })
+  @Column({ name: 'u_is_active', nullable: false, default: true })
   uIsActive: boolean;
 
-  @Column({ name: 'create_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({ name: 'create_at', type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   createAt: Date;
 
-  @Column({ name: 'role_id' })
-  roleId: number;
+  @Column({ name: 'role_id', nullable: true })
+  roleId: number | null;
 
-  @ManyToOne(() => Role)
+  @ManyToOne(() => Role, { onDelete: 'SET NULL' })
   @JoinColumn({ name: 'role_id' })
-  role: Role;
+  role: Role | null;
 
   @OneToMany(() => UserSession, session => session.user)
   sessions: UserSession[];
@@ -55,7 +55,7 @@ export class User {
     uFLastName: string,
     uEmail: string,
     uPassword: string,
-    roleId: number,
+    roleId: number | null,
     uSLastName?: string,
     uEmailVerified: boolean = false,
     uIsActive: boolean = true,

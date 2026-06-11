@@ -1,114 +1,78 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, Index } from 'typeorm';
-import { OlderAdult } from '../virtual-records/older-adult.entity';
-import { User } from '../auth/core/user.entity';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn, Index } from 'typeorm';
 import { SpecializedAppointment } from './specialized-appointment.entity';
 
-export enum SocialWorkReportType {
-    INITIAL_ASSESSMENT = 'initial assessment',
-    FOLLOW_UP = 'follow up',
-    CRISIS_INTERVENTION = 'crisis intervention',
-    DISCHARGE_PLANNING = 'discharge planning',
-    FAMILY_SUPPORT = 'family support'
-}
-
-export enum SupportLevel {
-    HIGH = 'high',
-    MODERATE = 'moderate',
-    LOW = 'low',
-    NONE = 'none'
-}
-
-export enum LivingArrangement {
-    INDEPENDENT = 'independent',
-    WITH_FAMILY = 'with family',
-    ASSISTED_LIVING = 'assisted living',
-    NURSING_HOME = 'nursing home',
-    OTHER = 'other'
+export enum SocialWorkVisitType {
+    HOME_VISIT = 'home visit',
+    INSTITUTIONAL_VISIT = 'institutional visit',
+    INTERVIEW = 'interview',
+    FOLLOW_UP = 'follow_up',
 }
 
 @Entity('social_work_reports')
 @Index(['create_at'])
-@Index(['report_date'])
-@Index(['report_type'])
+@Index(['sw_date'])
 export class SocialWorkReport {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
-    report_date: Date;
+    @Column({ name: 'sw_date', type: 'timestamptz', nullable: false, default: () => 'CURRENT_TIMESTAMP' })
+    swDate: Date;
 
     @Column({
+        name: 'sw_visit_type',
         type: 'enum',
-        enum: SocialWorkReportType,
-        default: SocialWorkReportType.INITIAL_ASSESSMENT
+        enum: SocialWorkVisitType,
+        nullable: false,
+        default: SocialWorkVisitType.INTERVIEW,
     })
-    report_type: SocialWorkReportType;
+    swVisitType: SocialWorkVisitType;
 
-    @Column({ type: 'text', nullable: true })
-    social_assessment: string | null;
+    @Column({ name: 'sw_family_relationship', type: 'text', nullable: true })
+    swFamilyRelationship?: string;
 
-    @Column({ type: 'text', nullable: true })
-    family_dynamics: string | null;
+    @Column({ name: 'sw_economic_assessment', type: 'text', nullable: true })
+    swEconomicAssessment?: string;
 
-    @Column({
-        type: 'enum',
-        enum: SupportLevel,
-        nullable: true
-    })
-    family_support_level: SupportLevel | null;
+    @Column({ name: 'sw_social_support', type: 'text', nullable: true })
+    swSocialSupport?: string;
 
-    @Column({
-        type: 'enum',
-        enum: LivingArrangement,
-        nullable: true
-    })
-    current_living_arrangement: LivingArrangement | null;
+    @Column({ name: 'sw_observations', type: 'text', nullable: true })
+    swObservations?: string;
 
-    @Column({ type: 'text', nullable: true })
-    financial_situation: string | null;
-
-    @Column({ type: 'text', nullable: true })
-    community_resources: string | null;
-
-    @Column({ type: 'text', nullable: true })
-    social_services_needed: string | null;
-
-    @Column({ type: 'text', nullable: true })
-    recommendations: string | null;
-
-    @Column({ type: 'text', nullable: true })
-    action_plan: string | null;
-
-    @Column({ type: 'text', nullable: true })
-    follow_up_notes: string | null;
-
-    @Column({ type: 'date', nullable: true })
-    next_follow_up_date: Date | null;
-
-    @Column({ type: 'text', nullable: true })
-    referrals_made: string | null;
-
-    @Column({ type: 'text', nullable: true })
-    barriers_identified: string | null;
-
-    @Column({ type: 'text', nullable: true })
-    strengths_identified: string | null;
+    @Column({ name: 'sw_recommendations', type: 'text', nullable: true })
+    swRecommendations?: string;
 
     @CreateDateColumn({ name: 'create_at' })
-    create_at: Date;
+    createAt: Date;
 
-    @UpdateDateColumn({ name: 'update_at' })
-    update_at: Date;
-
-    @ManyToOne(() => OlderAdult, { onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'patient_id' })
-    patient: OlderAdult;
-
-    @ManyToOne(() => User, { onDelete: 'SET NULL' })
-    @JoinColumn({ name: 'social_worker_id' })
-    social_worker: User | null;
+    @Column({ name: 'id_appointment', nullable: true })
+    idAppointment?: number | null;
 
     @ManyToOne(() => SpecializedAppointment, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'id_appointment' })
-    id_appointment: SpecializedAppointment;
+    appointment?: SpecializedAppointment;
+
+    constructor(
+        id?: number,
+        swDate?: Date,
+        swVisitType?: SocialWorkVisitType,
+        swFamilyRelationship?: string,
+        swEconomicAssessment?: string,
+        swSocialSupport?: string,
+        swObservations?: string,
+        swRecommendations?: string,
+        createAt?: Date,
+        idAppointment?: number,
+    ) {
+        this.id = id;
+        this.swDate = swDate || new Date();
+        this.swVisitType = swVisitType || SocialWorkVisitType.INTERVIEW;
+        this.swFamilyRelationship = swFamilyRelationship;
+        this.swEconomicAssessment = swEconomicAssessment;
+        this.swSocialSupport = swSocialSupport;
+        this.swObservations = swObservations;
+        this.swRecommendations = swRecommendations;
+        this.createAt = createAt || new Date();
+        this.idAppointment = idAppointment;
+    }
 }

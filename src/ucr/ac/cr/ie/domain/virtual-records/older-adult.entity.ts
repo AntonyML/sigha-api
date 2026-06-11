@@ -53,13 +53,13 @@ export class OlderAdult {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ name: 'oa_identification', length: 20, unique: true })
+    @Column({ name: 'oa_identification', length: 20, unique: true, nullable: false })
     oaIdentification: string;
 
-    @Column({ name: 'oa_name', length: 50 })
+    @Column({ name: 'oa_name', length: 50, nullable: false })
     oaName: string;
 
-    @Column({ name: 'oa_f_last_name', length: 50 })
+    @Column({ name: 'oa_f_last_name', length: 50, nullable: false })
     oaFLastName: string;
 
     @Column({ name: 'oa_s_last_name', length: 50, nullable: true })
@@ -72,6 +72,7 @@ export class OlderAdult {
         name: 'oa_marital_status',
         type: 'enum',
         enum: MaritalStatus,
+        nullable: false,
         default: MaritalStatus.NOT_SPECIFIED
     })
     oaMaritalStatus: MaritalStatus;
@@ -83,20 +84,21 @@ export class OlderAdult {
         name: 'oa_years_schooling',
         type: 'enum',
         enum: YearsSchooling,
+        nullable: false,
         default: YearsSchooling.NOT_SPECIFIED
     })
     oaYearsSchooling: YearsSchooling;
 
-    @Column({ name: 'oa_previous_work', length: 300 })
+    @Column({ name: 'oa_previous_work', length: 300, nullable: false })
     oaPreviousWork: string;
 
-    @Column({ name: 'oa_is_retired', default: false })
+    @Column({ name: 'oa_is_retired', nullable: false, default: false })
     oaIsRetired: boolean;
 
-    @Column({ name: 'oa_has_pension', default: false })
+    @Column({ name: 'oa_has_pension', nullable: false, default: false })
     oaHasPension: boolean;
 
-    @Column({ name: 'oa_other', default: false })
+    @Column({ name: 'oa_other', nullable: false, default: false })
     oaOther: boolean;
 
     @Column({ name: 'oa_other_description', length: 300, nullable: true })
@@ -105,13 +107,14 @@ export class OlderAdult {
     @Column({ name: 'oa_area_of_origin', length: 300, nullable: true })
     oaAreaOfOrigin?: string;
 
-    @Column({ name: 'oa_children_count', type: 'smallint', default: 0 })
+    @Column({ name: 'oa_children_count', type: 'smallint', nullable: false, default: 0 })
     oaChildrenCount: number;
 
     @Column({
         name: 'oa_status',
         type: 'enum',
         enum: OlderAdultStatus,
+        nullable: false,
         default: OlderAdultStatus.ALIVE
     })
     oaStatus: OlderAdultStatus;
@@ -135,6 +138,7 @@ export class OlderAdult {
         name: 'oa_gender',
         type: 'enum',
         enum: Gender,
+        nullable: false,
         default: Gender.NOT_SPECIFIED
     })
     oaGender: Gender;
@@ -143,9 +147,13 @@ export class OlderAdult {
         name: 'oa_blood_type',
         type: 'enum',
         enum: BloodType,
+        nullable: false,
         default: BloodType.UNKNOWN
     })
     oaBloodType: BloodType;
+
+    @Column({ name: 'oa_is_active', nullable: false, default: true })
+    oaIsActive: boolean;
 
     @Column({ name: 'create_at', type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
     createAt: Date;
@@ -156,11 +164,11 @@ export class OlderAdult {
     @Column({ name: 'id_family', nullable: true })
     idFamily?: number;
 
-    @ManyToOne(() => Program)
+    @ManyToOne(() => Program, { onDelete: 'SET NULL' })
     @JoinColumn({ name: 'id_program' })
     program?: Program;
 
-    @ManyToOne(() => OlderAdultFamily)
+    @ManyToOne(() => OlderAdultFamily, { onDelete: 'SET NULL' })
     @JoinColumn({ name: 'id_family' })
     family?: OlderAdultFamily;
 
@@ -189,6 +197,7 @@ export class OlderAdult {
         oaProfilePhotoUrl?: string,
         oaGender?: Gender,
         oaBloodType?: BloodType,
+        oaIsActive?: boolean,
         createAt?: Date,
         idProgram?: number,
         idFamily?: number
@@ -217,6 +226,7 @@ export class OlderAdult {
         this.oaProfilePhotoUrl = oaProfilePhotoUrl;
         this.oaGender = oaGender || Gender.NOT_SPECIFIED;
         this.oaBloodType = oaBloodType || BloodType.UNKNOWN;
+        this.oaIsActive = oaIsActive !== undefined ? oaIsActive : true;
         this.createAt = createAt || new Date();
         this.idProgram = idProgram;
         this.idFamily = idFamily;
