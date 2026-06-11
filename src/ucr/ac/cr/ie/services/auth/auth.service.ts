@@ -58,10 +58,9 @@ export class AuthService {
             throw new UnauthorizedException('Credenciales inválidas');
         }
 
-        const fa2Enabled = this.configService.get<string>('FA2_ENABLED') === 'true';
-        const twoFactor = fa2Enabled ? await this.twoFactorRepository.findOne({
+        const twoFactor = await this.twoFactorRepository.findOne({
             where: { userId: user.id, tfaEnabled: true },
-        }) : null;
+        });
 
         if (twoFactor && !twoFactorCode) {
             const tempToken = this.jwtService.sign(
@@ -100,9 +99,11 @@ export class AuthService {
 
             twoFactor.tfaLastUsed = new Date();
             await this.twoFactorRepository.save(twoFactor);
+
+            return this.generateTokens(user, ipAddress, userAgent, true);
         }
 
-        return this.generateTokens(user, ipAddress, userAgent);
+        return this.generateTokens(user, ipAddress, userAgent, false);
     }
 
     /**
@@ -123,11 +124,6 @@ export class AuthService {
 
             if (!user) {
                 throw new UnauthorizedException('Usuario no encontrado');
-            }
-
-            const fa2Enabled = this.configService.get<string>('FA2_ENABLED') === 'true';
-            if (!fa2Enabled) {
-                return this.generateTokens(user, ipAddress, userAgent);
             }
 
             const twoFactor = await this.twoFactorRepository.findOne({
@@ -156,7 +152,7 @@ export class AuthService {
             twoFactor.tfaLastUsed = new Date();
             await this.twoFactorRepository.save(twoFactor);
 
-            const result = await this.generateTokens(user, ipAddress, userAgent);
+            const result = await this.generateTokens(user, ipAddress, userAgent, true);
 
             // Registrar auditoría de login exitoso con 2FA
             await this.auditService.createDigitalRecord(
@@ -398,12 +394,13 @@ export class AuthService {
     /**
      * Genera tokens de acceso y actualiza sesión
      */
-    private async generateTokens(user: User, ipAddress?: string, userAgent?: string): Promise<LoginResponse> {
+    private async generateTokens(user: User, ipAddress?: string, userAgent?: string, twoFactorVerified: boolean = false): Promise<LoginResponse> {
         const payload = {
             sub: user.id,
             email: user.uEmail,
             roleId: user.roleId,
-            role: user.role.rName
+            role: user.role.rName,
+            twoFactorVerified
         };
 
         const accessToken = this.jwtService.sign(payload);

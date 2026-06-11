@@ -445,6 +445,42 @@ export class SessionManagementService {
     } catch (error) {
       this.logger.error('Failed to get session dashboard summary', error.stack);
       throw error;
+  }
+
+  /**
+   * Invoca la función clean_expired_sessions en la base de datos
+   */
+  async cleanExpiredSessionsDb(retentionDays: number = 30): Promise<{ markedInactive: number; purged: number }> {
+    try {
+      const result = await this.userSessionRepository.query(
+        'SELECT * FROM clean_expired_sessions($1)',
+        [retentionDays],
+      );
+      return {
+        markedInactive: result[0]?.marked_inactive || 0,
+        purged: result[0]?.purged || 0,
+      };
+    } catch (error) {
+      this.logger.error('Failed to clean expired sessions via DB function', error.stack);
+      throw error;
+    }
+  }
+
+  /**
+   * Invoca la función clean_expired_tokens en la base de datos
+   */
+  async cleanExpiredTokensDb(): Promise<{ pwresetDeleted: number; evtokenDeleted: number }> {
+    try {
+      const result = await this.userSessionRepository.query(
+        'SELECT * FROM clean_expired_tokens()',
+      );
+      return {
+        pwresetDeleted: result[0]?.pwreset_deleted || 0,
+        evtokenDeleted: result[0]?.evtoken_deleted || 0,
+      };
+    } catch (error) {
+      this.logger.error('Failed to clean expired tokens via DB function', error.stack);
+      throw error;
     }
   }
 }
