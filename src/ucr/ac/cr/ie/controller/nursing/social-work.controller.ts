@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, ParseIntPipe, UseGuards, Query, Request } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, ParseIntPipe, UseGuards, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam, ApiQuery, ApiBody } from '@nestjs/swagger';
 import { SocialWorkService } from '../../services/nursing';
 import { CreateSocialWorkReportDto, UpdateSocialWorkReportDto } from '../../dto/nursing';
@@ -50,9 +50,8 @@ export class SocialWorkController {
         status: 403,
         description: 'Forbidden - Insufficient permissions'
     })
-    async createReport(@Body() createDto: CreateSocialWorkReportDto, @Request() req: any) {
-        const userId = req.user?.id;
-        return this.socialWorkService.createSocialWorkReport(createDto, userId);
+    async createReport(@Body() createDto: CreateSocialWorkReportDto) {
+        return this.socialWorkService.createSocialWorkReport(createDto);
     }
 
     @Get('reports')
