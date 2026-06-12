@@ -24,8 +24,8 @@ export enum CognitiveStatus {
 }
 
 @Entity('psychology_sessions')
-@Index(['create_at'])
-@Index(['psy_session_type'])
+@Index(['createAt'])
+@Index(['psySessionType'])
 export class PsychologySession {
     @PrimaryGeneratedColumn()
     id: number;

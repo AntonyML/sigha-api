@@ -15,8 +15,8 @@ export enum MobilityLevel {
 }
 
 @Entity('physiotherapy_sessions')
-@Index(['create_at'])
-@Index(['ps_type'])
+@Index(['createAt'])
+@Index(['psType'])
 export class PhysiotherapySession {
     @PrimaryGeneratedColumn()
     id: number;

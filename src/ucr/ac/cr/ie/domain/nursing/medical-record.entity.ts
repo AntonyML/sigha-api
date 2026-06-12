@@ -4,9 +4,9 @@ import { User } from '../auth/core/user.entity';
 import { SpecializedAppointment } from './specialized-appointment.entity';
 
 @Entity('medical_record')
-@Index(['create_at'])
-@Index(['mr_record_date'])
-@Index(['id_older_adult'])
+@Index(['createAt'])
+@Index(['mrRecordDate'])
+@Index(['idOlderAdult'])
 export class MedicalRecord {
     @PrimaryGeneratedColumn()
     id: number;
