@@ -2,7 +2,6 @@ import { Injectable, Inject, NotFoundException, BadRequestException } from '@nes
 import { Repository } from 'typeorm';
 import { SocialWorkReport } from '../../domain/nursing';
 import { SpecializedAppointment, SpecializedAreaName } from '../../domain/nursing';
-import { User } from '../../domain/auth/core/user.entity';
 import { CreateSocialWorkReportDto, UpdateSocialWorkReportDto } from '../../dto/nursing';
 
 @Injectable()
@@ -10,13 +9,11 @@ export class SocialWorkService {
     constructor(
         @Inject('SocialWorkReportRepository')
         private readonly socialWorkRepository: Repository<SocialWorkReport>,
-        @Inject('UserRepository')
-        private readonly userRepository: Repository<User>,
         @Inject('SpecializedAppointmentRepository')
         private readonly appointmentRepository: Repository<SpecializedAppointment>,
     ) {}
 
-    async createSocialWorkReport(dto: CreateSocialWorkReportDto, userId: number): Promise<{ message: string; data: SocialWorkReport }> {
+    async createSocialWorkReport(dto: CreateSocialWorkReportDto): Promise<{ message: string; data: SocialWorkReport }> {
         const appointment = await this.appointmentRepository.findOne({
             where: { id: dto.id_appointment },
             relations: ['area']
