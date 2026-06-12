@@ -9,8 +9,8 @@ export enum SocialWorkVisitType {
 }
 
 @Entity('social_work_reports')
-@Index(['create_at'])
-@Index(['sw_date'])
+@Index(['createAt'])
+@Index(['swDate'])
 export class SocialWorkReport {
     @PrimaryGeneratedColumn()
     id: number;
