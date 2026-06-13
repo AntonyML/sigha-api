@@ -1,4 +1,4 @@
-import { Injectable, ConflictException, NotFoundException, InternalServerErrorException, Inject } from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException, InternalServerErrorException, BadRequestException, Inject } from '@nestjs/common';
 import { Repository, DataSource } from 'typeorm';
 import {
     Program,
@@ -168,6 +168,14 @@ export class VirtualRecordsService {
                 (error && (error as any).code === 'P0001' && (error as any).message?.includes('Ya existe'))
             ) {
                 throw new ConflictException((error as any).message?.replace(/^Error:\s*/, ''));
+            }
+            // The create_virtual_file() SQL function validates its required
+            // inputs (e.g. missing family information) via RAISE EXCEPTION,
+            // which Postgres surfaces as error code P0001. These represent
+            // invalid/incomplete client input, not a server failure, so they
+            // should map to 400 Bad Request instead of 500.
+            if (error && (error as any).code === 'P0001') {
+                throw new BadRequestException((error as any).message?.replace(/^Error:\s*/, ''));
             }
             console.error('Error creating virtual record:', error);
             throw new InternalServerErrorException(
@@ -411,9 +419,9 @@ export class VirtualRecordsService {
                 .orWhere('oa.oaName LIKE :searchTerm', { searchTerm: `%${searchTerm}%` })
                 .orWhere('oa.oaFLastName LIKE :searchTerm', { searchTerm: `%${searchTerm}%` })
                 .orWhere('oa.oaSLastName LIKE :searchTerm', { searchTerm: `%${searchTerm}%` })
-                .orWhere('CONCAT(oa.oaName, " ", oa.oaFLastName) LIKE :searchTerm', { searchTerm: `%${searchTerm}%` })
-                .orWhere('CONCAT(oa.oaName, " ", oa.oaFLastName, " ", oa.oaSLastName) LIKE :searchTerm', { searchTerm: `%${searchTerm}%` })
-                .orWhere('CONCAT(oa.oaFLastName, " ", oa.oaSLastName) LIKE :searchTerm', { searchTerm: `%${searchTerm}%` })
+                .orWhere('CONCAT(oa.oaName, \' \', oa.oaFLastName) LIKE :searchTerm', { searchTerm: `%${searchTerm}%` })
+                .orWhere('CONCAT(oa.oaName, \' \', oa.oaFLastName, \' \', oa.oaSLastName) LIKE :searchTerm', { searchTerm: `%${searchTerm}%` })
+                .orWhere('CONCAT(oa.oaFLastName, \' \', oa.oaSLastName) LIKE :searchTerm', { searchTerm: `%${searchTerm}%` })
                 .orderBy('oa.id', 'ASC');
 
             const olderAdults = await queryBuilder.getMany();
@@ -1048,9 +1056,9 @@ export class VirtualRecordsService {
                 .orWhere('oa.oaName LIKE :searchTerm', { searchTerm: `%${searchTerm}%` })
                 .orWhere('oa.oaFLastName LIKE :searchTerm', { searchTerm: `%${searchTerm}%` })
                 .orWhere('oa.oaSLastName LIKE :searchTerm', { searchTerm: `%${searchTerm}%` })
-                .orWhere('CONCAT(oa.oaName, " ", oa.oaFLastName) LIKE :searchTerm', { searchTerm: `%${searchTerm}%` })
-                .orWhere('CONCAT(oa.oaName, " ", oa.oaFLastName, " ", oa.oaSLastName) LIKE :searchTerm', { searchTerm: `%${searchTerm}%` })
-                .orWhere('CONCAT(oa.oaFLastName, " ", oa.oaSLastName) LIKE :searchTerm', { searchTerm: `%${searchTerm}%` })
+                .orWhere('CONCAT(oa.oaName, \' \', oa.oaFLastName) LIKE :searchTerm', { searchTerm: `%${searchTerm}%` })
+                .orWhere('CONCAT(oa.oaName, \' \', oa.oaFLastName, \' \', oa.oaSLastName) LIKE :searchTerm', { searchTerm: `%${searchTerm}%` })
+                .orWhere('CONCAT(oa.oaFLastName, \' \', oa.oaSLastName) LIKE :searchTerm', { searchTerm: `%${searchTerm}%` })
                 .orderBy('oa.oaName', 'ASC')
                 .addOrderBy('oa.oaFLastName', 'ASC');
 
