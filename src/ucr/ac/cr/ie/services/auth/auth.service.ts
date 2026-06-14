@@ -13,6 +13,7 @@ import { SuccessResponse, MessageResponse } from '../../interfaces';
 import * as crypto from 'crypto';
 import { EmailService } from '../email/email.service';
 import { AuditService } from '../audit/audit.service';
+import { UserRoleService } from './user-role.service';
 import { AuditReportType, AuditAction } from '../../domain/audit';
 
 @Injectable()
@@ -32,7 +33,19 @@ export class AuthService {
         private passwordResetTokenRepository: Repository<PasswordResetToken>,
         private readonly emailService: EmailService,
         private readonly auditService: AuditService,
+        private readonly userRoleService: UserRoleService,
     ) { }
+
+    /**
+     * Resolves the canonical role identity for a user from the user_roles
+     * bridge. Returns the user's role names (sorted) and role ids (sorted).
+     */
+    private async resolveUserRoles(userId: number): Promise<{ roleIds: number[]; roles: string[] }> {
+        const userRoles = await this.userRoleService.findRolesByUserId(userId);
+        const roleIds = userRoles.map(r => r.id).sort((a, b) => a - b);
+        const roles = userRoles.map(r => r.rName).sort();
+        return { roleIds, roles };
+    }
 
     /**
      * Inicia sesión de usuario
@@ -46,7 +59,6 @@ export class AuthService {
 
         const user = await this.userRepository.findOne({
             where: { uEmail, uIsActive: true },
-            relations: ['role'],
         });
 
         if (!user) {
@@ -57,6 +69,8 @@ export class AuthService {
         if (!isPasswordValid) {
             throw new UnauthorizedException('Credenciales inválidas');
         }
+
+        const { roles } = await this.resolveUserRoles(user.id);
 
         const twoFactor = await this.twoFactorRepository.findOne({
             where: { userId: user.id, tfaEnabled: true },
@@ -74,7 +88,7 @@ export class AuthService {
                     id: user.id,
                     uEmail: user.uEmail,
                     uName: user.uName,
-                    role: user.role.rName,
+                    roles,
                 },
                 requiresTwoFactor: true,
                 tempToken,
@@ -119,7 +133,6 @@ export class AuthService {
 
             const user = await this.userRepository.findOne({
                 where: { id: payload.sub, uIsActive: true },
-                relations: ['role'],
             });
 
             if (!user) {
@@ -417,11 +430,13 @@ export class AuthService {
      * Genera tokens de acceso y actualiza sesión
      */
     private async generateTokens(user: User, ipAddress?: string, userAgent?: string, twoFactorVerified: boolean = false): Promise<LoginResponse> {
+        const { roleIds, roles } = await this.resolveUserRoles(user.id);
+
         const payload = {
             sub: user.id,
             email: user.uEmail,
-            roleId: user.roleId,
-            role: user.role.rName,
+            roleIds,
+            roles,
             twoFactorVerified
         };
 
@@ -461,7 +476,7 @@ export class AuthService {
                 id: user.id,
                 uEmail: user.uEmail,
                 uName: user.uName,
-                role: user.role.rName,
+                roles,
             },
         };
     }

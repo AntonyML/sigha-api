@@ -18,10 +18,14 @@ export class RolesGuard implements CanActivate {
 
         const { user } = context.switchToHttp().getRequest();
 
-        if (!user || !user.role) {
+        if (!user || !Array.isArray(user.roles) || user.roles.length === 0) {
             return false;
         }
 
-        return requiredRoles.some((role) => user.role.rName === role);
+        // Multi-role: allow access if the user owns at least one of the
+        // required roles. RolesGuard remains a coarse "name match" guard
+        // for legacy @Roles decorator compatibility; per-action checks
+        // go through PermissionService.hasAnyPermission (JWT roleIds).
+        return requiredRoles.some((role) => user.roles.includes(role));
     }
 }
