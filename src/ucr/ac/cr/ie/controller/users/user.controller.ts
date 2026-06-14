@@ -1,10 +1,27 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, Query } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import {
+    Controller, Get, Post, Body, Patch, Param, Delete,
+    UseGuards, Request, Query, ForbiddenException, ParseIntPipe
+} from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery, ApiParam } from '@nestjs/swagger';
 import { UserService } from '../../services/users/user.service';
-import { CreateUserDto, UpdateUserDto, ChangePasswordDto } from '../../dto/users';
+import {
+    CreateUserDto, UpdateUserDto, ChangePasswordDto,
+    UserRolesResponseDto, UserPermissionsResponseDto, UserProfileFullResponseDto,
+} from '../../dto/users';
 import { JwtAuthGuard, RolesGuard, TwoFactorGuard } from '../../common/guards';
 import { Roles, Require2FA } from '../../common/decorators';
 import { RoleType } from '../../domain/auth/core/role.entity';
+
+const ADMIN_LIKE_ROLES: string[] = [
+    RoleType.SUPER_ADMIN,
+    RoleType.ADMIN,
+    RoleType.DIRECTOR,
+];
+
+function hasAdminLikeRole(user: { roles?: string[] } | undefined): boolean {
+    if (!user || !Array.isArray(user.roles)) return false;
+    return user.roles.some((r) => ADMIN_LIKE_ROLES.includes(r));
+}
 
 @ApiTags('Usuarios')
 @Controller('users')
@@ -58,6 +75,67 @@ export class UserController {
     @ApiResponse({ status: 200, description: 'Perfil obtenido exitosamente' })
     async getProfile(@Request() req) {
         return await this.userService.findById(req.user.userId);
+    }
+
+    @Get('profile/full')
+    @ApiOperation({
+        summary: 'Obtener perfil propio enriquecido (usuario + roles + permisos efectivos)',
+        description: 'El usuario autenticado siempre consulta su propio perfil. No acepta :id; el ownership es implícito por sesión.'
+    })
+    @ApiResponse({ status: 200, description: 'Perfil completo obtenido exitosamente', type: () => UserProfileFullResponseDto })
+    async getMyFullProfile(@Request() req): Promise<UserProfileFullResponseDto> {
+        const requesterId = Number(req.user.userId);
+        return await this.userService.getUserFullProfile(requesterId);
+    }
+
+    @Get(':id/roles')
+    @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.DIRECTOR)
+    @ApiOperation({
+        summary: 'Obtener los roles efectivos de un usuario (multi-rol)',
+        description: 'Expone el resultado de UserRoleService.findRolesByUserId con el flag isPrimary calculado.'
+    })
+    @ApiParam({ name: 'id', type: Number })
+    @ApiResponse({ status: 200, description: 'Roles del usuario', type: () => UserRolesResponseDto })
+    @ApiResponse({ status: 404, description: 'Usuario no encontrado' })
+    async getUserRoles(
+        @Param('id', ParseIntPipe) id: number,
+    ): Promise<UserRolesResponseDto> {
+        return await this.userService.getUserRoles(id);
+    }
+
+    @Get(':id/permissions')
+    @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.DIRECTOR)
+    @ApiOperation({
+        summary: 'Obtener los permisos efectivos de un usuario',
+        description: 'Unión deduplicada de role_permissions a través de user_roles. Reutiliza UserRoleService.findUserPermissions.'
+    })
+    @ApiParam({ name: 'id', type: Number })
+    @ApiResponse({ status: 200, description: 'Permisos efectivos del usuario', type: () => UserPermissionsResponseDto })
+    @ApiResponse({ status: 404, description: 'Usuario no encontrado' })
+    async getUserPermissions(
+        @Param('id', ParseIntPipe) id: number,
+    ): Promise<UserPermissionsResponseDto> {
+        return await this.userService.getUserPermissions(id);
+    }
+
+    @Get(':id/full')
+    @ApiOperation({
+        summary: 'Obtener perfil enriquecido de un usuario (usuario + roles + permisos)',
+        description: 'Usuarios no administrativos solo pueden consultar su propio perfil.'
+    })
+    @ApiParam({ name: 'id', type: Number })
+    @ApiResponse({ status: 200, description: 'Perfil completo del usuario', type: () => UserProfileFullResponseDto })
+    @ApiResponse({ status: 403, description: 'No autorizado para consultar otro usuario' })
+    @ApiResponse({ status: 404, description: 'Usuario no encontrado' })
+    async getUserFullProfile(
+        @Request() req,
+        @Param('id', ParseIntPipe) id: number,
+    ): Promise<UserProfileFullResponseDto> {
+        const requesterId = Number(req.user.userId);
+        if (requesterId !== id && !hasAdminLikeRole(req.user)) {
+            throw new ForbiddenException('Solo puedes consultar tu propio perfil');
+        }
+        return await this.userService.getUserFullProfile(id);
     }
 
     @Get(':id')
