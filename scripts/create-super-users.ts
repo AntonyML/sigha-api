@@ -151,7 +151,6 @@ async function createOrVerifyUser(adminData: any, userRepository: any, twoFactor
             adminData.lastName,
             adminData.email,
             hashedPassword,
-            roleId,
             adminData.secondLastName,
             true,
             true

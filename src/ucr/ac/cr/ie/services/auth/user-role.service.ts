@@ -7,10 +7,7 @@ import { Permission, PermissionModule, PermissionAction } from '../../domain/per
 
 /**
  * UserRoleService — Source of truth for user ↔ role assignment (N:M).
- *
- * From this point forward, all authorization decisions flow through
- * the user_roles bridge instead of users.role_id (which is preserved
- * for backward compatibility but treated as legacy persistence data).
+ * All authorization decisions flow through the user_roles bridge table.
  */
 @Injectable()
 export class UserRoleService {
