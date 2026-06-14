@@ -8,7 +8,7 @@ import { SuccessResponse } from '../../interfaces';
 import { RoleChangesService } from '../role-changes/role-changes.service';
 import { UserRoleService } from '../auth/user-role.service';
 import { AuditService } from '../audit/audit.service';
-import { AuditReportType, AuditAction } from '../../domain/audit';
+import { AuditAction } from '../../domain/audit';
 
 @Injectable()
 export class UserService {
@@ -28,7 +28,6 @@ export class UserService {
     async createUser(createUserDto: CreateUserDto): Promise<User> {
         const { uIdentification, uEmail, uPassword, roleId, ...userData } = createUserDto;
 
-        // Verificar que el email no esté en uso
         const existingUser = await this.userRepository.findOne({
             where: [
                 { uEmail },
@@ -45,43 +44,35 @@ export class UserService {
             }
         }
 
-        // Verificar que el rol existe
         const role = await this.roleRepository.findOne({ where: { id: roleId } });
         if (!role) {
             throw new BadRequestException('Rol no encontrado');
         }
 
-        // Validar fortaleza de contraseña
         const passwordValidation = PasswordUtil.validatePasswordStrength(uPassword);
         if (!passwordValidation.isValid) {
             throw new BadRequestException(`Contraseña no válida: ${passwordValidation.errors.join(', ')}`);
         }
 
-        // Hashear contraseña
         const hashedPassword = await PasswordUtil.hash(uPassword);
 
-        // Crear usuario
         const user = new User(
-            0, // ID se auto-genera
+            0,
             uIdentification,
             userData.uName,
             userData.uFLastName,
             uEmail,
             hashedPassword,
-            roleId,
             userData.uSLastName
         );
 
         const savedUser = await this.userRepository.save(user);
 
-        // Seed user_roles: user_roles is the authoritative role source.
         await this.userRoleService.assignRole(savedUser.id, roleId, undefined, true);
 
-        // Registrar auditoría de creación de usuario
-        // Nota: Para creación inicial, usamos el ID del usuario que se está creando o un valor por defecto
         try {
             await this.auditService.createDigitalRecord(
-                savedUser.id, // Usar el ID del usuario recién creado
+                savedUser.id,
                 {
                     action: AuditAction.CREATE,
                     tableName: 'users',
@@ -90,7 +81,6 @@ export class UserService {
                 }
             );
         } catch (error) {
-            // Si hay error en la auditoría, loguearlo pero no fallar la creación del usuario
             console.error('Error creating audit record for user creation:', error);
         }
 
@@ -102,7 +92,6 @@ export class UserService {
      */
     async findAll(): Promise<User[]> {
         return await this.userRepository.find({
-            relations: ['role'],
             select: {
                 id: true,
                 uIdentification: true,
@@ -113,8 +102,6 @@ export class UserService {
                 uEmailVerified: true,
                 uIsActive: true,
                 createAt: true,
-                roleId: true,
-                // Excluir contraseña
             }
         });
     }
@@ -125,7 +112,6 @@ export class UserService {
     async findById(id: number): Promise<User> {
         const user = await this.userRepository.findOne({
             where: { id },
-            relations: ['role'],
             select: {
                 id: true,
                 uIdentification: true,
@@ -136,7 +122,6 @@ export class UserService {
                 uEmailVerified: true,
                 uIsActive: true,
                 createAt: true,
-                roleId: true,
             }
         });
 
@@ -153,7 +138,6 @@ export class UserService {
     async findByEmail(email: string): Promise<User> {
         const user = await this.userRepository.findOne({
             where: { uEmail: email },
-            relations: ['role'],
         });
 
         if (!user) {
@@ -168,59 +152,48 @@ export class UserService {
      */
     async updateUser(id: number, updateUserDto: UpdateUserDto, changedBy?: number): Promise<User> {
         const user = await this.findById(id);
+        const { roleId, ...userFields } = updateUserDto;
 
-        // Si se está actualizando el rol, registrar el cambio
-        if (updateUserDto.roleId && updateUserDto.roleId !== user.roleId) {
-            const oldRoleId = user.roleId;
-            const newRoleId = updateUserDto.roleId;
-            const oldRole = oldRoleId
-                ? await this.roleRepository.findOne({ where: { id: oldRoleId } })
-                : null;
-            const newRole = await this.roleRepository.findOne({ where: { id: newRoleId } });
+        if (roleId) {
+            const currentPrimaryRole = await this.userRoleService.findPrimaryRole(id);
+            const newRole = await this.roleRepository.findOne({ where: { id: roleId } });
 
-            if (newRole) {
+            if (!newRole) {
+                throw new BadRequestException('Rol no encontrado');
+            }
+
+            if (!currentPrimaryRole || currentPrimaryRole.id !== roleId) {
                 await this.roleChangesService.createRoleChange({
-                    rcOldRole: oldRole?.rName ?? null,
+                    rcOldRole: currentPrimaryRole?.rName ?? null,
                     rcNewRole: newRole.rName,
-                    oldRoleId: oldRoleId ?? null,
-                    newRoleId,
+                    oldRoleId: currentPrimaryRole?.id ?? null,
+                    newRoleId: roleId,
                     idUser: id,
                     changedBy,
                 });
-                // Sync user_roles: remove previous primary assignment, add new one.
-                if (oldRoleId) {
-                    await this.userRoleService.removeRole(id, oldRoleId);
+
+                if (currentPrimaryRole) {
+                    await this.userRoleService.removeRole(id, currentPrimaryRole.id);
                 }
-                await this.userRoleService.assignRole(id, newRoleId, changedBy, true);
+                await this.userRoleService.assignRole(id, roleId, changedBy, true);
             }
         }
 
-        // Si se está actualizando el email, verificar que no esté en uso
-        if (updateUserDto.uEmail && updateUserDto.uEmail !== user.uEmail) {
+        if (userFields.uEmail && userFields.uEmail !== user.uEmail) {
             const existingUser = await this.userRepository.findOne({
-                where: { uEmail: updateUserDto.uEmail }
+                where: { uEmail: userFields.uEmail }
             });
             if (existingUser) {
                 throw new BadRequestException('El email ya está en uso');
             }
         }
 
-        // Si se está actualizando el rol, verificar que existe
-        if (updateUserDto.roleId) {
-            const role = await this.roleRepository.findOne({ where: { id: updateUserDto.roleId } });
-            if (!role) {
-                throw new BadRequestException('Rol no encontrado');
-            }
-        }
-
-        // Actualizar propiedades
-        Object.assign(user, updateUserDto);
+        Object.assign(user, userFields);
 
         const savedUser = await this.userRepository.save(user);
 
-        // Registrar auditoría de actualización de usuario
         await this.auditService.createDigitalRecord(
-            changedBy || 1, // Usuario que hace el cambio
+            changedBy || 1,
             {
                 action: AuditAction.UPDATE,
                 tableName: 'users',
@@ -238,7 +211,6 @@ export class UserService {
     async changePassword(userId: number, changePasswordDto: ChangePasswordDto): Promise<SuccessResponse> {
         const { currentPassword, newPassword } = changePasswordDto;
 
-        // Buscar usuario con contraseña
         const user = await this.userRepository.findOne({
             where: { id: userId },
             select: ['id', 'uPassword']
@@ -248,23 +220,19 @@ export class UserService {
             throw new NotFoundException('Usuario no encontrado');
         }
 
-        // Verificar contraseña actual
         const isCurrentPasswordValid = await PasswordUtil.verify(currentPassword, user.uPassword);
         if (!isCurrentPasswordValid) {
             throw new BadRequestException('Contraseña actual incorrecta');
         }
 
-        // Validar nueva contraseña
         const passwordValidation = PasswordUtil.validatePasswordStrength(newPassword);
         if (!passwordValidation.isValid) {
             throw new BadRequestException(`Nueva contraseña no válida: ${passwordValidation.errors.join(', ')}`);
         }
 
-        // Hashear y actualizar contraseña
         const hashedNewPassword = await PasswordUtil.hash(newPassword);
         await this.userRepository.update(userId, { uPassword: hashedNewPassword });
 
-        // Registrar auditoría de cambio de contraseña
         await this.auditService.createDigitalRecord(
             userId,
             {
@@ -283,11 +251,9 @@ export class UserService {
      */
     async toggleUserStatus(id: number, changedBy?: number): Promise<User> {
         const user = await this.findById(id);
-        const oldStatus = user.uIsActive;
         user.uIsActive = !user.uIsActive;
         const savedUser = await this.userRepository.save(user);
 
-        // Registrar auditoría de cambio de estado
         await this.auditService.createDigitalRecord(
             changedBy || 1,
             {
@@ -309,7 +275,6 @@ export class UserService {
         user.uIsActive = false;
         await this.userRepository.save(user);
 
-        // Registrar auditoría de eliminación de usuario
         await this.auditService.createDigitalRecord(
             changedBy || 1,
             {
@@ -324,13 +289,12 @@ export class UserService {
     }
 
     /**
-     * Obtener usuarios por rol
+     * Obtener usuarios por rol (desde user_roles)
      */
     async findByRole(roleId: number): Promise<User[]> {
         return await this.userRepository
             .createQueryBuilder('user')
             .innerJoin('user_roles', 'ur', 'ur.user_id = user.id AND ur.role_id = :roleId', { roleId })
-            .leftJoin('user.role', 'role')
             .where('user.uIsActive = :active', { active: true })
             .select([
                 'user.id',
@@ -342,9 +306,6 @@ export class UserService {
                 'user.uEmailVerified',
                 'user.uIsActive',
                 'user.createAt',
-                'user.roleId',
-                'role.id',
-                'role.rName',
             ])
             .getMany();
     }
@@ -355,7 +316,6 @@ export class UserService {
     async searchUsers(searchTerm: string): Promise<User[]> {
         return await this.userRepository
             .createQueryBuilder('user')
-            .leftJoinAndSelect('user.role', 'role')
             .where('user.uName LIKE :term OR user.uFLastName LIKE :term OR user.uEmail LIKE :term OR user.uIdentification LIKE :term', {
                 term: `%${searchTerm}%`
             })
@@ -369,9 +329,6 @@ export class UserService {
                 'user.uEmailVerified',
                 'user.uIsActive',
                 'user.createAt',
-                'user.roleId',
-                'role.id',
-                'role.rName'
             ])
             .getMany();
     }

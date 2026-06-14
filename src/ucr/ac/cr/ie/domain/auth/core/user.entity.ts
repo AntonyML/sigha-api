@@ -1,5 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToMany, OneToOne } from 'typeorm';
-import { Role } from './role.entity';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, OneToOne } from 'typeorm';
 import { UserSession } from '../sessions/user-session.entity';
 import { UserTwoFactor } from '../security/user-two-factor.entity';
 
@@ -35,13 +34,6 @@ export class User {
   @Column({ name: 'create_at', type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   createAt: Date;
 
-  @Column({ name: 'role_id', nullable: true })
-  roleId: number | null;
-
-  @ManyToOne(() => Role, { onDelete: 'SET NULL' })
-  @JoinColumn({ name: 'role_id' })
-  role: Role | null;
-
   @OneToMany(() => UserSession, session => session.user)
   sessions: UserSession[];
 
@@ -55,7 +47,6 @@ export class User {
     uFLastName: string,
     uEmail: string,
     uPassword: string,
-    roleId: number | null,
     uSLastName?: string,
     uEmailVerified: boolean = false,
     uIsActive: boolean = true,
@@ -71,6 +62,5 @@ export class User {
     this.uPassword = uPassword;
     this.uIsActive = uIsActive;
     this.createAt = createAt || new Date();
-    this.roleId = roleId;
   }
 }
