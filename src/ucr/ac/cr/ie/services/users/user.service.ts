@@ -3,7 +3,16 @@ import { Repository } from 'typeorm';
 import { User } from '../../domain/auth/core/user.entity';
 import { Role } from '../../domain/auth/core/role.entity';
 import { PasswordUtil } from '../../common/utils';
-import { CreateUserDto, UpdateUserDto, ChangePasswordDto } from '../../dto/users';
+import {
+    CreateUserDto,
+    UpdateUserDto,
+    ChangePasswordDto,
+    RoleCompactDto,
+    UserRolesResponseDto,
+    PermissionCompactDto,
+    UserPermissionsResponseDto,
+    UserProfileFullResponseDto,
+} from '../../dto/users';
 import { SuccessResponse } from '../../interfaces';
 import { RoleChangesService } from '../role-changes/role-changes.service';
 import { UserRoleService } from '../auth/user-role.service';
@@ -331,5 +340,73 @@ export class UserService {
                 'user.createAt',
             ])
             .getMany();
+    }
+
+    /**
+     * Resolver los roles efectivos de un usuario reutilizando UserRoleService.
+     * Marca `isPrimary` consultando el rol primario desde la misma fuente de verdad.
+     * Lanza NotFoundException si el usuario no existe.
+     */
+    async getUserRoles(userId: number): Promise<UserRolesResponseDto> {
+        await this.findById(userId);
+
+        const [roles, primaryRole] = await Promise.all([
+            this.userRoleService.findRolesByUserId(userId),
+            this.userRoleService.findPrimaryRole(userId),
+        ]);
+
+        const primaryId = primaryRole?.id ?? null;
+        const compact: RoleCompactDto[] = roles.map((r) => ({
+            roleId: r.id,
+            roleName: r.rName,
+            isPrimary: primaryId !== null && r.id === primaryId,
+        }));
+
+        return { userId, roles: compact };
+    }
+
+    /**
+     * Resolver los permisos efectivos de un usuario reutilizando
+     * `UserRoleService.findUserPermissions` (join user_roles ⨝ role_permissions ⨝ permissions).
+     * Devuelve códigos `module:action` deduplicados.
+     */
+    async getUserPermissions(userId: number): Promise<UserPermissionsResponseDto> {
+        await this.findById(userId);
+
+        const permissions = await this.userRoleService.findUserPermissions(userId);
+        const seen = new Set<string>();
+        const compact: PermissionCompactDto[] = [];
+
+        for (const p of permissions) {
+            const code = `${p.pModule}:${p.pAction}`;
+            if (seen.has(code)) continue;
+            seen.add(code);
+            compact.push({
+                permissionId: p.id,
+                code,
+                description: p.pDescription,
+            });
+        }
+
+        return { userId, permissions: compact };
+    }
+
+    /**
+     * Perfil enriquecido: combina el snapshot del usuario con sus roles y permisos
+     * efectivos. No reescribe queries — reutiliza `findById`, `getUserRoles` y
+     * `getUserPermissions`.
+     */
+    async getUserFullProfile(userId: number): Promise<UserProfileFullResponseDto> {
+        const [user, rolesResult, permissionsResult] = await Promise.all([
+            this.findById(userId),
+            this.getUserRoles(userId),
+            this.getUserPermissions(userId),
+        ]);
+
+        return {
+            user: user as unknown as Record<string, unknown>,
+            roles: rolesResult.roles,
+            permissions: permissionsResult.permissions,
+        };
     }
 }
