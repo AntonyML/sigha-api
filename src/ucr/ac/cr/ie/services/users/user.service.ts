@@ -6,6 +6,7 @@ import { PasswordUtil } from '../../common/utils';
 import { CreateUserDto, UpdateUserDto, ChangePasswordDto } from '../../dto/users';
 import { SuccessResponse } from '../../interfaces';
 import { RoleChangesService } from '../role-changes/role-changes.service';
+import { UserRoleService } from '../auth/user-role.service';
 import { AuditService } from '../audit/audit.service';
 import { AuditReportType, AuditAction } from '../../domain/audit';
 
@@ -17,6 +18,7 @@ export class UserService {
         @Inject('RoleRepository')
         private roleRepository: Repository<Role>,
         private roleChangesService: RoleChangesService,
+        private userRoleService: UserRoleService,
         private auditService: AuditService,
     ) { }
 
@@ -71,6 +73,9 @@ export class UserService {
         );
 
         const savedUser = await this.userRepository.save(user);
+
+        // Seed user_roles: user_roles is the authoritative role source.
+        await this.userRoleService.assignRole(savedUser.id, roleId, undefined, true);
 
         // Registrar auditoría de creación de usuario
         // Nota: Para creación inicial, usamos el ID del usuario que se está creando o un valor por defecto
@@ -166,16 +171,27 @@ export class UserService {
 
         // Si se está actualizando el rol, registrar el cambio
         if (updateUserDto.roleId && updateUserDto.roleId !== user.roleId) {
-            const oldRole = await this.roleRepository.findOne({ where: { id: user.roleId } });
-            const newRole = await this.roleRepository.findOne({ where: { id: updateUserDto.roleId } });
+            const oldRoleId = user.roleId;
+            const newRoleId = updateUserDto.roleId;
+            const oldRole = oldRoleId
+                ? await this.roleRepository.findOne({ where: { id: oldRoleId } })
+                : null;
+            const newRole = await this.roleRepository.findOne({ where: { id: newRoleId } });
 
-            if (oldRole && newRole) {
+            if (newRole) {
                 await this.roleChangesService.createRoleChange({
-                    rcOldRole: oldRole.rName,
+                    rcOldRole: oldRole?.rName ?? null,
                     rcNewRole: newRole.rName,
+                    oldRoleId: oldRoleId ?? null,
+                    newRoleId,
                     idUser: id,
                     changedBy,
                 });
+                // Sync user_roles: remove previous primary assignment, add new one.
+                if (oldRoleId) {
+                    await this.userRoleService.removeRole(id, oldRoleId);
+                }
+                await this.userRoleService.assignRole(id, newRoleId, changedBy, true);
             }
         }
 
@@ -311,22 +327,26 @@ export class UserService {
      * Obtener usuarios por rol
      */
     async findByRole(roleId: number): Promise<User[]> {
-        return await this.userRepository.find({
-            where: { roleId, uIsActive: true },
-            relations: ['role'],
-            select: {
-                id: true,
-                uIdentification: true,
-                uName: true,
-                uFLastName: true,
-                uSLastName: true,
-                uEmail: true,
-                uEmailVerified: true,
-                uIsActive: true,
-                createAt: true,
-                roleId: true,
-            }
-        });
+        return await this.userRepository
+            .createQueryBuilder('user')
+            .innerJoin('user_roles', 'ur', 'ur.user_id = user.id AND ur.role_id = :roleId', { roleId })
+            .leftJoin('user.role', 'role')
+            .where('user.uIsActive = :active', { active: true })
+            .select([
+                'user.id',
+                'user.uIdentification',
+                'user.uName',
+                'user.uFLastName',
+                'user.uSLastName',
+                'user.uEmail',
+                'user.uEmailVerified',
+                'user.uIsActive',
+                'user.createAt',
+                'user.roleId',
+                'role.id',
+                'role.rName',
+            ])
+            .getMany();
     }
 
     /**

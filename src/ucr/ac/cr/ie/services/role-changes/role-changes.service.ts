@@ -11,12 +11,16 @@ export class RoleChangesService {
     ) { }
 
     /**
-     * Crear un registro de cambio de rol
+     * Crear un registro de cambio de rol.
+     * La fuente de verdad es oldRoleId / newRoleId; los campos legacy
+     * rcOldRole / rcNewRole se preservan únicamente como dato histórico.
      */
     async createRoleChange(createDto: CreateRoleChangeDto, changedBy?: number): Promise<RoleChange> {
         const roleChange = this.roleChangeRepository.create({
-            rcOldRole: createDto.rcOldRole,
-            rcNewRole: createDto.rcNewRole,
+            rcOldRole: createDto.rcOldRole ?? null,
+            rcNewRole: createDto.rcNewRole ?? null,
+            oldRoleId: createDto.oldRoleId ?? null,
+            newRoleId: createDto.newRoleId ?? null,
             idUser: createDto.idUser,
             changedBy: changedBy || createDto.changedBy,
         });
@@ -25,7 +29,8 @@ export class RoleChangesService {
     }
 
     /**
-     * Obtener todos los cambios de roles con filtros y paginación
+     * Obtener todos los cambios de roles con filtros y paginación.
+     * Resuelve roles vía JOIN sobre oldRoleId / newRoleId (normalizado).
      */
     async findAll(searchDto: SearchRoleChangesDto): Promise<{
         data: RoleChange[];
@@ -39,6 +44,8 @@ export class RoleChangesService {
         const queryBuilder = this.roleChangeRepository.createQueryBuilder('rc')
             .leftJoinAndSelect('rc.user', 'user')
             .leftJoinAndSelect('rc.changedByUser', 'admin')
+            .leftJoinAndSelect('rc.oldRole', 'oldRole')
+            .leftJoinAndSelect('rc.newRole', 'newRole')
             .orderBy('rc.changedAt', 'DESC');
 
         if (idUser) {
@@ -106,7 +113,7 @@ export class RoleChangesService {
     async findById(id: number): Promise<RoleChange> {
         const roleChange = await this.roleChangeRepository.findOne({
             where: { id },
-            relations: ['user', 'changedByUser'],
+            relations: ['user', 'changedByUser', 'oldRole', 'newRole'],
         });
 
         if (!roleChange) {
@@ -117,7 +124,8 @@ export class RoleChangesService {
     }
 
     /**
-     * Obtener estadísticas de cambios de roles
+     * Obtener estadísticas de cambios de roles.
+     * Los conteos por rol se derivan del JOIN sobre newRole (normalizado).
      */
     async getStatistics(startDate?: string, endDate?: string): Promise<{
         totalChanges: number;
@@ -127,7 +135,8 @@ export class RoleChangesService {
     }> {
         const queryBuilder = this.roleChangeRepository.createQueryBuilder('rc')
             .leftJoin('rc.changedByUser', 'admin')
-            .leftJoin('rc.user', 'user');
+            .leftJoin('rc.user', 'user')
+            .leftJoin('rc.newRole', 'newRole');
 
         if (startDate) {
             queryBuilder.andWhere('rc.changedAt >= :startDate', { startDate });
@@ -137,10 +146,8 @@ export class RoleChangesService {
             queryBuilder.andWhere('rc.changedAt <= :endDate', { endDate });
         }
 
-        // Total de cambios
         const totalChanges = await queryBuilder.getCount();
 
-        // Cambios por administrador
         const changesByAdmin = await queryBuilder
             .select('admin.id', 'adminId')
             .addSelect('admin.u_name', 'adminName')
@@ -150,17 +157,17 @@ export class RoleChangesService {
             .orderBy('count', 'DESC')
             .getRawMany();
 
-        // Cambios por rol nuevo
+        // GROUP BY newRole.rName (coalesced with rcNewRole legacy text for
+        // historical records that predate the 009 normalization).
         const changesByRole = await queryBuilder
-            .select('rc.rcNewRole', 'role')
+            .select("COALESCE(newRole.r_name, rc.rcNewRole)", 'role')
             .addSelect('COUNT(rc.id)', 'count')
-            .groupBy('rc.rcNewRole')
+            .groupBy("COALESCE(newRole.r_name, rc.rcNewRole)")
             .orderBy('count', 'DESC')
             .getRawMany();
 
-        // Cambios recientes (últimos 10)
         const recentChanges = await this.roleChangeRepository.find({
-            relations: ['user', 'changedByUser'],
+            relations: ['user', 'changedByUser', 'oldRole', 'newRole'],
             order: { changedAt: 'DESC' },
             take: 10,
         });

@@ -1,6 +1,7 @@
 import { DataSource } from 'typeorm';
 import { User } from '../../domain/auth/core/user.entity';
 import { Role } from '../../domain/auth/core/role.entity';
+import { UserRole } from '../../domain/auth/core/user-role.entity';
 import { UserSession } from '../../domain/auth/sessions/user-session.entity';
 import { UserTwoFactor } from '../../domain/auth/security/user-two-factor.entity';
 import { LoginAttempt } from '../../domain/auth/security/login-attempt.entity';
@@ -17,6 +18,11 @@ export const authProviders = [
     {
         provide: 'RoleRepository',
         useFactory: (dataSource: DataSource) => dataSource.getRepository(Role),
+        inject: ['DataSource'],
+    },
+    {
+        provide: 'UserRoleRepository',
+        useFactory: (dataSource: DataSource) => dataSource.getRepository(UserRole),
         inject: ['DataSource'],
     },
     {

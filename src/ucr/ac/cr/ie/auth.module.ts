@@ -2,7 +2,7 @@ import { Module, Global } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
-import { AuthService } from './services/auth/auth.service';
+import { AuthService, UserRoleService } from './services/auth';
 import { AuthController } from './controller/auth/auth.controller';
 import { authProviders } from './repository/auth/auth.providers';
 import { DatabaseModule } from './database.module';
@@ -30,9 +30,10 @@ import { AuditModule } from './audit.module';
     controllers: [AuthController],
     providers: [
         AuthService,
+        UserRoleService,
         StartupService,
         ...authProviders,
     ],
-    exports: [AuthService, JwtModule, ...authProviders],
+    exports: [AuthService, UserRoleService, JwtModule, ...authProviders],
 })
 export class AuthModule { }

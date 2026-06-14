@@ -2,6 +2,7 @@ import { config } from 'dotenv';
 import { DataSource } from 'typeorm';
 import { Role, RoleType } from '../src/ucr/ac/cr/ie/domain/auth/core/role.entity';
 import { User } from '../src/ucr/ac/cr/ie/domain/auth/core/user.entity';
+import { UserRole } from '../src/ucr/ac/cr/ie/domain/auth/core/user-role.entity';
 import { UserSession } from '../src/ucr/ac/cr/ie/domain/auth/sessions/user-session.entity';
 import { UserTwoFactor } from '../src/ucr/ac/cr/ie/domain/auth/security/user-two-factor.entity';
 import { PasswordUtil } from '../src/ucr/ac/cr/ie/common/utils/password.util';
@@ -11,7 +12,7 @@ config();
 
 async function disable2FAForUser(email: string) {
     const dataSource = new DataSource(
-        buildScriptDataSourceOptions({ entities: [User, Role, UserSession, UserTwoFactor] }),
+        buildScriptDataSourceOptions({ entities: [User, Role, UserRole, UserSession, UserTwoFactor] }),
     );
 
     try {
@@ -50,7 +51,7 @@ async function createSuperUsers() {
     console.log();
 
     const dataSource = new DataSource(
-        buildScriptDataSourceOptions({ entities: [User, Role, UserSession, UserTwoFactor] }),
+        buildScriptDataSourceOptions({ entities: [User, Role, UserRole, UserSession, UserTwoFactor] }),
     );
 
     try {
@@ -59,10 +60,11 @@ async function createSuperUsers() {
 
         const roleRepository = dataSource.getRepository(Role);
         const userRepository = dataSource.getRepository(User);
+        const userRoleRepository = dataSource.getRepository(UserRole);
         const twoFactorRepository = dataSource.getRepository(UserTwoFactor);
 
         await createSystemRoles(roleRepository);
-        await createSuperAdminsFromEnv(userRepository, twoFactorRepository, roleRepository);
+        await createSuperAdminsFromEnv(userRepository, twoFactorRepository, userRoleRepository, roleRepository);
 
         console.log('\n[SUCCESS] Inicialización completada exitosamente');
         console.log('\n[NOTE] NOTAS IMPORTANTES:');
@@ -92,7 +94,7 @@ async function createSystemRoles(roleRepository: any) {
     }
 }
 
-async function createSuperAdminsFromEnv(userRepository: any, twoFactorRepository: any, roleRepository: any) {
+async function createSuperAdminsFromEnv(userRepository: any, twoFactorRepository: any, userRoleRepository: any, roleRepository: any) {
     console.log('\n=== VERIFICANDO USUARIOS SUPER ADMINISTRADORES ===');
 
     const superAdminRole = await roleRepository.findOne({ where: { rName: RoleType.SUPER_ADMIN } });
@@ -101,7 +103,7 @@ async function createSuperAdminsFromEnv(userRepository: any, twoFactorRepository
     const superAdmins = getSuperAdminsFromEnv();
 
     for (const adminData of superAdmins) {
-        await createOrVerifyUser(adminData, userRepository, twoFactorRepository, superAdminRole.id);
+        await createOrVerifyUser(adminData, userRepository, twoFactorRepository, userRoleRepository, superAdminRole.id);
     }
 }
 
@@ -137,7 +139,7 @@ function getSuperAdminsFromEnv() {
     ];
 }
 
-async function createOrVerifyUser(adminData: any, userRepository: any, twoFactorRepository: any, roleId: number) {
+async function createOrVerifyUser(adminData: any, userRepository: any, twoFactorRepository: any, userRoleRepository: any, roleId: number) {
     const existingUser = await userRepository.findOne({ where: { uEmail: adminData.email } });
 
     if (!existingUser) {
@@ -155,7 +157,22 @@ async function createOrVerifyUser(adminData: any, userRepository: any, twoFactor
             true
         );
 
-        await userRepository.save(superAdmin);
+        const savedUser = await userRepository.save(superAdmin);
+
+        // Seed user_roles: user_roles is the authoritative role source.
+        const existingAssignment = await userRoleRepository.findOne({
+            where: { userId: savedUser.id, roleId },
+        });
+        if (!existingAssignment) {
+            const ur = userRoleRepository.create({
+                userId: savedUser.id,
+                roleId,
+                isPrimary: true,
+                assignedBy: null,
+            });
+            await userRoleRepository.save(ur);
+        }
+
         console.log(`[OK] Super administrador creado:`);
         console.log(`   [EMAIL] Email: ${adminData.email}`);
         console.log(`   [PASSWORD] Password: ${adminData.password}`);
@@ -163,6 +180,21 @@ async function createOrVerifyUser(adminData: any, userRepository: any, twoFactor
         console.log(`   [WARNING] IMPORTANTE: Cambiar la contraseña después del primer login!`);
     } else {
         console.log(`Super administrador ya existe: ${adminData.email}`);
+
+        // Ensure user_roles entry exists for already-created super admins.
+        const existingAssignment = await userRoleRepository.findOne({
+            where: { userId: existingUser.id, roleId },
+        });
+        if (!existingAssignment) {
+            const ur = userRoleRepository.create({
+                userId: existingUser.id,
+                roleId,
+                isPrimary: true,
+                assignedBy: null,
+            });
+            await userRoleRepository.save(ur);
+            console.log(`   [OK] user_roles entry creado para usuario existente`);
+        }
 
         const twoFactor = await twoFactorRepository.findOne({ where: { userId: existingUser.id } });
 

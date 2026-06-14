@@ -190,6 +190,32 @@ export class PermissionService {
     return !!rp;
   }
 
+  /**
+   * Multi-role authorization check.
+   * Returns true if at least one of the given role ids owns the given
+   * module/action. Empty array → false.
+   */
+  async hasAnyPermission(
+    roleIds: number[],
+    module: PermissionModule,
+    action: PermissionAction,
+  ): Promise<boolean> {
+    if (roleIds.length === 0) return false;
+    const found = await this.rolePermissionRepo.manager
+      .createQueryBuilder()
+      .select('1')
+      .from('role_permissions', 'rp')
+      .innerJoin('permissions', 'p', 'p.id = rp.permission_id')
+      .where('rp.role_id = ANY(:roleIds)', { roleIds })
+      .andWhere('rp.rp_granted = true')
+      .andWhere('p.p_module = :module', { module })
+      .andWhere('p.p_action = :action', { action })
+      .andWhere('p.p_enabled = true')
+      .limit(1)
+      .getRawOne();
+    return !!found;
+  }
+
   // ─────────────────────────── helpers ───────────────────────────
 
   private async getRoleOrFail(roleId: number): Promise<Role> {

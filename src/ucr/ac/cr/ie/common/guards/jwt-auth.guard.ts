@@ -7,6 +7,8 @@ import { JwtService } from '@nestjs/jwt';
 import { Repository } from 'typeorm';
 import { UserSession } from '../../domain/auth/sessions/user-session.entity';
 import { User } from '../../domain/auth/core/user.entity';
+import { UserTwoFactor } from '../../domain/auth/security/user-two-factor.entity';
+import { UserRoleService } from '../../services/auth/user-role.service';
 import * as crypto from 'crypto';
 
 @Injectable()
@@ -18,6 +20,9 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
         private readonly sessionRepository: Repository<UserSession>,
         @Inject('UserRepository')
         private readonly userRepository: Repository<User>,
+        @Inject('UserTwoFactorRepository')
+        private readonly userTwoFactorRepository: Repository<UserTwoFactor>,
+        private readonly userRoleService: UserRoleService,
     ) {
         super();
     }
@@ -74,22 +79,32 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
 
             const user = await this.userRepository.findOne({
                 where: { id: payload.sub, uIsActive: true },
-                relations: ['role', 'twoFactor'],
             });
 
             if (!user) {
                 throw new UnauthorizedException('Usuario no encontrado');
             }
 
-            if (user.twoFactor && user.twoFactor.tfaEnabled && !payload.twoFactorVerified) {
+            const twoFactor = await this.userTwoFactorRepository.findOne({
+                where: { userId: user.id, tfaEnabled: true },
+            });
+
+            if (twoFactor && !payload.twoFactorVerified) {
                 throw new UnauthorizedException('Se requiere verificación de dos factores');
             }
+
+            // Resolve canonical role identity from user_roles bridge.
+            // The JWT carries roleIds/roles; we always re-resolve from the
+            // bridge to enforce freshness across role changes / logouts.
+            const userRoles = await this.userRoleService.findRolesByUserId(user.id);
+            const roleIds = userRoles.map(r => r.id).sort((a, b) => a - b);
+            const roles = userRoles.map(r => r.rName).sort();
 
             request.user = {
                 userId: user.id,
                 uEmail: user.uEmail,
-                roleId: user.roleId,
-                role: user.role,
+                roleIds,
+                roles,
             };
 
             return true;

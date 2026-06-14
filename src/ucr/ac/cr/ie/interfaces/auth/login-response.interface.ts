@@ -5,7 +5,7 @@ export interface LoginResponse {
         id: number;
         uEmail: string;
         uName: string;
-        role: string;
+        roles: string[];
     };
     requiresTwoFactor?: boolean;
     tempToken?: string;
