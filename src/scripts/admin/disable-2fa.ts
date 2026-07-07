@@ -1,6 +1,6 @@
 import { DataSource } from 'typeorm';
 import { config } from 'dotenv';
-import { buildScriptDataSourceOptions } from './script-data-source';
+import { buildScriptDataSourceOptions } from '../utils/build-script-data-source';
 
 // Cargar variables de entorno
 config();

@@ -1,12 +1,12 @@
 import { config } from 'dotenv';
 import { DataSource } from 'typeorm';
-import { Role, RoleType } from '../src/ucr/ac/cr/ie/domain/auth/core/role.entity';
-import { User } from '../src/ucr/ac/cr/ie/domain/auth/core/user.entity';
-import { UserRole } from '../src/ucr/ac/cr/ie/domain/auth/core/user-role.entity';
-import { UserSession } from '../src/ucr/ac/cr/ie/domain/auth/sessions/user-session.entity';
-import { UserTwoFactor } from '../src/ucr/ac/cr/ie/domain/auth/security/user-two-factor.entity';
-import { PasswordUtil } from '../src/ucr/ac/cr/ie/common/utils/password.util';
-import { buildScriptDataSourceOptions } from './script-data-source';
+import { Role, RoleType } from '../../../ucr/ac/cr/ie/domain/auth/core/role.entity';
+import { User } from '../../../ucr/ac/cr/ie/domain/auth/core/user.entity';
+import { UserRole } from '../../../ucr/ac/cr/ie/domain/auth/core/user-role.entity';
+import { UserSession } from '../../../ucr/ac/cr/ie/domain/auth/sessions/user-session.entity';
+import { UserTwoFactor } from '../../../ucr/ac/cr/ie/domain/auth/security/user-two-factor.entity';
+import { PasswordUtil } from '../../../ucr/ac/cr/ie/common/utils/password.util';
+import { buildScriptDataSourceOptions } from '../utils/build-script-data-source';
 
 config();
 
