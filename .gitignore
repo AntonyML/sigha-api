@@ -56,6 +56,10 @@ coverage/
 logs/
 *.log
 
+# Application logs (structured logging)
+storage/logs/*.log
+storage/logs/**/*.log
+
 *.pid
 *.seed
 *.pid.lock
