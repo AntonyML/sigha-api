@@ -1,6 +1,30 @@
-# Sigha API
+# SIGHA API
 
-Backend NestJS para el Sistema de Gestión de Hogar de Ancianos (SIHA).
+Backend NestJS para el **Sistema Integral de Gestión del Hogar de Ancianos (SIGHA)** — plataforma de gestión clínica y administrativa para centros de cuidado geriátrico.
+
+## Descripción del Proyecto
+
+SIGHA es un sistema de gestión integral diseñado para hogares de ancianos, que centraliza el cuidado clínico, administrativo y operativo de residentes adultos mayores. El sistema gestiona el ciclo completo de atención: desde el registro electoral y admisión de residentes, hasta el seguimiento clínico diario, administración de medicamentos, citas de enfermería, y programas de bienestar.
+
+### Arquitectura Multi-Repositorio
+
+El proyecto se compone de tres repositorios interconectados:
+
+| Repositorio | Propósito | Stack |
+|-------------|-----------|-------|
+| **sigha-db** | Esquema de base de datos PostgreSQL/Supabase (36 tablas) | SQL, TypeORM migrations |
+| **sigha-api** | Backend API REST con lógica de negocio | NestJS, TypeScript, TypeORM |
+| **sigha-web** | Frontend web para usuarios y personal | React/Next.js |
+
+### Características Principales
+
+- **Arquitectura multi-rol** con sistema de permisos granular (`user_roles`, `permissions`, `role_permissions`)
+- **Registro electoral** de residentes adultos mayores
+- **Gestión clínica**: historial clínico, condiciones médicas, medicamentos, vacunas
+- **Enfermería y citas**: programación y seguimiento de appointments
+- **Registros virtuales**: procedimientos digitalizados con trazabilidad
+- **Auditoría integral**: todos los eventos críticos se registran con correlation ID
+- **Seguridad**: autenticación JWT, 2FA opcional, sanitización automática de PII/PHI (Ley 8968)
 
 ## Configuración
 
@@ -70,7 +94,7 @@ npm run build
 npm test
 
 # Reset de base de datos (solo desarrollo)
-npm run ts-node scripts/reset-database.ts
+npm run ts-node src/scripts/db/reset.ts
 ```
 
 ## Estructura del proyecto
