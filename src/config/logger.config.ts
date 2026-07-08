@@ -103,6 +103,18 @@ export const createWinstonLogger = () => {
       maxFiles: '14d',
       zippedArchive: true,
     }),
+    
+    // Audit log file (separate, longer retention for compliance)
+    new winston.transports.DailyRotateFile({
+      dirname: logDir,
+      filename: 'audit-%DATE%.log',
+      datePattern: 'YYYY-MM-DD',
+      level: 'audit',
+      format: fileFormat,
+      maxSize: '20m',
+      maxFiles: '90d',     // Keep audit logs for 90 days (compliance)
+      zippedArchive: true,
+    }),
   ];
 
   // Create logger instance
