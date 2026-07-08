@@ -20,10 +20,12 @@ import {
   OlderAdultUpdateResponse,
   PaginatedOlderAdultUpdatesResponse,
 } from '../../interfaces/audit';
+import { LoggerService } from '../../../common/services/logger.service';
 
 @Injectable()
 export class AuditService {
   constructor(
+    private logger: LoggerService,
     @Inject('AUDIT_REPORT_REPOSITORY')
     private auditReportRepository: Repository<AuditReport>,
     @Inject('DIGITAL_RECORD_REPOSITORY')
@@ -84,9 +86,14 @@ export class AuditService {
         recordId,
         description,
       });
-    } catch (error) {
-      console.error('Error logging audit action:', error);
-    }
+          } catch (error) {
+            this.logger.error('Error logging audit action', {
+              error: error instanceof Error ? error.message : 'Unknown error',
+              action,
+              userId,
+              module,
+            });
+          }
   }
 
   async searchDigitalRecords(
@@ -526,10 +533,17 @@ export class AuditService {
           params.arIpAddress || null,
           params.arUserAgent || null,
         ],
-      );
-      return result[0]?.dr_id || 0;
-    } catch (error) {
-      console.error('Error invoking log_audit function in database:', error);
+      });
+            return result[0]?.dr_id || 0;
+          } catch (error) {
+            this.logger.error('Error invoking log_audit function in database', {
+              error: error instanceof Error ? error.message : 'Unknown error',
+              params: {
+                userId: params.drUserId,
+                action: params.drAction,
+                table: params.drTableName,
+              },
+            });
       throw error;
     }
   }
@@ -546,11 +560,14 @@ export class AuditService {
         [userId],
       );
       const row = result[0] as { duration?: number } | undefined;
-      return row?.duration ?? 0;
-    } catch (error) {
-      console.error('Error computing session duration:', error);
-      return 0;
-    }
+            return row?.duration ?? 0;
+          } catch (error) {
+            this.logger.error('Error computing session duration', {
+              error: error instanceof Error ? error.message : 'Unknown error',
+              userId,
+            });
+            return 0;
+          }
   }
 }
 
