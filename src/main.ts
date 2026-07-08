@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import setupSwagger from './ucr/ac/cr/ie/config/swagger.config';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -17,6 +18,9 @@ async function bootstrap() {
 	}
 	
 	const app = await NestFactory.create(AppModule);
+	
+	// Register global exception filter
+	app.useGlobalFilters(new AllExceptionsFilter());
 	
 	// Habilitar CORS
 	const allowedOrigins = process.env.CORS_ORIGINS
