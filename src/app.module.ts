@@ -27,6 +27,7 @@ import { ClinicalMedicationModule } from './ucr/ac/cr/ie/clinical-medication.mod
 import { EmergencyContactsModule } from './ucr/ac/cr/ie/emergency-contacts.module';
 import { OlderAdultFamilyModule } from './ucr/ac/cr/ie/older-adult-family.module';
 import { OlderAdultUpdatesModule } from './ucr/ac/cr/ie/older-adult-updates.module';
+import { IdentificationLookupModule } from './ucr/ac/cr/ie/identification-lookup.module';
 import { JwtAuthGuard } from './ucr/ac/cr/ie/common/guards/jwt-auth.guard';
 
 @Module({
@@ -59,6 +60,7 @@ import { JwtAuthGuard } from './ucr/ac/cr/ie/common/guards/jwt-auth.guard';
     EmergencyContactsModule,
     OlderAdultFamilyModule,
     OlderAdultUpdatesModule,
+    IdentificationLookupModule,
   ],
     providers: [
       {
