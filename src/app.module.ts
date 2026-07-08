@@ -1,6 +1,8 @@
-import { Module } from '@nestjs/common';
+import { Module, Logger } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
+import { WinstonModule } from 'nest-winston';
+import { createWinstonLogger } from './config/logger.config';
 import { DatabaseModule } from './ucr/ac/cr/ie/database.module';
 import { AuthModule } from './ucr/ac/cr/ie/auth.module';
 import { UsersModule } from './ucr/ac/cr/ie/users.module';
@@ -30,6 +32,8 @@ import { JwtAuthGuard } from './ucr/ac/cr/ie/common/guards/jwt-auth.guard';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    // Global Winston logger
+    WinstonModule.forRoot(createWinstonLogger()),
     DatabaseModule,
     AuthModule,
     UsersModule,
