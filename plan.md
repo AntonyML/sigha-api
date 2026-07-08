@@ -21,7 +21,7 @@
 - [x] **FASE 2:** Instalación de Dependencias ✅
 - [x] **FASE 3:** Exception Filters Globales ✅
 - [x] **FASE 4:** LoggerService + Configuración Winston ✅
-- [ ] **FASE 5:** Middleware de Correlation ID
+- [x] **FASE 5:** Middleware de Correlation ID ✅
 - [ ] **FASE 6:** Interceptor de Logging HTTP
 - [ ] **FASE 7:** Migración Módulo Auth
 - [ ] **FASE 8:** Migración Módulo Audit + Core
