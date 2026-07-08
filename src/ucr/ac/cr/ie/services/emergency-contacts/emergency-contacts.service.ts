@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { EmergencyContact } from '../../domain/virtual-records';
 import { CreateEmergencyContactDto } from '../../dto/emergency-contacts/create-emergency-contact.dto';
 import { UpdateEmergencyContactDto } from '../../dto/emergency-contacts/update-emergency-contact.dto';
+import { sanitizeForLogging } from '../../../common/utils/logger-sanitizer';
 
 @Injectable()
 export class EmergencyContactsService {

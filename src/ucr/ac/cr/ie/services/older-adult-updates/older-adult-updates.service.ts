@@ -2,6 +2,7 @@ import { Injectable, InternalServerErrorException, NotFoundException, Inject } f
 import { LoggerService } from '../../common/services/logger.service';
 import { Repository } from 'typeorm';
 import { OlderAdultUpdate } from '../../domain/audit';
+import { sanitizeForLogging } from '../../../common/utils/logger-sanitizer';
 
 @Injectable()
 export class OlderAdultUpdatesService {

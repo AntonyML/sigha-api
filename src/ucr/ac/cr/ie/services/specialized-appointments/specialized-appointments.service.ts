@@ -3,6 +3,7 @@ import { Repository } from 'typeorm';
 import { SpecializedAppointment, AppointmentType, AppointmentPriority, AppointmentStatus } from '../../domain/nursing';
 import { CreateSpecializedAppointmentDto } from '../../dto/specialized-appointments/create-specialized-appointment.dto';
 import { UpdateSpecializedAppointmentDto } from '../../dto/specialized-appointments/update-specialized-appointment.dto';
+import { sanitizeForLogging } from '../../../common/utils/logger-sanitizer';
 
 @Injectable()
 export class SpecializedAppointmentsService {

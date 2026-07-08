@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { OlderAdultFamily, KinshipType } from '../../domain/virtual-records';
 import { CreateOlderAdultFamilyDto } from '../../dto/older-adult-family/create-older-adult-family.dto';
 import { UpdateOlderAdultFamilyDto } from '../../dto/older-adult-family/update-older-adult-family.dto';
+import { sanitizeForLogging } from '../../../common/utils/logger-sanitizer';
 
 @Injectable()
 export class OlderAdultFamilyService {
