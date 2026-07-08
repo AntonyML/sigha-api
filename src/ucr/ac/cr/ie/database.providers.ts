@@ -86,17 +86,23 @@ function buildDataSourceOptions(): DataSourceOptions {
         RolePermission,
     ];
 
-    const sslEnabled =
-        process.env.DB_SSL === 'true' ||
-        (process.env.DATABASE_URL || '').toLowerCase().includes('sslmode=require') ||
-        (process.env.DATABASE_URL || '').toLowerCase().includes('ssl=true');
+    const sslEnabled = 
+            process.env.DB_SSL === 'true' ||
+            (process.env.DATABASE_URL || '').toLowerCase().includes('sslmode=require') ||
+            (process.env.DATABASE_URL || '').toLowerCase().includes('ssl=true');
 
-    const baseOptions: DataSourceOptions = {
-        type: 'postgres',
-        entities,
-        synchronize: false,
-        logging: process.env.NODE_ENV === 'development',
-    };
+        // TypeORM logging configuration
+        // Only log SQL errors by default, not all queries
+        // Set to true ONLY for debugging specific query issues
+        const typeOrmLogging = process.env.TYPEORM_LOGGING === 'true' || false;
+
+        const baseOptions: DataSourceOptions = {
+            type: 'postgres',
+            entities,
+            synchronize: false,
+            logging: typeOrmLogging,
+            logger: 'advanced-console', // Uses console but with levels
+        };
 
     if (process.env.DATABASE_URL) {
         return {
