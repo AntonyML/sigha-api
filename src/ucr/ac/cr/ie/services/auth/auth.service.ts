@@ -419,13 +419,13 @@ export class AuthService {
                     });
                 }
             } catch (err) {
-                                                                // Non-fatal: log and continue.
-                                                                this.logger.error('Error stamping session duration on logout', sanitizeForLogging({
-                                                                                                error: err instanceof Error ? err.message : 'Unknown error',
-                                                                                                sessionId: session.id,
-                                                                                                userId: user.id,
-                                                                                            }));
-                                                            }
+                                                                            // Non-fatal: log and continue.
+                                                                            this.logger.error('Error stamping session duration on logout', sanitizeForLogging({
+                                                                                                            error: err instanceof Error ? err.message : 'Unknown error',
+                                                                                                            sessionId: session.id,
+                                                                                                            userId: session.userId,
+                                                                                                        }));
+                                                                        }
         }
 
         return { success: true };
