@@ -88,12 +88,12 @@ export class AuditService {
         description,
       });
           } catch (error) {
-            this.logger.error('Error logging audit action', {
+            this.logger.error('Error logging audit action', sanitizeForLogging({
               error: error instanceof Error ? error.message : 'Unknown error',
               action,
               userId,
               module,
-            });
+            }));
           }
   }
 
