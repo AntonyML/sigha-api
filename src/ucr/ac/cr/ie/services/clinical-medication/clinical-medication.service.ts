@@ -1,4 +1,5 @@
 import { Injectable, InternalServerErrorException, NotFoundException, Inject } from '@nestjs/common';
+import { LoggerService } from '../../../common/services/logger.service';
 import { Repository } from 'typeorm';
 import { ClinicalMedication, TreatmentType } from '../../domain/virtual-records';
 import { CreateClinicalMedicationDto } from '../../dto/clinical-medication/create-clinical-medication.dto';

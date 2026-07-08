@@ -1,4 +1,5 @@
 import { Injectable, InternalServerErrorException, NotFoundException, Inject } from '@nestjs/common';
+import { LoggerService } from '../../../common/services/logger.service';
 import { Repository } from 'typeorm';
 import { EmergencyContact } from '../../domain/virtual-records';
 import { CreateEmergencyContactDto } from '../../dto/emergency-contacts/create-emergency-contact.dto';
