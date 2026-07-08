@@ -93,7 +93,7 @@ function isSensitiveField(key: string): boolean {
 /**
  * Sanitize a value - redact sensitive patterns in strings
  */
-function sanitizeValue(value: string): string {
+export function sanitizeValue(value: string): string {
   if (typeof value !== 'string') {
     return String(value);
   }
