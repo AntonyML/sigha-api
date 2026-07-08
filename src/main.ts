@@ -8,9 +8,56 @@ import * as dotenv from 'dotenv';
 import * as path from 'path';
 import * as fs from 'fs';
 
+let appInstance: any = null;
+
+/**
+ * Setup graceful shutdown handlers
+ */
+function setupGracefulShutdown(logger: any) {
+  const shutdown = async (signal: string) => {
+    logger.warn(`Received ${signal}, starting graceful shutdown...`);
+    
+    if (appInstance) {
+      logger.info('Closing HTTP server...');
+      await appInstance.close();
+      logger.info('HTTP server closed');
+    }
+    
+    logger.info(`Graceful shutdown completed for ${signal}`);
+    process.exit(0);
+  };
+
+  // Handle uncaught exceptions
+  process.on('uncaughtException', (error: Error) => {
+    logger.error('Uncaught Exception', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+    });
+    
+    // Give time for log to be written, then exit
+    setTimeout(() => process.exit(1), 1000);
+  });
+
+  // Handle unhandled promise rejections
+  process.on('unhandledRejection', (reason: any, promise: Promise<any>) => {
+    logger.error('Unhandled Promise Rejection', {
+      reason: reason?.message || String(reason),
+      stack: reason?.stack,
+    });
+  });
+
+  // Handle shutdown signals
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGINT', () => shutdown('SIGINT'));
+}
+
 async function bootstrap() {
 	// Create logger instance for bootstrap logs
 	const logger = createWinstonLogger();
+	
+	// Setup global process handlers
+	setupGracefulShutdown(logger);
 	
 	// Cargar .env según NODE_ENV
 	const env = process.env.NODE_ENV || 'development';
@@ -25,6 +72,8 @@ async function bootstrap() {
 	const app = await NestFactory.create(AppModule, {
 		logger: ['error', 'warn', 'log'], // Use NestJS built-in logger for bootstrap
 	});
+	
+	appInstance = app; // Store for graceful shutdown
 	
 	// Register global exception filter
 	app.useGlobalFilters(new AllExceptionsFilter());
