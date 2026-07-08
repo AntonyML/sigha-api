@@ -1,5 +1,6 @@
 import { Injectable, OnApplicationBootstrap, Logger } from '@nestjs/common';
 import createSuperUsers from '@scripts/admin/create-super-users';
+import { sanitizeForLogging } from '@common/utils/logger-sanitizer';
 
 @Injectable()
 export class StartupService implements OnApplicationBootstrap {
@@ -16,7 +17,10 @@ export class StartupService implements OnApplicationBootstrap {
             
             this.logger.log('✅ Configuración inicial completada exitosamente');
         } catch (error) {
-            this.logger.error('💥 Error ejecutando scripts de inicialización:', error.message);
+            this.logger.error('💥 Error ejecutando scripts de inicialización:', sanitizeForLogging({
+                error: error.message,
+                stack: error.stack
+            }));
             
             // En lugar de fallar completamente, registrar el error y continuar
             // Esto permite que el servidor siga funcionando aunque no se puedan crear los usuarios

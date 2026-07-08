@@ -1,11 +1,14 @@
 import { Injectable, InternalServerErrorException, ConflictException, Inject } from '@nestjs/common';
+import { LoggerService } from '@common/services/logger.service';
 import { Repository } from 'typeorm';
 import { Vaccine } from '../../domain/virtual-records';
 import { CreateVaccineDto } from '../../dto/vaccines';
+import { sanitizeForLogging } from '@common/utils/logger-sanitizer';
 
 @Injectable()
 export class VaccinesService {
     constructor(
+        private logger: LoggerService,
         @Inject('VaccineRepository')
         private readonly vaccineRepository: Repository<Vaccine>
     ) {}
@@ -33,7 +36,7 @@ export class VaccinesService {
             };
 
         } catch (error) {
-            console.error('Error creating vaccine:', error);
+            this.logger.error('creating vaccine', sanitizeForLogging({ error: error instanceof Error ? error.message : 'Unknown error', method: 'create' }));
             
             if (error instanceof ConflictException) {
                 throw error;
@@ -60,7 +63,7 @@ export class VaccinesService {
             };
 
         } catch (error) {
-            console.error('Error retrieving vaccines:', error);
+            this.logger.error('retrieving vaccines', sanitizeForLogging({ error: error instanceof Error ? error.message : 'Unknown error', method: 'retrieve' }));
             throw new InternalServerErrorException('Failed to retrieve vaccines');
         }
     }

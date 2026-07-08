@@ -22,6 +22,7 @@ import {
     OlderAdultStatus
 } from '../../domain/virtual-records';
 import { CreateVirtualRecordDirectDto, UpdateVirtualRecordDirectDto, SearchVirtualRecordsDto } from '../../dto/virtual-records';
+import { sanitizeForLogging } from '@common/utils/logger-sanitizer';
 
 @Injectable()
 export class VirtualRecordsService {

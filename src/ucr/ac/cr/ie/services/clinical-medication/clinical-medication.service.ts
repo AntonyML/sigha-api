@@ -1,12 +1,15 @@
 import { Injectable, InternalServerErrorException, NotFoundException, Inject } from '@nestjs/common';
+import { LoggerService } from '@common/services/logger.service';
 import { Repository } from 'typeorm';
 import { ClinicalMedication, TreatmentType } from '../../domain/virtual-records';
 import { CreateClinicalMedicationDto } from '../../dto/clinical-medication/create-clinical-medication.dto';
 import { UpdateClinicalMedicationDto } from '../../dto/clinical-medication/update-clinical-medication.dto';
+import { sanitizeForLogging } from '@common/utils/logger-sanitizer';
 
 @Injectable()
 export class ClinicalMedicationService {
     constructor(
+        private logger: LoggerService,
         @Inject('ClinicalMedicationRepository')
         private readonly clinicalMedicationRepository: Repository<ClinicalMedication>
     ) {}
@@ -22,9 +25,11 @@ export class ClinicalMedicationService {
             const saved = await this.clinicalMedicationRepository.save(medication);
             return { message: 'Clinical medication created successfully', data: saved };
         } catch (error) {
-            console.error('Error creating clinical medication:', error);
-            throw new InternalServerErrorException('Failed to create clinical medication');
-        }
+                    this.logger.error('Error creating clinical medication', sanitizeForLogging({
+                        error: error instanceof Error ? error.message : 'Unknown error',
+                    }));
+                    throw new InternalServerErrorException('Failed to create clinical medication');
+                }
     }
 
     async findAll(): Promise<{ message: string; data: ClinicalMedication[] }> {
@@ -32,9 +37,11 @@ export class ClinicalMedicationService {
             const medications = await this.clinicalMedicationRepository.find({ order: { id: 'ASC' } });
             return { message: 'Clinical medications retrieved successfully', data: medications };
         } catch (error) {
-            console.error('Error retrieving clinical medications:', error);
-            throw new InternalServerErrorException('Failed to retrieve clinical medications');
-        }
+                    this.logger.error('Error retrieving clinical medications', sanitizeForLogging({
+                        error: error instanceof Error ? error.message : 'Unknown error',
+                    }));
+                    throw new InternalServerErrorException('Failed to retrieve clinical medications');
+                }
     }
 
     async findByClinicalHistory(clinicalHistoryId: number): Promise<{ message: string; data: ClinicalMedication[] }> {
@@ -45,7 +52,7 @@ export class ClinicalMedicationService {
             });
             return { message: 'Clinical medications retrieved successfully', data: medications };
         } catch (error) {
-            console.error('Error retrieving clinical medications by history:', error);
+            this.logger.error('Error retrieving clinical medications by history', sanitizeForLogging({ error: error instanceof Error ? error.message : 'Unknown error' }));
             throw new InternalServerErrorException('Failed to retrieve clinical medications');
         }
     }
@@ -57,7 +64,7 @@ export class ClinicalMedicationService {
             return { message: 'Clinical medication retrieved successfully', data: medication };
         } catch (error) {
             if (error instanceof NotFoundException) throw error;
-            console.error('Error retrieving clinical medication:', error);
+            this.logger.error('Error retrieving clinical medication', sanitizeForLogging({ error: error instanceof Error ? error.message : 'Unknown error' }));
             throw new InternalServerErrorException('Failed to retrieve clinical medication');
         }
     }
@@ -71,7 +78,7 @@ export class ClinicalMedicationService {
             return { message: 'Clinical medication updated successfully', data: updated };
         } catch (error) {
             if (error instanceof NotFoundException) throw error;
-            console.error('Error updating clinical medication:', error);
+            this.logger.error('Error updating clinical medication', sanitizeForLogging({ error: error instanceof Error ? error.message : 'Unknown error' }));
             throw new InternalServerErrorException('Failed to update clinical medication');
         }
     }
@@ -84,7 +91,7 @@ export class ClinicalMedicationService {
             return { message: 'Clinical medication deleted successfully' };
         } catch (error) {
             if (error instanceof NotFoundException) throw error;
-            console.error('Error deleting clinical medication:', error);
+            this.logger.error('Error deleting clinical medication', sanitizeForLogging({ error: error instanceof Error ? error.message : 'Unknown error' }));
             throw new InternalServerErrorException('Failed to delete clinical medication');
         }
     }
