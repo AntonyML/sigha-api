@@ -35,6 +35,7 @@ import {
     MedicalRecord,
 } from './domain/nursing';
 import { Permission, RolePermission } from './domain/permissions';
+import { Settings } from './domain/settings/settings.entity';
 
 /**
  * Build the TypeORM DataSource options from environment variables.
@@ -84,6 +85,7 @@ function buildDataSourceOptions(): DataSourceOptions {
         MedicalRecord,
         Permission,
         RolePermission,
+        Settings,
     ];
 
     const sslEnabled = 
