@@ -4,6 +4,7 @@ import setupSwagger from './ucr/ac/cr/ie/config/swagger.config';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import { createWinstonLogger } from './config/logger.config';
+import { sanitizeForLogging } from './common/utils/logger-sanitizer';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -29,11 +30,11 @@ function setupGracefulShutdown(logger: any) {
 
   // Handle uncaught exceptions
   process.on('uncaughtException', (error: Error) => {
-    logger.error('Uncaught Exception', {
+    logger.error('Uncaught Exception', sanitizeForLogging({
       message: error.message,
       stack: error.stack,
       name: error.name,
-    });
+    }));
     
     // Give time for log to be written, then exit
     setTimeout(() => process.exit(1), 1000);
@@ -41,10 +42,10 @@ function setupGracefulShutdown(logger: any) {
 
   // Handle unhandled promise rejections
   process.on('unhandledRejection', (reason: any, promise: Promise<any>) => {
-    logger.error('Unhandled Promise Rejection', {
+    logger.error('Unhandled Promise Rejection', sanitizeForLogging({
       reason: reason?.message || String(reason),
       stack: reason?.stack,
-    });
+    }));
   });
 
   // Handle shutdown signals
