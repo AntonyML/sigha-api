@@ -1,5 +1,5 @@
 import { Injectable, InternalServerErrorException, NotFoundException, Inject } from '@nestjs/common';
-import { LoggerService } from '../../../common/services/logger.service';
+import { LoggerService } from '../../common/services/logger.service';
 import { Repository } from 'typeorm';
 import { EmergencyContact } from '../../domain/virtual-records';
 import { CreateEmergencyContactDto } from '../../dto/emergency-contacts/create-emergency-contact.dto';
@@ -8,6 +8,7 @@ import { UpdateEmergencyContactDto } from '../../dto/emergency-contacts/update-e
 @Injectable()
 export class EmergencyContactsService {
     constructor(
+        private logger: LoggerService,
         @Inject('EmergencyContactRepository')
         private readonly emergencyContactRepository: Repository<EmergencyContact>
     ) {}

@@ -1,5 +1,5 @@
 import { Injectable, InternalServerErrorException, NotFoundException, Inject } from '@nestjs/common';
-import { LoggerService } from '../../../common/services/logger.service';
+import { LoggerService } from '../../common/services/logger.service';
 import { Repository } from 'typeorm';
 import { SpecializedArea, SpecializedAreaName } from '../../domain/nursing';
 import { CreateSpecializedAreaDto } from '../../dto/specialized-areas/create-specialized-area.dto';
@@ -8,6 +8,7 @@ import { UpdateSpecializedAreaDto } from '../../dto/specialized-areas/update-spe
 @Injectable()
 export class SpecializedAreasService {
     constructor(
+        private logger: LoggerService,
         @Inject('SpecializedAreaRepository')
         private readonly specializedAreaRepository: Repository<SpecializedArea>
     ) {}

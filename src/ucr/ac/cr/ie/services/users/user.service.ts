@@ -18,7 +18,7 @@ import { RoleChangesService } from '../role-changes/role-changes.service';
 import { UserRoleService } from '../auth/user-role.service';
 import { AuditService } from '../audit/audit.service';
 import { AuditAction } from '../../domain/audit';
-import { LoggerService } from '../../../common/services/logger.service';
+import { LoggerService } from '../../common/services/logger.service';
 
 @Injectable()
 export class UserService {
