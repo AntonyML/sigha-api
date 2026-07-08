@@ -20,7 +20,8 @@ import {
   OlderAdultUpdateResponse,
   PaginatedOlderAdultUpdatesResponse,
 } from '../../interfaces/audit';
-import { LoggerService } from '../../common/services/logger.service';
+import { LoggerService } from '../../../common/services/logger.service';
+import { sanitizeForLogging } from '../../../common/utils/logger-sanitizer';
 
 @Injectable()
 export class AuditService {
@@ -532,42 +533,41 @@ export class AuditService {
           params.arObservations || null,
           params.arIpAddress || null,
           params.arUserAgent || null,
-        ],
-      });
-            return result[0]?.dr_id || 0;
-          } catch (error) {
-            this.logger.error('Error invoking log_audit function in database', {
-              error: error instanceof Error ? error.message : 'Unknown error',
-              params: {
-                userId: params.drUserId,
-                action: params.drAction,
-                table: params.drTableName,
-              },
-            });
-      throw error;
-    }
-  }
-
-  /**
-   * Calcula la duración (en segundos) de la sesión abierta más reciente del
-   * usuario invocando la función `compute_audit_session_duration` definida
-   * en la migración 009. Devuelve 0 cuando no hay login abierto.
-   */
-  async computeSessionDuration(userId: number): Promise<number> {
-    try {
-      const result = await this.auditReportRepository.query(
-        `SELECT compute_audit_session_duration($1::int) AS duration`,
-        [userId],
-      );
-      const row = result[0] as { duration?: number } | undefined;
-            return row?.duration ?? 0;
-          } catch (error) {
-            this.logger.error('Error computing session duration', {
-              error: error instanceof Error ? error.message : 'Unknown error',
-              userId,
-            });
-            return 0;
+        ]);
+              return result[0]?.dr_id || 0;
+            } catch (error) {
+              this.logger.error('Error invoking log_audit function in database', sanitizeForLogging({
+                error: error instanceof Error ? error.message : 'Unknown error',
+                params: {
+                  userId: params.drUserId,
+                  action: params.drAction,
+                  table: params.drTableName,
+                },
+              }));
+              throw error;
+            }
           }
-  }
-}
+
+          /**
+           * Calcula la duración (en segundos) de la sesión abierta más reciente del
+           * usuario invocando la función `compute_audit_session_duration` definida
+           * en la migración 009. Devuelve 0 cuando no hay login abierto.
+           */
+          async computeSessionDuration(userId: number): Promise<number> {
+            try {
+              const result = await this.auditReportRepository.query(
+                `SELECT compute_audit_session_duration($1::int) AS duration`,
+                [userId],
+              );
+              const row = result[0] as { duration?: number } | undefined;
+              return row?.duration ?? 0;
+            } catch (error) {
+              this.logger.error('Error computing session duration', sanitizeForLogging({
+                error: error instanceof Error ? error.message : 'Unknown error',
+                userId,
+              }));
+              return 0;
+            }
+          }
+        }
 
