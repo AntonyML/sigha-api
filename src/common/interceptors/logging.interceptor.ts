@@ -10,6 +10,7 @@ import { Logger } from 'winston';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Inject } from '@nestjs/common';
 import { CORRELATION_ID_HEADER } from '../utils/correlation-id.util';
+import { sanitizeForLogging } from '../utils/logger-sanitizer';
 
 /**
  * Request context interface for logging
@@ -97,11 +98,11 @@ export class LoggingInterceptor implements NestInterceptor {
         
         // Log slow requests (>1000ms)
         if (duration > 1000) {
-          this.logger.warn(`SLOW REQUEST: ${resContext.method} ${resContext.url} took ${duration}ms`, {
+          this.logger.warn(`SLOW REQUEST: ${resContext.method} ${resContext.url} took ${duration}ms`, sanitizeForLogging({
             type: 'slow_request',
             threshold: 1000,
             ...resContext,
-          });
+          }));
         }
       }),
     );
