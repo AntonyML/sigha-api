@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, BadRequestException, Inject, NotFoundException, Logger } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException, Inject, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { Repository, MoreThan } from 'typeorm';
@@ -15,14 +15,14 @@ import { EmailService } from '../email/email.service';
 import { AuditService } from '../audit/audit.service';
 import { UserRoleService } from './user-role.service';
 import { AuditReportType, AuditAction } from '../../domain/audit';
+import { LoggerService } from '../../../common/services/logger.service';
 
 @Injectable()
 export class AuthService {
-    private readonly logger = new Logger(AuthService.name);
-
     constructor(
         private jwtService: JwtService,
         private configService: ConfigService,
+        private logger: LoggerService,
         @Inject('UserRepository')
         private userRepository: Repository<User>,
         @Inject('UserSessionRepository')
@@ -418,9 +418,13 @@ export class AuthService {
                     });
                 }
             } catch (err) {
-                // Non-fatal: log and continue.
-                console.error('Error stamping session duration on logout:', err);
-            }
+                            // Non-fatal: log and continue.
+                            this.logger.error('Error stamping session duration on logout', {
+                                error: err instanceof Error ? err.message : 'Unknown error',
+                                sessionId: session.id,
+                                userId: user.id,
+                            });
+                        }
         }
 
         return { success: true };
