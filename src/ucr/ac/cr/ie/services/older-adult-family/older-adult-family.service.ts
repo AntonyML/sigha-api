@@ -1,10 +1,10 @@
 import { Injectable, InternalServerErrorException, NotFoundException, Inject } from '@nestjs/common';
-import { LoggerService } from '../../common/services/logger.service';
+import { LoggerService } from '@common/services/logger.service';
 import { Repository } from 'typeorm';
 import { OlderAdultFamily, KinshipType } from '../../domain/virtual-records';
 import { CreateOlderAdultFamilyDto } from '../../dto/older-adult-family/create-older-adult-family.dto';
 import { UpdateOlderAdultFamilyDto } from '../../dto/older-adult-family/update-older-adult-family.dto';
-import { sanitizeForLogging } from '../../../common/utils/logger-sanitizer';
+import { sanitizeForLogging } from '@common/utils/logger-sanitizer';
 
 @Injectable()
 export class OlderAdultFamilyService {

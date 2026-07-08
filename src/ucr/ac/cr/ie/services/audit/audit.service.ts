@@ -20,8 +20,8 @@ import {
   OlderAdultUpdateResponse,
   PaginatedOlderAdultUpdatesResponse,
 } from '../../interfaces/audit';
-import { LoggerService } from '../../../common/services/logger.service';
-import { sanitizeForLogging } from '../../../common/utils/logger-sanitizer';
+import { LoggerService } from '@common/services/logger.service';
+import { sanitizeForLogging } from '@common/utils/logger-sanitizer';
 
 @Injectable()
 export class AuditService {
@@ -539,7 +539,7 @@ export class AuditService {
               this.logger.error('Error invoking log_audit function in database', sanitizeForLogging({
                 error: error instanceof Error ? error.message : 'Unknown error',
                 params: {
-                  userId: params.drUserId,
+                  userId: params.userId,
                   action: params.drAction,
                   table: params.drTableName,
                 },

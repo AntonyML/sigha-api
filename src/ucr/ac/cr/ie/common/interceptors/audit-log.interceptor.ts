@@ -10,8 +10,8 @@ import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { AUDIT_LOG_KEY, AuditLogConfig } from '../decorators/audit-log.decorator';
 import { AuditService } from '../../services/audit';
-import { LoggerService } from '../../../common/services/logger.service';
-import { sanitizeForLogging } from '../../../common/utils/logger-sanitizer';
+import { LoggerService } from '@common/services/logger.service';
+import { sanitizeForLogging } from '@common/utils/logger-sanitizer';
 
 @Injectable()
 export class AuditLogInterceptor implements NestInterceptor {
