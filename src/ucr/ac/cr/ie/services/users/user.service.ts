@@ -3,6 +3,8 @@ import { Repository } from 'typeorm';
 import { User } from '../../domain/auth/core/user.entity';
 import { Role } from '../../domain/auth/core/role.entity';
 import { PasswordUtil } from '../../common/utils';
+import { LoggerService } from '@common/services/logger.service';
+import { sanitizeForLogging } from '@common/utils/logger-sanitizer';
 import {
     CreateUserDto,
     UpdateUserDto,
@@ -22,6 +24,7 @@ import { AuditAction } from '../../domain/audit';
 @Injectable()
 export class UserService {
     constructor(
+        private logger: LoggerService,
         @Inject('UserRepository')
         private userRepository: Repository<User>,
         @Inject('RoleRepository')
@@ -90,7 +93,11 @@ export class UserService {
                 }
             );
         } catch (error) {
-            console.error('Error creating audit record for user creation:', error);
+            this.logger.error('Error creating audit record for user creation', sanitizeForLogging({
+                error: error instanceof Error ? error.message : 'Unknown error',
+                userId: savedUser?.id,
+                action: 'user_creation',
+            }));
         }
 
         return savedUser;
