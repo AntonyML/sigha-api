@@ -1,6 +1,7 @@
 import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Resend } from 'resend';
+import { sanitizeForLogging } from '@common/utils/logger-sanitizer';
 
 export interface ResendSendParams {
   to: string;
@@ -38,7 +39,7 @@ export class ResendService {
     }
 
     this.client = new Resend(apiKey);
-    this.logger.log(`[ResendService] Inicializado con remitente "${this.fromName} <${this.fromEmail}>".`);
+        this.logger.log('[ResendService] Inicializado', sanitizeForLogging({ from: `${this.fromName} <${this.fromEmail}>` }));
   }
 
   isEnabled(): boolean {
@@ -51,8 +52,8 @@ export class ResendService {
 
   async send(params: ResendSendParams): Promise<ResendSendResult> {
     if (!this.enabled || !this.client) {
-      const reason = 'Resend no está configurado (faltan RESEND_API_KEY o RESEND_FROM_EMAIL).';
-      this.logger.error(`[ResendService] ${reason}`);
+          const reason = 'Resend no está configurado (faltan RESEND_API_KEY o RESEND_FROM_EMAIL).';
+          this.logger.error('[ResendService] Resend no está configurado', sanitizeForLogging({ reason }));
       throw new InternalServerErrorException(reason);
     }
 
@@ -66,17 +67,17 @@ export class ResendService {
       });
 
       if (response.error) {
-        const message = response.error.message || 'Error desconocido al enviar email';
-        this.logger.error(`[ResendService] Error al enviar a ${params.to}: ${message}`);
+              const message = response.error.message || 'Error desconocido al enviar email';
+              this.logger.error('[ResendService] Error al enviar email', sanitizeForLogging({ to: params.to, message }));
         throw new InternalServerErrorException(message);
       }
 
       const messageId = response.data?.id;
-      this.logger.log(`[ResendService] Email enviado a ${params.to} (id: ${messageId ?? 'n/a'}).`);
+            this.logger.log('[ResendService] Email enviado', sanitizeForLogging({ to: params.to, messageId: messageId ?? 'n/a' }));
       return { success: true, messageId };
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Error desconocido al enviar email';
-      this.logger.error(`[ResendService] Excepción al enviar a ${params.to}: ${message}`);
+              const message = err instanceof Error ? err.message : 'Error desconocido al enviar email';
+              this.logger.error('[ResendService] Excepción al enviar email', sanitizeForLogging({ to: params.to, message }));
       throw new InternalServerErrorException(message);
     }
   }
