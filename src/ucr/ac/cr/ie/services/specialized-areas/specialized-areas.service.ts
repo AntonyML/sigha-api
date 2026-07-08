@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { SpecializedArea, SpecializedAreaName } from '../../domain/nursing';
 import { CreateSpecializedAreaDto } from '../../dto/specialized-areas/create-specialized-area.dto';
 import { UpdateSpecializedAreaDto } from '../../dto/specialized-areas/update-specialized-area.dto';
+import { sanitizeForLogging } from '../../../common/utils/logger-sanitizer';
 
 @Injectable()
 export class SpecializedAreasService {

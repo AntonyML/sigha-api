@@ -3,6 +3,7 @@ import { LoggerService } from '../../common/services/logger.service';
 import { Repository } from 'typeorm';
 import { ClinicalCondition } from '../../domain/virtual-records';
 import { CreateClinicalConditionDto } from '../../dto/clinical-conditions';
+import { sanitizeForLogging } from '../../../common/utils/logger-sanitizer';
 
 @Injectable()
 export class ClinicalConditionsService {

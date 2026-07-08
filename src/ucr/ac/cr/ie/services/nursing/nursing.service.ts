@@ -5,6 +5,7 @@ import { GetNursingAppointmentsDto, CreateAppointmentDto, UpdateAppointmentDto, 
 import { OlderAdult } from '../../domain/virtual-records';
 import { User } from '../../domain/auth/core/user.entity';
 import { LoggerService } from '../../common/services/logger.service';
+import { sanitizeForLogging } from '../../../common/utils/logger-sanitizer';
 
 @Injectable()
 export class NursingService {
@@ -96,11 +97,11 @@ export class NursingService {
             };
 
         } catch (error) {
-                    this.logger.error('Error retrieving nursing appointments', {
+                    this.logger.error('Error retrieving nursing appointments', sanitizeForLogging({
                         error: error instanceof Error ? error.message : 'Unknown error',
                         method: 'getNursingAppointments',
                         filters,
-                    });
+                    }));
                     throw new InternalServerErrorException('Failed to retrieve nursing appointments');
                 }
     }
