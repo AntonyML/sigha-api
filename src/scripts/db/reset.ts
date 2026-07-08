@@ -1,14 +1,14 @@
 import { config } from 'dotenv';
 import { DataSource } from 'typeorm';
-import { User } from '../../../ucr/ac/cr/ie/domain/auth/core/user.entity';
-import { Role } from '../../../ucr/ac/cr/ie/domain/auth/core/role.entity';
-import { UserSession } from '../../../ucr/ac/cr/ie/domain/auth/sessions/user-session.entity';
-import { UserTwoFactor } from '../../../ucr/ac/cr/ie/domain/auth/security/user-two-factor.entity';
-import { LoginAttempt } from '../../../ucr/ac/cr/ie/domain/auth/security/login-attempt.entity';
-import { PasswordResetToken } from '../../../ucr/ac/cr/ie/domain/auth/tokens/password-reset-token.entity';
-import { EntranceExit } from '../../../ucr/ac/cr/ie/domain/entrances-exits/entrance-exit.entity';
-import { RoleChange } from '../../../ucr/ac/cr/ie/domain/roles/role-change.entity';
-import { AuditReport, DigitalRecord, OlderAdultUpdate } from '../../../ucr/ac/cr/ie/domain/audit';
+import { User } from '../../ucr/ac/cr/ie/domain/auth/core/user.entity';
+import { Role } from '../../ucr/ac/cr/ie/domain/auth/core/role.entity';
+import { UserSession } from '../../ucr/ac/cr/ie/domain/auth/sessions/user-session.entity';
+import { UserTwoFactor } from '../../ucr/ac/cr/ie/domain/auth/security/user-two-factor.entity';
+import { LoginAttempt } from '../../ucr/ac/cr/ie/domain/auth/security/login-attempt.entity';
+import { PasswordResetToken } from '../../ucr/ac/cr/ie/domain/auth/tokens/password-reset-token.entity';
+import { EntranceExit } from '../../ucr/ac/cr/ie/domain/entrances-exits/entrance-exit.entity';
+import { RoleChange } from '../../ucr/ac/cr/ie/domain/roles/role-change.entity';
+import { AuditReport, DigitalRecord, OlderAdultUpdate } from '../../ucr/ac/cr/ie/domain/audit';
 import {
     Program,
     SubProgram,
@@ -22,8 +22,8 @@ import {
     VaccinesAndClinicalHistory,
     OlderAdultSubprogram,
     EmergencyContact
-} from '../../../ucr/ac/cr/ie/domain/virtual-records';
-import { Notification, NotificationAttachment } from '../../../ucr/ac/cr/ie/domain/notifications';
+} from '../../ucr/ac/cr/ie/domain/virtual-records';
+import { Notification, NotificationAttachment } from '../../ucr/ac/cr/ie/domain/notifications';
 import { buildScriptDataSourceOptions } from '../utils/build-script-data-source';
 
 config();
