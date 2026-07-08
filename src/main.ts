@@ -80,7 +80,8 @@ async function bootstrap() {
 	app.useGlobalFilters(new AllExceptionsFilter());
 	
 	// Register logger middleware for correlation ID
-	app.use(LoggerMiddleware);
+	const loggerMiddleware = new LoggerMiddleware();
+	app.use(loggerMiddleware.use.bind(loggerMiddleware));
 	
 	// Habilitar CORS
 	const allowedOrigins = process.env.CORS_ORIGINS
