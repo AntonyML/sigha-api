@@ -1,6 +1,7 @@
 import { Module, Logger } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { LoggerModule } from './common/services/logger.module';
 import { WinstonModule } from 'nest-winston';
 import { createWinstonLogger } from './config/logger.config';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
@@ -35,6 +36,7 @@ import { JwtAuthGuard } from './ucr/ac/cr/ie/common/guards/jwt-auth.guard';
     }),
     // Global Winston logger
     WinstonModule.forRoot(createWinstonLogger()),
+    LoggerModule,
     DatabaseModule,
     AuthModule,
     UsersModule,

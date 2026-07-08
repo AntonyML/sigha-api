@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { WinstonModule } from 'nest-winston';
 import { createWinstonLogger } from '../../config/logger.config';
 import { LoggerService } from './logger.service';
@@ -13,8 +13,9 @@ import { LoggerService } from './logger.service';
  * - Error logs rotated daily, kept for 14 days
  * - Combined logs rotated daily, kept for 14 days
  * 
- * This module should be imported globally in AppModule.
+ * This module is global - LoggerService is available everywhere without explicit imports.
  */
+@Global()
 @Module({
   imports: [
     WinstonModule.forRoot(createWinstonLogger()),
