@@ -1,7 +1,10 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import { Repository } from 'typeorm';
+import { plainToInstance } from 'class-transformer';
+import { validateOrReject } from 'class-validator';
 import { Settings } from '../../domain/settings/settings.entity';
 import { UpsertSettingsDto } from '../../dto/settings/upsert-settings.dto';
+import { GeneralSettingsDto } from '../../dto/settings/general-settings.dto';
 
 @Injectable()
 export class SettingsService {
@@ -15,6 +18,20 @@ export class SettingsService {
   }
 
   async upsert(category: string, dto: UpsertSettingsDto): Promise<Settings> {
+    if (category === 'general') {
+      const generalDto = plainToInstance(GeneralSettingsDto, dto.settings as object);
+      try {
+        await validateOrReject(generalDto, {
+          validationError: { target: false, value: false },
+        });
+      } catch (errors) {
+        const messages = (errors as any[]).map(
+          (e) => Object.values(e.constraints || {}).join('; '),
+        ).join(' | ');
+        throw new BadRequestException(`Validación de configuración general falló: ${messages}`);
+      }
+    }
+
     const existing = await this.findByCategory(category);
     if (existing) {
       existing.settings = dto.settings;
