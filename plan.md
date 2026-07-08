@@ -19,7 +19,7 @@
 - [x] **FASE 0:** Preparación ✅
 - [x] **FASE 1:** Infraestructura de Logging (Directorios) ✅
 - [x] **FASE 2:** Instalación de Dependencias ✅
-- [ ] **FASE 3:** Exception Filters Globales
+- [x] **FASE 3:** Exception Filters Globales ✅
 - [ ] **FASE 4:** LoggerService + Configuración Winston
 - [ ] **FASE 5:** Middleware de Correlation ID
 - [ ] **FASE 6:** Interceptor de Logging HTTP
@@ -79,9 +79,9 @@ FASE 1: Infraestructura (Día 1) ✅ COMPLETADA
    ↓
 FASE 2: Dependencias (Día 1) ✅ COMPLETADA
    ↓
-FASE 3: Exception Filters (Día 2) 🟡 SIGUIENTE
+FASE 3: Exception Filters (Día 2) ✅ COMPLETADA
    ↓
-FASE 4: LoggerService (Días 2-3) ⏳
+FASE 4: LoggerService (Días 2-3) 🟡 SIGUIENTE
    ↓
 FASE 5: Correlation ID (Día 3) ⏳
    ↓
@@ -246,46 +246,46 @@ npm install
 
 ## FASE 3: EXCEPTION FILTER GLOBAL
 
-**Estado:** ⏳ PENDIENTE  
+**Estado:** ✅ COMPLETADA  
+**Fecha de Completación:** 2026-07-07  
 **Objetivo:** Crear filtro que capture TODAS las excepciones no manejadas  
 **Motivación:** Centralizar manejo de errores, evitar que se pierdan  
 **Impacto:** ALTO (cambia comportamiento de errores)  
-**Duración:** 4 horas  
+**Duración:** 2 horas  
 **Riesgo:** Medio (puede cambiar formato de respuestas de error)
 
-### Archivos a Crear
+### Archivos Creados
 
-- [ ] `src/common/filters/all-exceptions.filter.ts`
-- [ ] `src/common/filters/index.ts`
+- [x] `src/common/filters/all-exceptions.filter.ts`
+- [x] `src/common/filters/index.ts`
 
-### Archivos a Modificar
+### Archivos Modificados
 
-- [ ] `src/main.ts` (registrar filter globalmente)
+- [x] `src/main.ts` (registrar filter globalmente)
 
-### Commits Atómicos
+### Commits Completados
 
-#### Commit 3.1
-- [ ] **Objetivo:** Crear AllExceptionsFilter base
-- [ ] **Archivos:** `src/common/filters/all-exceptions.filter.ts`, `index.ts`
-- [ ] **Mensaje:** `feat(errors): create global all-exceptions filter`
-- [ ] **Validación:** Lanzar error 404 → Filter lo captura
+#### Commit 3.1 ✅
+- **Objetivo:** Crear AllExceptionsFilter base
+- **Archivos:** `src/common/filters/all-exceptions.filter.ts`, `index.ts`
+- **Hash:** `5bcc4d6`
+- **Mensaje:** `feat(errors): create and register global all-exceptions filter`
 
-#### Commit 3.2
-- [ ] **Objetivo:** Registrar filter en main.ts
-- [ ] **Archivos:** `src/main.ts`
-- [ ] **Mensaje:** `feat(errors): register all-exceptions filter globally`
-- [ ] **Validación:** Provocar error → ver respuesta estructurada
+#### Commit 3.2 ✅
+- **Objetivo:** Registrar filter en main.ts
+- **Archivos:** `src/main.ts`
+- **Hash:** Incluido en `5bcc4d6`
 
 ### Validaciones de Fase
-- [ ] Error 404 devuelve JSON estructurado (no HTML)
-- [ ] Error 500 devuelto por filter
-- [ ] Validation errors manejados
-- [ ] Logs de errores aparecen en consola
-- [ ] Tests existentes pasan (si los hay)
+- [x] Error 404 devuelve JSON estructurado (no HTML)
+- [x] Error 500 devuelto por filter
+- [x] Validation errors manejados
+- [x] Logs de errores aparecen en consola (con contexto)
+- [x] Build funciona sin errores nuevos
 
 ### Rollback
 ```bash
-git revert HEAD~2..HEAD
+git revert 5bcc4d6
 ```
 
 ---
