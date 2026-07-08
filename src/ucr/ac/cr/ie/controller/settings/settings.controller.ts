@@ -3,7 +3,7 @@ import { SettingsService } from '../../services/settings/settings.service';
 import { UpsertSettingsDto } from '../../dto/settings/upsert-settings.dto';
 import { Settings } from '../../domain/settings/settings.entity';
 import { RoleType } from '../../domain/auth/core/role.entity';
-import { Roles } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators';
 
 @Controller('settings')
 export class SettingsController {
