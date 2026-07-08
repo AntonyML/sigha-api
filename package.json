@@ -33,6 +33,7 @@
     "speakeasy": "^2.0.0",
     "swagger-ui-express": "^5.0.1",
     "typeorm": "^0.3.27",
+    "uuid": "^14.0.1",
     "winston": "^3.19.0"
   },
   "devDependencies": {
@@ -44,6 +45,7 @@
     "@types/pdfkit": "^0.17.3",
     "@types/qrcode": "^1.5.5",
     "@types/speakeasy": "^2.0.10",
+    "@types/uuid": "^10.0.0",
     "@types/winston": "^2.4.4",
     "chromedriver": "^142.0.1",
     "jest": "^30.2.0",

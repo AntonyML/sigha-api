@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import setupSwagger from './ucr/ac/cr/ie/config/swagger.config';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
+import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import { createWinstonLogger } from './config/logger.config';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
@@ -27,6 +28,9 @@ async function bootstrap() {
 	
 	// Register global exception filter
 	app.useGlobalFilters(new AllExceptionsFilter());
+	
+	// Register logger middleware for correlation ID
+	app.use(LoggerMiddleware);
 	
 	// Habilitar CORS
 	const allowedOrigins = process.env.CORS_ORIGINS
