@@ -15,7 +15,7 @@ import { EmailService } from '../email/email.service';
 import { AuditService } from '../audit/audit.service';
 import { UserRoleService } from './user-role.service';
 import { AuditReportType, AuditAction } from '../../domain/audit';
-import { LoggerService } from '../../../common/services/logger.service';
+import { LoggerService } from '../../common/services/logger.service';
 
 @Injectable()
 export class AuthService {

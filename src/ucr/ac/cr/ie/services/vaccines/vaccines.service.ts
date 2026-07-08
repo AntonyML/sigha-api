@@ -1,5 +1,5 @@
 import { Injectable, InternalServerErrorException, ConflictException, Inject } from '@nestjs/common';
-import { LoggerService } from '../../../common/services/logger.service';
+import { LoggerService } from '../../common/services/logger.service';
 import { Repository } from 'typeorm';
 import { Vaccine } from '../../domain/virtual-records';
 import { CreateVaccineDto } from '../../dto/vaccines';
@@ -7,6 +7,7 @@ import { CreateVaccineDto } from '../../dto/vaccines';
 @Injectable()
 export class VaccinesService {
     constructor(
+        private logger: LoggerService,
         @Inject('VaccineRepository')
         private readonly vaccineRepository: Repository<Vaccine>
     ) {}

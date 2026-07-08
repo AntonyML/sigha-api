@@ -4,7 +4,7 @@ import { SpecializedAppointment, SpecializedAreaName, AppointmentStatus, Nursing
 import { GetNursingAppointmentsDto, CreateAppointmentDto, UpdateAppointmentDto, CancelAppointmentDto, CompleteAppointmentDto } from '../../dto/nursing';
 import { OlderAdult } from '../../domain/virtual-records';
 import { User } from '../../domain/auth/core/user.entity';
-import { LoggerService } from '../../../common/services/logger.service';
+import { LoggerService } from '../../common/services/logger.service';
 
 @Injectable()
 export class NursingService {

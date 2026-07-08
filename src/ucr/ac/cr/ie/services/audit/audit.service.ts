@@ -20,7 +20,7 @@ import {
   OlderAdultUpdateResponse,
   PaginatedOlderAdultUpdatesResponse,
 } from '../../interfaces/audit';
-import { LoggerService } from '../../../common/services/logger.service';
+import { LoggerService } from '../../common/services/logger.service';
 
 @Injectable()
 export class AuditService {

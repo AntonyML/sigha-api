@@ -1,11 +1,12 @@
 import { Injectable, InternalServerErrorException, NotFoundException, Inject } from '@nestjs/common';
-import { LoggerService } from '../../../common/services/logger.service';
+import { LoggerService } from '../../common/services/logger.service';
 import { Repository } from 'typeorm';
 import { OlderAdultUpdate } from '../../domain/audit';
 
 @Injectable()
 export class OlderAdultUpdatesService {
     constructor(
+        private logger: LoggerService,
         @Inject('OLDER_ADULT_UPDATE_REPOSITORY')
         private readonly olderAdultUpdateRepository: Repository<OlderAdultUpdate>
     ) {}
