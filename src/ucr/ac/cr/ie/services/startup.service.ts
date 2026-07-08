@@ -1,6 +1,6 @@
 import { Injectable, OnApplicationBootstrap, Logger } from '@nestjs/common';
 import createSuperUsers from '@scripts/admin/create-super-users';
-import { sanitizeForLogging } from '../../common/utils/logger-sanitizer';
+import { sanitizeForLogging } from '@common/utils/logger-sanitizer';
 
 @Injectable()
 export class StartupService implements OnApplicationBootstrap {

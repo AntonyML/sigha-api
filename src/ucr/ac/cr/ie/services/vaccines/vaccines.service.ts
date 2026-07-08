@@ -1,9 +1,9 @@
 import { Injectable, InternalServerErrorException, ConflictException, Inject } from '@nestjs/common';
-import { LoggerService } from '../../common/services/logger.service';
+import { LoggerService } from '@common/services/logger.service';
 import { Repository } from 'typeorm';
 import { Vaccine } from '../../domain/virtual-records';
 import { CreateVaccineDto } from '../../dto/vaccines';
-import { sanitizeForLogging } from '../../../common/utils/logger-sanitizer';
+import { sanitizeForLogging } from '@common/utils/logger-sanitizer';
 
 @Injectable()
 export class VaccinesService {

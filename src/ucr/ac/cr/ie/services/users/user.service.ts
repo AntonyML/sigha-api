@@ -3,8 +3,8 @@ import { Repository } from 'typeorm';
 import { User } from '../../domain/auth/core/user.entity';
 import { Role } from '../../domain/auth/core/role.entity';
 import { PasswordUtil } from '../../common/utils';
-import { LoggerService } from '../../../common/services/logger.service';
-import { sanitizeForLogging } from '../../../common/utils/logger-sanitizer';
+import { LoggerService } from '@common/services/logger.service';
+import { sanitizeForLogging } from '@common/utils/logger-sanitizer';
 import {
     CreateUserDto,
     UpdateUserDto,

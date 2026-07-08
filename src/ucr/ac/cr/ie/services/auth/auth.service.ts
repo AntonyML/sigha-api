@@ -15,8 +15,8 @@ import { EmailService } from '../email/email.service';
 import { AuditService } from '../audit/audit.service';
 import { UserRoleService } from './user-role.service';
 import { AuditReportType, AuditAction } from '../../domain/audit';
-import { LoggerService } from '../../common/services/logger.service';
-import { sanitizeForLogging } from '../../common/utils/logger-sanitizer';
+import { LoggerService } from '@common/services/logger.service';
+import { sanitizeForLogging } from '@common/utils/logger-sanitizer';
 
 @Injectable()
 export class AuthService {
@@ -419,13 +419,13 @@ export class AuthService {
                     });
                 }
             } catch (err) {
-                            // Non-fatal: log and continue.
-                            this.logger.error('Error stamping session duration on logout', sanitizeForLogging({
-                                error: err instanceof Error ? err.message : 'Unknown error',
-                                sessionId: session.id,
-                                userId: user.id,
-                            }));
-                        }
+                                                                // Non-fatal: log and continue.
+                                                                this.logger.error('Error stamping session duration on logout', sanitizeForLogging({
+                                                                                                error: err instanceof Error ? err.message : 'Unknown error',
+                                                                                                sessionId: session.id,
+                                                                                                userId: user.id,
+                                                                                            }));
+                                                            }
         }
 
         return { success: true };
