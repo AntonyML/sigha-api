@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
-  "module": "commonjs",
-  "moduleResolution": "node",
-  "resolveJsonModule": true,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
     "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
@@ -20,10 +20,21 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "@config/*": ["src/config/*"],
-      "@common/*": ["src/common/*"],
-      "@core/*": ["src/core/*"],
-      "@shared/*": ["src/shared/*"]
+      "@config/*": [
+        "src/config/*"
+      ],
+      "@common/*": [
+        "src/common/*"
+      ],
+      "@core/*": [
+        "src/core/*"
+      ],
+      "@shared/*": [
+        "src/shared/*"
+      ],
+      "@scripts/*": [
+        "src/scripts/*"
+      ]
     }
   }
 }

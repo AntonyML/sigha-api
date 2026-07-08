@@ -1,5 +1,5 @@
 import { Injectable, OnApplicationBootstrap, Logger } from '@nestjs/common';
-import createSuperUsers from '../../../scripts/admin/create-super-users';
+import createSuperUsers from '@scripts/admin/create-super-users';
 
 @Injectable()
 export class StartupService implements OnApplicationBootstrap {
