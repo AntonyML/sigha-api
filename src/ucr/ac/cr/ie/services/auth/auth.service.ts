@@ -292,7 +292,7 @@ export class AuthService {
                     }
                 );
             } catch (err) {
-                this.logger.error('Error enviando códigos de respaldo por email:', err);
+                            this.logger.error('Error enviando códigos de respaldo por email:', sanitizeForLogging(err));
                 await this.auditService.createDigitalRecord(
                     userId,
                     {
@@ -544,7 +544,7 @@ export class AuthService {
                 }
             );
         } catch (error) {
-            this.logger.error('Error enviando email de recuperación de contraseña:', error);
+                    this.logger.error('Error enviando email de recuperación de contraseña:', sanitizeForLogging(error));
             await this.auditService.createDigitalRecord(
                 user.id,
                 {

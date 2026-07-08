@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ResendService } from './resend.service';
+import { sanitizeForLogging } from '@common/utils/logger-sanitizer';
 import {
   EmailSendResult,
   PasswordResetParams,
@@ -43,8 +44,8 @@ export class EmailService {
       });
       return { success: result.success, messageId: result.messageId };
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Error desconocido al enviar email de recuperación';
-      this.logger.error(`[EmailService] sendPasswordReset falló: ${message}`);
+              const message = err instanceof Error ? err.message : 'Error desconocido al enviar email de recuperación';
+              this.logger.error('[EmailService] sendPasswordReset falló', sanitizeForLogging({ message }));
       return { success: false, error: message };
     }
   }
@@ -70,8 +71,8 @@ export class EmailService {
       });
       return { success: result.success, messageId: result.messageId };
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Error desconocido al enviar códigos de respaldo';
-      this.logger.error(`[EmailService] sendBackupCodes falló: ${message}`);
+              const message = err instanceof Error ? err.message : 'Error desconocido al enviar códigos de respaldo';
+              this.logger.error('[EmailService] sendBackupCodes falló', sanitizeForLogging({ message }));
       return { success: false, error: message };
     }
   }
