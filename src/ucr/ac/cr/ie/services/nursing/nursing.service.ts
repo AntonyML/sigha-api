@@ -4,10 +4,12 @@ import { SpecializedAppointment, SpecializedAreaName, AppointmentStatus, Nursing
 import { GetNursingAppointmentsDto, CreateAppointmentDto, UpdateAppointmentDto, CancelAppointmentDto, CompleteAppointmentDto } from '../../dto/nursing';
 import { OlderAdult } from '../../domain/virtual-records';
 import { User } from '../../domain/auth/core/user.entity';
+import { LoggerService } from '../../../common/services/logger.service';
 
 @Injectable()
 export class NursingService {
     constructor(
+        private logger: LoggerService,
         @Inject('SpecializedAppointmentRepository')
         private readonly appointmentRepository: Repository<SpecializedAppointment>,
         @Inject('NursingRecordRepository')
@@ -94,9 +96,13 @@ export class NursingService {
             };
 
         } catch (error) {
-            console.error('Error retrieving nursing appointments:', error);
-            throw new InternalServerErrorException('Failed to retrieve nursing appointments');
-        }
+                    this.logger.error('Error retrieving nursing appointments', {
+                        error: error instanceof Error ? error.message : 'Unknown error',
+                        method: 'getNursingAppointments',
+                        filters,
+                    });
+                    throw new InternalServerErrorException('Failed to retrieve nursing appointments');
+                }
     }
 
     async getPendingAppointments(filters?: GetNursingAppointmentsDto): Promise<{ message: string; data: any[] }> {

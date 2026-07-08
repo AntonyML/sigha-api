@@ -1,4 +1,5 @@
 import { Injectable, InternalServerErrorException, NotFoundException, Inject } from '@nestjs/common';
+import { LoggerService } from '../../../common/services/logger.service';
 import { Repository } from 'typeorm';
 import { OlderAdultUpdate } from '../../domain/audit';
 

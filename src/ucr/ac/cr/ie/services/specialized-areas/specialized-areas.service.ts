@@ -1,4 +1,5 @@
 import { Injectable, InternalServerErrorException, NotFoundException, Inject } from '@nestjs/common';
+import { LoggerService } from '../../../common/services/logger.service';
 import { Repository } from 'typeorm';
 import { SpecializedArea, SpecializedAreaName } from '../../domain/nursing';
 import { CreateSpecializedAreaDto } from '../../dto/specialized-areas/create-specialized-area.dto';

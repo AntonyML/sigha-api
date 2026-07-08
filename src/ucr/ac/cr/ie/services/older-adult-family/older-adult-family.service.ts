@@ -1,4 +1,5 @@
 import { Injectable, InternalServerErrorException, NotFoundException, Inject } from '@nestjs/common';
+import { LoggerService } from '../../../common/services/logger.service';
 import { Repository } from 'typeorm';
 import { OlderAdultFamily, KinshipType } from '../../domain/virtual-records';
 import { CreateOlderAdultFamilyDto } from '../../dto/older-adult-family/create-older-adult-family.dto';
