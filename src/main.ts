@@ -1,4 +1,5 @@
 import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import setupSwagger from './ucr/ac/cr/ie/config/swagger.config';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
@@ -78,6 +79,13 @@ async function bootstrap() {
 	
 	// Register global exception filter
 	app.useGlobalFilters(new AllExceptionsFilter());
+
+	// Enable validation pipe globally — validates all incoming DTOs
+	app.useGlobalPipes(new ValidationPipe({
+		whitelist: true,
+		forbidNonWhitelisted: true,
+		transform: true,
+	}));
 	
 	// Register logger middleware for correlation ID
 	const loggerMiddleware = new LoggerMiddleware();
