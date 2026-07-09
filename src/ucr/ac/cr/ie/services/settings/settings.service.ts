@@ -25,7 +25,12 @@ export class SettingsService {
           validationError: { target: false, value: false },
         });
       } catch (errors) {
-        const messages = (errors as any[]).map(
+        if (!Array.isArray(errors)) {
+          throw new BadRequestException(
+            `Error inesperado al validar configuración general: ${errors instanceof Error ? errors.message : String(errors)}`,
+          );
+        }
+        const messages = errors.map(
           (e) => Object.values(e.constraints || {}).join('; '),
         ).join(' | ');
         throw new BadRequestException(`Validación de configuración general falló: ${messages}`);
