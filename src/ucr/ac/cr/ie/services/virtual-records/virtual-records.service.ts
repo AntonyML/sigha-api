@@ -90,17 +90,17 @@ export class VirtualRecordsService {
                     $1::varchar, $2::varchar, $3::varchar, $4::varchar,
                     $5::date, $6::e_oa_marital_status, $7::text, $8::e_oa_years_schooling,
                     $9::varchar, $10::bool, $11::bool, $12::bool,
-                    $13::varchar, $14::varchar, $15::smallint, $16::e_oa_status,
-                    $17::date, $18::numeric,
-                    $19::varchar, $20::varchar, $21::varchar,
-                    $22::e_oa_gender, $23::e_oa_blood_type,
-                    $24::int,
-                    $25::varchar, $26::varchar, $27::varchar, $28::varchar,
-                    $29::varchar, $30::varchar, $31::e_pf_kinship,
-                    $32::bool, $33::numeric, $34::numeric, $35::numeric,
-                    $36::varchar, $37::bool, $38::varchar, $39::text, $40::e_clinical_rcvg,
-                    $41::bool, $42::bool,
-                    $43::int[], $44::int[], $45::int[], $46::jsonb
+                    $13::varchar, $14::varchar, $15::varchar, $16::varchar, $17::smallint, $18::e_oa_status,
+                    $19::date, $20::numeric,
+                    $21::varchar, $22::varchar, $23::varchar,
+                    $24::e_oa_gender, $25::e_oa_blood_type,
+                    $26::int,
+                    $27::varchar, $28::varchar, $29::varchar, $30::varchar,
+                    $31::varchar, $32::varchar, $33::e_pf_kinship,
+                    $34::bool, $35::numeric, $36::numeric, $37::numeric,
+                    $38::varchar, $39::bool, $40::varchar, $41::text, $42::e_clinical_rcvg,
+                    $43::bool, $44::bool,
+                    $45::int[], $46::int[], $47::int[], $48::jsonb
                 )`,
                 [
                     createDto.oa_identification,
@@ -116,7 +116,9 @@ export class VirtualRecordsService {
                     createDto.oa_has_pension,
                     createDto.oa_other,
                     createDto.oa_other_description ?? null,
-                    createDto.oa_area_of_origin ?? null,
+                    createDto.oa_province ?? null,
+                    createDto.oa_canton ?? null,
+                    createDto.oa_district ?? null,
                     createDto.oa_children_count,
                     createDto.oa_status,
                     createDto.oa_death_date ?? null,
@@ -279,7 +281,9 @@ export class VirtualRecordsService {
                 oaHasPension: updateDto.oa_has_pension,
                 oaOther: updateDto.oa_other,
                 oaOtherDescription: updateDto.oa_other_description,
-                oaAreaOfOrigin: updateDto.oa_area_of_origin,
+                oaProvince: updateDto.oa_province,
+                oaCanton: updateDto.oa_canton,
+                oaDistrict: updateDto.oa_district,
                 oaChildrenCount: updateDto.oa_children_count,
                 oaStatus: updateDto.oa_status as OlderAdultStatus,
                 oaDeathDate: updateDto.oa_death_date ? new Date(updateDto.oa_death_date) : undefined,
@@ -316,7 +320,9 @@ export class VirtualRecordsService {
                 compare('oa_has_pension', existingOlderAdult.oaHasPension != null ? String(existingOlderAdult.oaHasPension) : null, updateDto.oa_has_pension != null ? String(updateDto.oa_has_pension) : null);
                 compare('oa_other', existingOlderAdult.oaOther != null ? String(existingOlderAdult.oaOther) : null, updateDto.oa_other != null ? String(updateDto.oa_other) : null);
                 compare('oa_other_description', existingOlderAdult.oaOtherDescription, updateDto.oa_other_description);
-                compare('oa_area_of_origin', existingOlderAdult.oaAreaOfOrigin, updateDto.oa_area_of_origin);
+                compare('oa_province', existingOlderAdult.oaProvince, updateDto.oa_province);
+                compare('oa_canton', existingOlderAdult.oaCanton, updateDto.oa_canton);
+                compare('oa_district', existingOlderAdult.oaDistrict, updateDto.oa_district);
                 compare('oa_children_count', existingOlderAdult.oaChildrenCount != null ? String(existingOlderAdult.oaChildrenCount) : null, updateDto.oa_children_count != null ? String(updateDto.oa_children_count) : null);
                 compare('oa_status', existingOlderAdult.oaStatus, updateDto.oa_status);
                 compare('oa_death_date', existingOlderAdult.oaDeathDate?.toISOString(), updateDto.oa_death_date);
@@ -627,7 +633,9 @@ export class VirtualRecordsService {
                         oaHasPension: adult.oaHasPension,
                         oaOther: adult.oaOther,
                         oaOtherDescription: adult.oaOtherDescription,
-                        oaAreaOfOrigin: adult.oaAreaOfOrigin,
+                        oaProvince: adult.oaProvince,
+                        oaCanton: adult.oaCanton,
+                        oaDistrict: adult.oaDistrict,
                         oaChildrenCount: adult.oaChildrenCount,
                         oaStatus: adult.oaStatus,
                         oaDeathDate: adult.oaDeathDate,
@@ -822,7 +830,9 @@ export class VirtualRecordsService {
                         oaHasPension: adult.oaHasPension,
                         oaOther: adult.oaOther,
                         oaOtherDescription: adult.oaOtherDescription,
-                        oaAreaOfOrigin: adult.oaAreaOfOrigin,
+                        oaProvince: adult.oaProvince,
+                        oaCanton: adult.oaCanton,
+                        oaDistrict: adult.oaDistrict,
                         oaChildrenCount: adult.oaChildrenCount,
                         oaDeathDate: adult.oaDeathDate,
                         oaEconomicIncome: adult.oaEconomicIncome,
@@ -1061,7 +1071,9 @@ export class VirtualRecordsService {
                 oaHasPension: olderAdult.oaHasPension,
                 oaOther: olderAdult.oaOther,
                 oaOtherDescription: olderAdult.oaOtherDescription,
-                oaAreaOfOrigin: olderAdult.oaAreaOfOrigin,
+                oaProvince: olderAdult.oaProvince,
+                oaCanton: olderAdult.oaCanton,
+                oaDistrict: olderAdult.oaDistrict,
                 oaChildrenCount: olderAdult.oaChildrenCount,
                 oaDeathDate: olderAdult.oaDeathDate,
                 oaEconomicIncome: olderAdult.oaEconomicIncome,
