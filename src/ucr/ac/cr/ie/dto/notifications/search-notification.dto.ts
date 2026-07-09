@@ -28,10 +28,11 @@ export class SearchNotificationDto {
     sendDateTo?: string;
 
     @ApiPropertyOptional({
-        description: 'Filtrar por estado de envío',
-        example: false
+      description: 'Filtrar por estado de envío',
+      example: false
     })
     @IsOptional()
+    @Transform(({ value }) => value === 'true' || value === true)
     @IsBoolean()
     nSent?: boolean;
 
