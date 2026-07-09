@@ -1,6 +1,8 @@
 import { Injectable, BadRequestException, NotFoundException, Inject } from '@nestjs/common';
 import { Repository } from 'typeorm';
-import { Notification, NotificationAttachment } from '../../domain/notifications';
+import { LoggerService } from '@common/services/logger.service';
+import { sanitizeForLogging } from '@common/utils/logger-sanitizer';
+import { Notification, NotificationAttachment, NotificationStatus } from '../../domain/notifications';
 import { CreateNotificationDto, UpdateNotificationDto, SearchNotificationDto } from '../../dto/notifications';
 import { AuditService } from '../audit/audit.service';
 import { AuditAction, AuditReportType } from '../../domain/audit';
@@ -8,6 +10,7 @@ import { AuditAction, AuditReportType } from '../../domain/audit';
 @Injectable()
 export class NotificationService {
     constructor(
+        private logger: LoggerService,
         @Inject('NotificationRepository')
         private notificationRepository: Repository<Notification>,
         @Inject('NotificationAttachmentRepository')
@@ -63,7 +66,7 @@ export class NotificationService {
                 description: `Notificación "${savedNotification.nTitle}" creada`,
             });
         } catch (e) {
-            console.error('Audit error (notifications):', e);
+            this.logger.error('Audit error (notifications create)', sanitizeForLogging({ error: String(e) }));
         }
 
         return savedNotification;
@@ -165,7 +168,29 @@ export class NotificationService {
                 description: `Notificación "${notification.nTitle}" eliminada`,
             });
         } catch (e) {
-            console.error('Audit error (notifications):', e);
+            this.logger.error('Audit error (notifications update)', sanitizeForLogging({ error: String(e) }));
+        }
+
+        return updated;
+    }
+
+    /**
+     * Marcar notificación como leída
+     */
+    async markAsRead(id: number, userId: number): Promise<Notification> {
+        const notification = await this.findOne(id);
+        notification.nStatus = NotificationStatus.READ;
+        const updated = await this.notificationRepository.save(notification);
+
+        try {
+            await this.auditService.createDigitalRecord(userId, {
+                action: AuditAction.UPDATE,
+                tableName: 'notifications',
+                recordId: id,
+                description: `Notificación "${notification.nTitle}" marcada como leída`,
+            });
+        } catch (e) {
+            this.logger.error('Audit error (notifications markAsRead)', sanitizeForLogging({ error: String(e) }));
         }
 
         return updated;
@@ -192,7 +217,7 @@ export class NotificationService {
                 description: `Notificación "${notification.nTitle}" eliminada`,
             });
         } catch (e) {
-            console.error('Audit error (notifications):', e);
+            this.logger.error('Audit error (notifications remove)', sanitizeForLogging({ error: String(e) }));
         }
     }
 }
