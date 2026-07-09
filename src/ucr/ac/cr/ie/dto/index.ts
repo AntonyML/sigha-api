@@ -30,3 +30,6 @@ export * from './email';
 
 // Notifications DTOs
 export * from './notifications';
+
+// User Requests DTOs
+export * from './user-requests';
