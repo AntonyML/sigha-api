@@ -15,11 +15,12 @@ import {
     Max,
     IsPositive,
     Matches,
-    ValidateIf
+    Validate
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { MaritalStatus, YearsSchooling, Gender, BloodType, KinshipType, OlderAdultStatus, TreatmentType } from '../../domain/virtual-records';
+import { IdentificationFormatConstraint } from '../../common/validators/identification-format.validator';
 
 export class UpdateSubProgramDataDto {
     @ApiProperty({ description: 'Sub program ID' })
@@ -48,10 +49,7 @@ export class UpdateFamilyDataDto {
     @IsString()
     @IsNotEmpty({ message: 'Family identification is required' })
     @Length(9, 15, { message: 'Identification must be between 9 and 15 characters' })
-    @ValidateIf(o => !o.pf_document_type || o.pf_document_type !== 'pasaporte')
-    @Matches(/^[0-9]+$/, { message: 'Identification must contain only digits' })
-    @ValidateIf(o => o.pf_document_type === 'pasaporte')
-    @Matches(/^[A-Z0-9]{6,9}$/, { message: 'Passport number must be 6-9 alphanumeric uppercase characters' })
+    @Validate(IdentificationFormatConstraint)
     pf_identification: string;
 
     @ApiProperty({ description: 'Family document type (nacional|dimex|nite|pasaporte)', required: false, default: 'nacional' })
@@ -233,10 +231,7 @@ export class UpdateVirtualRecordDirectDto {
     @IsString()
     @IsNotEmpty({ message: 'Identification is required' })
     @Length(9, 15, { message: 'Identification must be between 9 and 15 characters' })
-    @ValidateIf(o => !o.oa_document_type || o.oa_document_type !== 'pasaporte')
-    @Matches(/^[0-9]+$/, { message: 'Identification must contain only digits' })
-    @ValidateIf(o => o.oa_document_type === 'pasaporte')
-    @Matches(/^[A-Z0-9]{6,9}$/, { message: 'Passport number must be 6-9 alphanumeric uppercase characters' })
+    @Validate(IdentificationFormatConstraint)
     oa_identification: string;
 
     @ApiProperty({ description: 'Older adult document type (nacional|dimex|nite|pasaporte)', required: false, default: 'nacional' })
