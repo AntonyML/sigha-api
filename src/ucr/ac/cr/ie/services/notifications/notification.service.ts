@@ -162,10 +162,10 @@ export class NotificationService {
         // Auditoría
         try {
             await this.auditService.createDigitalRecord(userId, {
-                action: AuditAction.DELETE,
+                action: AuditAction.UPDATE,
                 tableName: 'notifications',
                 recordId: id,
-                description: `Notificación "${notification.nTitle}" eliminada`,
+                description: `Notificación "${notification.nTitle}" actualizada`,
             });
         } catch (e) {
             this.logger.error('Audit error (notifications update)', sanitizeForLogging({ error: String(e) }));
