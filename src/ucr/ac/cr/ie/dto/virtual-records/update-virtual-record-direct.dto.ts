@@ -47,6 +47,7 @@ export class UpdateFamilyDataDto {
     @IsString()
     @IsNotEmpty({ message: 'Family identification is required' })
     @Length(9, 15, { message: 'Identification must be between 9 and 15 characters' })
+    @Matches(/^[0-9]+$/, { message: 'Identification must contain only digits' })
     pf_identification: string;
 
     @ApiProperty({ description: 'First name' })
@@ -222,6 +223,7 @@ export class UpdateVirtualRecordDirectDto {
     @IsString()
     @IsNotEmpty({ message: 'Identification is required' })
     @Length(9, 15, { message: 'Identification must be between 9 and 15 characters' })
+    @Matches(/^[0-9]+$/, { message: 'Identification must contain only digits' })
     oa_identification: string;
 
     @ApiProperty({ description: 'First name' })
