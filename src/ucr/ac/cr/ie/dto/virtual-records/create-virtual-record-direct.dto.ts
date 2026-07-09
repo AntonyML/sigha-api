@@ -9,6 +9,7 @@ import {
     IsEnum, 
     IsDateString,
     IsNotEmpty,
+    IsIn,
     Length,
     Min,
     Max,
@@ -253,6 +254,7 @@ export class CreateVirtualRecordDirectDto {
     @ApiProperty({ description: 'Dwelling information', required: false })
     @IsOptional()
     @IsString()
+    @IsIn(['Propia', 'Alquilada', 'Prestada', 'Otro'])
     @Length(0, 500, { message: 'Dwelling information cannot exceed 500 characters' })
     oa_dwelling?: string;
 
@@ -288,11 +290,23 @@ export class CreateVirtualRecordDirectDto {
     @Length(0, 500, { message: 'Other income description cannot exceed 500 characters' })
     oa_other_description?: string;
 
-    @ApiProperty({ description: 'Area of origin', required: false })
+    @ApiProperty({ description: 'Province of origin', required: false })
     @IsOptional()
     @IsString()
-    @Length(0, 200, { message: 'Area of origin cannot exceed 200 characters' })
-    oa_area_of_origin?: string;
+    @Length(0, 100)
+    oa_province?: string;
+
+    @ApiProperty({ description: 'Canton of origin', required: false })
+    @IsOptional()
+    @IsString()
+    @Length(0, 100)
+    oa_canton?: string;
+
+    @ApiProperty({ description: 'District of origin', required: false })
+    @IsOptional()
+    @IsString()
+    @Length(0, 100)
+    oa_district?: string;
 
     @ApiProperty({ description: 'Number of children' })
     @IsNumber({}, { message: 'Children count must be a number' })

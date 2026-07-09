@@ -104,8 +104,14 @@ export class OlderAdult {
     @Column({ name: 'oa_other_description', length: 300, nullable: true })
     oaOtherDescription?: string;
 
-    @Column({ name: 'oa_area_of_origin', length: 300, nullable: true })
-    oaAreaOfOrigin?: string;
+    @Column({ name: 'oa_province', length: 100, nullable: true })
+    oaProvince?: string;
+
+    @Column({ name: 'oa_canton', length: 100, nullable: true })
+    oaCanton?: string;
+
+    @Column({ name: 'oa_district', length: 100, nullable: true })
+    oaDistrict?: string;
 
     @Column({ name: 'oa_children_count', type: 'smallint', nullable: false, default: 0 })
     oaChildrenCount: number;
@@ -187,7 +193,9 @@ export class OlderAdult {
         oaHasPension?: boolean,
         oaOther?: boolean,
         oaOtherDescription?: string,
-        oaAreaOfOrigin?: string,
+        oaProvince?: string,
+        oaCanton?: string,
+        oaDistrict?: string,
         oaChildrenCount?: number,
         oaStatus?: OlderAdultStatus,
         oaDeathDate?: Date,
@@ -216,7 +224,9 @@ export class OlderAdult {
         this.oaHasPension = oaHasPension || false;
         this.oaOther = oaOther || false;
         this.oaOtherDescription = oaOtherDescription;
-        this.oaAreaOfOrigin = oaAreaOfOrigin;
+        this.oaProvince = oaProvince;
+        this.oaCanton = oaCanton;
+        this.oaDistrict = oaDistrict;
         this.oaChildrenCount = oaChildrenCount || 0;
         this.oaStatus = oaStatus || OlderAdultStatus.ALIVE;
         this.oaDeathDate = oaDeathDate;
