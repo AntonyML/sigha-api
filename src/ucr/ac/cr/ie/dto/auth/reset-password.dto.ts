@@ -1,14 +1,15 @@
-import { IsString, MinLength, MaxLength } from 'class-validator';
+import { IsString, MinLength, MaxLength, Matches } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class ResetPasswordDto {
     @ApiProperty({
-        description: 'Código temporal de 18 caracteres recibido por email',
-        example: 'A1b2C3d4E5f6G7h8I9!'
+        description: 'Código temporal de 8 dígitos recibido por email',
+        example: '48213976'
     })
     @IsString({ message: 'El token debe ser una cadena de texto' })
-    @MinLength(18, { message: 'El token debe tener exactamente 18 caracteres' })
-    @MaxLength(18, { message: 'El token debe tener exactamente 18 caracteres' })
+    @MinLength(8, { message: 'El token debe tener exactamente 8 caracteres' })
+    @MaxLength(8, { message: 'El token debe tener exactamente 8 caracteres' })
+    @Matches(/^\d{8}$/, { message: 'El token debe contener solo dígitos' })
     token: string;
 
     @ApiProperty({
