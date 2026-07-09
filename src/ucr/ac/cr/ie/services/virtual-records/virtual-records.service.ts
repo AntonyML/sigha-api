@@ -287,6 +287,7 @@ export class VirtualRecordsService {
                 oaChildrenCount: updateDto.oa_children_count,
                 oaStatus: updateDto.oa_status as OlderAdultStatus,
                 oaDeathDate: updateDto.oa_death_date ? new Date(updateDto.oa_death_date) : undefined,
+                oaDocumentType: updateDto.oa_document_type ?? existingOlderAdult.oaDocumentType,
                 oaEconomicIncome: updateDto.oa_economic_income,
                 oaPhoneNumner: updateDto.oa_phone_numner,
                 oaEmail: updateDto.oa_email,

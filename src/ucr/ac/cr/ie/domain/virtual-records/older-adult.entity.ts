@@ -56,6 +56,9 @@ export class OlderAdult {
     @Column({ name: 'oa_identification', length: 20, unique: true, nullable: false })
     oaIdentification: string;
 
+    @Column({ name: 'oa_document_type', length: 20, nullable: false, default: 'nacional' })
+    oaDocumentType: string;
+
     @Column({ name: 'oa_name', length: 50, nullable: false })
     oaName: string;
 

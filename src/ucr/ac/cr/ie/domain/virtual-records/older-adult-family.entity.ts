@@ -24,6 +24,9 @@ export class OlderAdultFamily {
     @Column({ name: 'pf_identification', length: 20, nullable: false })
     pfIdentification: string;
 
+    @Column({ name: 'pf_document_type', length: 20, nullable: false, default: 'nacional' })
+    pfDocumentType: string;
+
     @Column({ name: 'pf_name', length: 50, nullable: false })
     pfName: string;
 
@@ -57,6 +60,7 @@ export class OlderAdultFamily {
     constructor(
         id?: number,
         pfIdentification?: string,
+        pfDocumentType?: string,
         pfName?: string,
         pfFLastName?: string,
         pfSLastName?: string,
@@ -68,6 +72,7 @@ export class OlderAdultFamily {
     ) {
         this.id = id;
         this.pfIdentification = pfIdentification;
+        this.pfDocumentType = pfDocumentType || 'nacional';
         this.pfName = pfName;
         this.pfFLastName = pfFLastName;
         this.pfSLastName = pfSLastName;
