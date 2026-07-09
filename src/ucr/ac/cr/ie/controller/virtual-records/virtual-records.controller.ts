@@ -6,7 +6,6 @@ import { OlderAdult } from '../../domain/virtual-records';
 import { JwtAuthGuard, RolesGuard } from '../../common/guards';
 import { Roles } from '../../common/decorators';
 import { RoleType } from '../../domain/auth/core/role.entity';
-
 @ApiTags('Virtual Records')
 @Controller('virtual-records')
 @UseGuards(JwtAuthGuard, RolesGuard)

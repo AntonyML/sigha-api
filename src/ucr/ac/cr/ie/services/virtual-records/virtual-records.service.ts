@@ -312,7 +312,7 @@ export class VirtualRecordsService {
                 compare('oa_name', existingOlderAdult.oaName, updateDto.oa_name);
                 compare('oa_f_last_name', existingOlderAdult.oaFLastName, updateDto.oa_f_last_name);
                 compare('oa_s_last_name', existingOlderAdult.oaSLastName, updateDto.oa_s_last_name);
-                compare('oa_birthdate', existingOlderAdult.oaBirthdate?.toISOString(), updateDto.oa_birthdate);
+                compare('oa_birthdate', existingOlderAdult.oaBirthdate instanceof Date ? existingOlderAdult.oaBirthdate.toISOString().split('T')[0] : existingOlderAdult.oaBirthdate, updateDto.oa_birthdate);
                 compare('oa_marital_status', existingOlderAdult.oaMaritalStatus, updateDto.oa_marital_status);
                 compare('oa_dwelling', existingOlderAdult.oaDwelling, updateDto.oa_dwelling);
                 compare('oa_years_schooling', existingOlderAdult.oaYearsSchooling, updateDto.oa_years_schooling);
@@ -326,7 +326,7 @@ export class VirtualRecordsService {
                 compare('oa_district', existingOlderAdult.oaDistrict, updateDto.oa_district);
                 compare('oa_children_count', existingOlderAdult.oaChildrenCount != null ? String(existingOlderAdult.oaChildrenCount) : null, updateDto.oa_children_count != null ? String(updateDto.oa_children_count) : null);
                 compare('oa_status', existingOlderAdult.oaStatus, updateDto.oa_status);
-                compare('oa_death_date', existingOlderAdult.oaDeathDate?.toISOString(), updateDto.oa_death_date);
+                compare('oa_death_date', existingOlderAdult.oaDeathDate instanceof Date ? existingOlderAdult.oaDeathDate.toISOString().split('T')[0] : existingOlderAdult.oaDeathDate, updateDto.oa_death_date);
                 compare('oa_economic_income', existingOlderAdult.oaEconomicIncome != null ? String(existingOlderAdult.oaEconomicIncome) : null, updateDto.oa_economic_income != null ? String(updateDto.oa_economic_income) : null);
                 compare('oa_phone_number', existingOlderAdult.oaPhoneNumber, updateDto.oa_phone_numner);
                 compare('oa_email', existingOlderAdult.oaEmail, updateDto.oa_email);

@@ -43,7 +43,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     }
 
     // Log error to console (temporary - will migrate to LoggerService in Phase 4)
-    console.error({
+    const errorPayload = {
       timestamp: new Date().toISOString(),
       method: request.method,
       url: request.url,
@@ -51,7 +51,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
       message,
       error,
       stack: exception instanceof Error ? exception.stack : undefined,
-    });
+    };
+    console.error(errorPayload);
 
     // Send structured response
     response.status(status).json({
