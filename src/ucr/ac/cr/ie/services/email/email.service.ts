@@ -5,6 +5,7 @@ import {
   EmailSendResult,
   PasswordResetParams,
   BackupCodesParams,
+  UserRequestParams,
 } from './email.types';
 import {
   buildPasswordResetHtml,
@@ -16,6 +17,11 @@ import {
   buildBackupCodesSubject,
   buildBackupCodesText,
 } from './templates/backup-codes-2fa.template';
+import {
+  buildUserRequestHtml,
+  buildUserRequestSubject,
+  buildUserRequestText,
+} from './templates/user-request.template';
 
 @Injectable()
 export class EmailService {
@@ -73,6 +79,30 @@ export class EmailService {
     } catch (err) {
               const message = err instanceof Error ? err.message : 'Error desconocido al enviar códigos de respaldo';
               this.logger.error('[EmailService] sendBackupCodes falló', sanitizeForLogging({ message }));
+      return { success: false, error: message };
+    }
+  }
+
+  async sendUserRequest(params: UserRequestParams): Promise<EmailSendResult> {
+    if (!params?.to?.email) {
+      throw new Error('EmailService.sendUserRequest: falta el destinatario.');
+    }
+
+    const subject = buildUserRequestSubject();
+    const html = buildUserRequestHtml(params);
+    const text = buildUserRequestText(params);
+
+    try {
+      const result = await this.resend.send({
+        to: params.to.email,
+        subject,
+        html,
+        text,
+      });
+      return { success: result.success, messageId: result.messageId };
+    } catch (err) {
+              const message = err instanceof Error ? err.message : 'Error desconocido al enviar notificación de solicitud de cuenta';
+              this.logger.error('[EmailService] sendUserRequest falló', sanitizeForLogging({ message }));
       return { success: false, error: message };
     }
   }

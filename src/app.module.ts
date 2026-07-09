@@ -5,6 +5,7 @@ import { LoggerModule } from './common/services/logger.module';
 import { WinstonModule } from 'nest-winston';
 import { createWinstonLogger } from './config/logger.config';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { DatabaseModule } from './ucr/ac/cr/ie/database.module';
 import { AuthModule } from './ucr/ac/cr/ie/auth.module';
 import { UsersModule } from './ucr/ac/cr/ie/users.module';
@@ -30,12 +31,17 @@ import { OlderAdultUpdatesModule } from './ucr/ac/cr/ie/older-adult-updates.modu
 import { IdentificationLookupModule } from './ucr/ac/cr/ie/identification-lookup.module';
 import { JwtAuthGuard } from './ucr/ac/cr/ie/common/guards/jwt-auth.guard';
 import { SettingsModule } from './ucr/ac/cr/ie/settings.module';
+import { UserRequestsModule } from './ucr/ac/cr/ie/user-requests.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    ThrottlerModule.forRoot([{
+      ttl: 60000,
+      limit: 5,
+    }]),
     // Global Winston logger
     WinstonModule.forRoot(createWinstonLogger()),
     LoggerModule,
@@ -63,8 +69,13 @@ import { SettingsModule } from './ucr/ac/cr/ie/settings.module';
     OlderAdultUpdatesModule,
     IdentificationLookupModule,
     SettingsModule,
+    UserRequestsModule,
   ],
     providers: [
+      {
+        provide: APP_GUARD,
+        useClass: ThrottlerGuard,
+      },
       {
         provide: APP_GUARD,
         useClass: JwtAuthGuard,

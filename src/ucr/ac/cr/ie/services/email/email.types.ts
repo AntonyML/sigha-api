@@ -20,3 +20,11 @@ export interface BackupCodesParams {
   to: EmailRecipient;
   codes: string[];
 }
+
+export interface UserRequestParams {
+  to: EmailRecipient;
+  requesterName: string;
+  requesterEmail: string;
+  requesterPhone: string;
+  reason: string;
+}

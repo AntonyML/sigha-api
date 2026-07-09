@@ -1,4 +1,5 @@
 import { IsOptional, IsDateString, IsString, IsBoolean, IsNumber } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class SearchNotificationDto {

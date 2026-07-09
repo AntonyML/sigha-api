@@ -147,4 +147,27 @@ export class UserRoleService {
             .getRawOne();
         return !!found;
     }
+
+    /**
+     * Returns user entities (id, uName, uFLastName, uSLastName, uEmail) whose
+     * user_roles bridge assigns them any of the given role names.
+     * De-duplicated by user id (DISTINCT). Ignores inactive users.
+     */
+    async findUsersByRoleNames(roleNames: string[]): Promise<User[]> {
+        if (!roleNames || roleNames.length === 0) {
+            return [];
+        }
+        return this.userRoleRepo.manager
+            .createQueryBuilder()
+            .select('DISTINCT user.id', 'id')
+            .addSelect('user.uName', 'uName')
+            .addSelect('user.uFLastName', 'uFLastName')
+            .addSelect('user.uSLastName', 'uSLastName')
+            .addSelect('user.uEmail', 'uEmail')
+            .from(User, 'user')
+            .innerJoin('user_roles', 'ur', 'ur.user_id = user.id')
+            .innerJoin('roles', 'r', 'r.id = ur.role_id AND r.r_name IN (:...roleNames)', { roleNames })
+            .where('user.uIsActive = :active', { active: true })
+            .getRawMany();
+    }
 }
