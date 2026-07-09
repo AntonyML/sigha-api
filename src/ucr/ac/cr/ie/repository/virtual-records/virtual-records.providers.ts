@@ -13,6 +13,7 @@ import {
     OlderAdultSubprogram,
     EmergencyContact
 } from '../../domain/virtual-records';
+import { OlderAdultUpdate } from '../../domain/audit';
 
 export const virtualRecordsProviders = [
     {
@@ -73,6 +74,11 @@ export const virtualRecordsProviders = [
     {
         provide: 'EmergencyContactRepository',
         useFactory: (dataSource: DataSource) => dataSource.getRepository(EmergencyContact),
+        inject: ['DataSource'],
+    },
+    {
+        provide: 'OLDER_ADULT_UPDATE_REPOSITORY',
+        useFactory: (dataSource: DataSource) => dataSource.getRepository(OlderAdultUpdate),
         inject: ['DataSource'],
     },
 ];

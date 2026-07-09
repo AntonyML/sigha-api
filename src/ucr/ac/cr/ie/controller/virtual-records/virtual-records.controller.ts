@@ -1,4 +1,4 @@
-import { Controller, Post, Put, Get, Delete, Body, Param, ParseIntPipe, UseGuards, Query } from '@nestjs/common';
+import { Controller, Post, Put, Get, Delete, Body, Param, ParseIntPipe, UseGuards, Query, Req } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { VirtualRecordsService } from '../../services/virtual-records';
 import { CreateVirtualRecordDirectDto, UpdateVirtualRecordDirectDto, SearchVirtualRecordsDto } from '../../dto/virtual-records';
@@ -93,10 +93,11 @@ export class VirtualRecordsController {
     })
     async updateVirtualRecord(
         @Param('id', ParseIntPipe) id: number, 
-        @Body() updateDto: UpdateVirtualRecordDirectDto
+        @Body() updateDto: UpdateVirtualRecordDirectDto,
+        @Req() req: any
     ) {
         updateDto.id = id;
-        return this.virtualRecordsService.updateVirtualRecordDirect(updateDto);
+        return this.virtualRecordsService.updateVirtualRecordDirect(updateDto, req.user?.userId);
     }
 
     @Get('all')

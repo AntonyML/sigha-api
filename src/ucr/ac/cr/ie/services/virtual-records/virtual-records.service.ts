@@ -1,5 +1,6 @@
 import { Injectable, ConflictException, NotFoundException, InternalServerErrorException, BadRequestException, Inject } from '@nestjs/common';
 import { Repository, DataSource } from 'typeorm';
+import { LoggerService } from '@common/services/logger.service';
 import {
     Program,
     SubProgram,
@@ -21,14 +22,16 @@ import {
     RcvgType,
     OlderAdultStatus
 } from '../../domain/virtual-records';
+import { OlderAdultUpdate } from '../../domain/audit';
 import { CreateVirtualRecordDirectDto, UpdateVirtualRecordDirectDto, SearchVirtualRecordsDto } from '../../dto/virtual-records';
 import { sanitizeForLogging } from '@common/utils/logger-sanitizer';
 
 @Injectable()
 export class VirtualRecordsService {
     constructor(
+        private logger: LoggerService,
         @Inject('ProgramRepository')
-        private readonly programRepository: Repository<Program>,
+        private programRepository: Repository<Program>,
         
         @Inject('SubProgramRepository')
         private readonly subProgramRepository: Repository<SubProgram>,
@@ -59,6 +62,9 @@ export class VirtualRecordsService {
         
         @Inject('OlderAdultSubprogramRepository')
         private readonly olderAdultSubprogramRepository: Repository<OlderAdultSubprogram>,
+        
+        @Inject('OLDER_ADULT_UPDATE_REPOSITORY')
+        private readonly olderAdultUpdateRepository: Repository<OlderAdultUpdate>,
         
         @Inject('DataSource')
         private readonly dataSource: DataSource
@@ -188,7 +194,7 @@ export class VirtualRecordsService {
         }
     }
 
-    async updateVirtualRecordDirect(updateDto: UpdateVirtualRecordDirectDto): Promise<{ message: string; data: OlderAdult }> {
+    async updateVirtualRecordDirect(updateDto: UpdateVirtualRecordDirectDto, changedByUserId?: number): Promise<{ message: string; data: OlderAdult }> {
         // Check if older adult exists
         const existingOlderAdult = await this.olderAdultRepository.findOne({
             where: { id: updateDto.id }
@@ -286,6 +292,54 @@ export class VirtualRecordsService {
                 idProgram: program.id,
                 idFamily: family?.id
             });
+
+            // Log changes to older_adult_updates
+            if (changedByUserId) {
+                const changes: Array<{ field: string; oldVal: string | null; newVal: string | null }> = [];
+                const compare = (field: string, oldVal: any, newVal: any) => {
+                    const oldStr = oldVal != null ? String(oldVal) : null;
+                    const newStr = newVal != null ? String(newVal) : null;
+                    if (oldStr !== newStr) {
+                        changes.push({ field, oldVal: oldStr, newVal: newStr });
+                    }
+                };
+                compare('oa_identification', existingOlderAdult.oaIdentification, updateDto.oa_identification);
+                compare('oa_name', existingOlderAdult.oaName, updateDto.oa_name);
+                compare('oa_f_last_name', existingOlderAdult.oaFLastName, updateDto.oa_f_last_name);
+                compare('oa_s_last_name', existingOlderAdult.oaSLastName, updateDto.oa_s_last_name);
+                compare('oa_birthdate', existingOlderAdult.oaBirthdate?.toISOString(), updateDto.oa_birthdate);
+                compare('oa_marital_status', existingOlderAdult.oaMaritalStatus, updateDto.oa_marital_status);
+                compare('oa_dwelling', existingOlderAdult.oaDwelling, updateDto.oa_dwelling);
+                compare('oa_years_schooling', existingOlderAdult.oaYearsSchooling, updateDto.oa_years_schooling);
+                compare('oa_previous_work', existingOlderAdult.oaPreviousWork, updateDto.oa_previous_work);
+                compare('oa_is_retired', existingOlderAdult.oaIsRetired != null ? String(existingOlderAdult.oaIsRetired) : null, updateDto.oa_is_retired != null ? String(updateDto.oa_is_retired) : null);
+                compare('oa_has_pension', existingOlderAdult.oaHasPension != null ? String(existingOlderAdult.oaHasPension) : null, updateDto.oa_has_pension != null ? String(updateDto.oa_has_pension) : null);
+                compare('oa_other', existingOlderAdult.oaOther != null ? String(existingOlderAdult.oaOther) : null, updateDto.oa_other != null ? String(updateDto.oa_other) : null);
+                compare('oa_other_description', existingOlderAdult.oaOtherDescription, updateDto.oa_other_description);
+                compare('oa_area_of_origin', existingOlderAdult.oaAreaOfOrigin, updateDto.oa_area_of_origin);
+                compare('oa_children_count', existingOlderAdult.oaChildrenCount != null ? String(existingOlderAdult.oaChildrenCount) : null, updateDto.oa_children_count != null ? String(updateDto.oa_children_count) : null);
+                compare('oa_status', existingOlderAdult.oaStatus, updateDto.oa_status);
+                compare('oa_death_date', existingOlderAdult.oaDeathDate?.toISOString(), updateDto.oa_death_date);
+                compare('oa_economic_income', existingOlderAdult.oaEconomicIncome != null ? String(existingOlderAdult.oaEconomicIncome) : null, updateDto.oa_economic_income != null ? String(updateDto.oa_economic_income) : null);
+                compare('oa_phone_number', existingOlderAdult.oaPhoneNumber, updateDto.oa_phone_numner);
+                compare('oa_email', existingOlderAdult.oaEmail, updateDto.oa_email);
+                compare('oa_gender', existingOlderAdult.oaGender, updateDto.oa_gender);
+                compare('oa_blood_type', existingOlderAdult.oaBloodType, updateDto.oa_blood_type);
+
+                for (const change of changes) {
+                    await queryRunner.manager.save(OlderAdultUpdate, {
+                        idOlderAdult: updateDto.id,
+                        oauFieldChanged: change.field,
+                        oauOldValue: change.oldVal,
+                        oauNewValue: change.newVal,
+                        changedBy: changedByUserId,
+                    });
+                }
+
+                if (changes.length > 0) {
+                    this.logger.debug(`Logged ${changes.length} field change(s) for older adult ${updateDto.id}`, sanitizeForLogging({ changes }));
+                }
+            }
 
             // 4. Handle Sub-programs - Delete existing and create new ones
             await queryRunner.manager.delete(OlderAdultSubprogram, { idOlderAdult: updateDto.id });
@@ -398,7 +452,7 @@ export class VirtualRecordsService {
 
         } catch (error) {
             await queryRunner.rollbackTransaction();
-            console.error('Error updating virtual record:', error);
+            this.logger.error('Error updating virtual record', sanitizeForLogging({ error: String(error) }));
             
             if (error instanceof NotFoundException || error instanceof ConflictException) {
                 throw error;
