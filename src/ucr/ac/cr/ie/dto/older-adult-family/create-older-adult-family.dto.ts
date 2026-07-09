@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, IsOptional, IsEmail, IsEnum, MaxLength } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsEmail, IsEnum, MaxLength, Matches, ValidateIf } from 'class-validator';
 import { KinshipType } from '../../domain/virtual-records';
 
 export class CreateOlderAdultFamilyDto {
@@ -7,7 +7,17 @@ export class CreateOlderAdultFamilyDto {
     @IsString()
     @IsNotEmpty()
     @MaxLength(20)
+    @ValidateIf(o => !o.pfDocumentType || o.pfDocumentType !== 'pasaporte')
+    @Matches(/^[0-9]+$/, { message: 'Identification must contain only digits' })
+    @ValidateIf(o => o.pfDocumentType === 'pasaporte')
+    @Matches(/^[A-Z0-9]{6,9}$/, { message: 'Passport number must be 6-9 alphanumeric uppercase characters' })
     pfIdentification: string;
+
+    @ApiProperty({ description: 'Document type (nacional|dimex|nite|pasaporte)', required: false, default: 'nacional' })
+    @IsString()
+    @IsOptional()
+    @MaxLength(20)
+    pfDocumentType?: string;
 
     @ApiProperty({ description: 'First name', example: 'María', maxLength: 50 })
     @IsString()

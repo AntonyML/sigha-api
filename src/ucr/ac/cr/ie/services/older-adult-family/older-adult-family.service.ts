@@ -18,6 +18,7 @@ export class OlderAdultFamilyService {
         try {
             const member = this.olderAdultFamilyRepository.create({
                 pfIdentification: dto.pfIdentification,
+                pfDocumentType: dto.pfDocumentType || 'nacional',
                 pfName: dto.pfName,
                 pfFLastName: dto.pfFLastName,
                 pfSLastName: dto.pfSLastName,
