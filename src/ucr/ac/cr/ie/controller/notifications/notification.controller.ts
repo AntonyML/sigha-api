@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, UseGuards, Query, Request } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { NotificationService } from '../../services/notifications';
 import { CreateNotificationDto, UpdateNotificationDto, SearchNotificationDto } from '../../dto/notifications';
@@ -66,6 +66,22 @@ export class NotificationController {
     @ApiResponse({ status: 404, description: 'Notificación no encontrada' })
     async findOne(@Param('id') id: string) {
         return await this.notificationService.findOne(+id);
+    }
+
+    @Patch(':id/read')
+    @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.DIRECTOR, RoleType.NURSE, RoleType.SOCIAL_WORKER)
+    @ApiOperation({
+        summary: 'Marcar notificación como leída',
+        description: 'Cambia el estado de una notificación a leída.'
+    })
+    @ApiResponse({
+        status: 200,
+        description: 'Notificación marcada como leída'
+    })
+    @ApiResponse({ status: 404, description: 'Notificación no encontrada' })
+    async markAsRead(@Param('id', ParseIntPipe) id: number, @Request() req) {
+        const userId = req?.user?.userId;
+        return await this.notificationService.markAsRead(id, userId);
     }
 
     @Patch(':id')
