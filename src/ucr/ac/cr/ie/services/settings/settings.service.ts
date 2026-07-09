@@ -5,6 +5,7 @@ import { validateOrReject } from 'class-validator';
 import { Settings } from '../../domain/settings/settings.entity';
 import { UpsertSettingsDto } from '../../dto/settings/upsert-settings.dto';
 import { GeneralSettingsDto } from '../../dto/settings/general-settings.dto';
+import { InterfaceSettingsDto } from '../../dto/settings/interface-settings.dto';
 
 @Injectable()
 export class SettingsService {
@@ -34,6 +35,25 @@ export class SettingsService {
           (e) => Object.values(e.constraints || {}).join('; '),
         ).join(' | ');
         throw new BadRequestException(`Validación de configuración general falló: ${messages}`);
+      }
+    }
+
+    if (category === 'interface' && dto.settings) {
+      const interfaceDto = plainToInstance(InterfaceSettingsDto, dto.settings as object);
+      try {
+        await validateOrReject(interfaceDto, {
+          validationError: { target: false, value: false },
+        });
+      } catch (errors) {
+        if (!Array.isArray(errors)) {
+          throw new BadRequestException(
+            `Error inesperado al validar configuración de interfaz: ${errors instanceof Error ? errors.message : String(errors)}`,
+          );
+        }
+        const messages = errors.map(
+          (e) => Object.values(e.constraints || {}).join('; '),
+        ).join(' | ');
+        throw new BadRequestException(`Validación de configuración de interfaz falló: ${messages}`);
       }
     }
 
