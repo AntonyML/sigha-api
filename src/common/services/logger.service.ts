@@ -1,5 +1,6 @@
-import { Injectable, LoggerService as NestLoggerService } from '@nestjs/common';
+import { Injectable, Inject, LoggerService as NestLoggerService } from '@nestjs/common';
 import { Logger } from 'winston';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 
 /**
  * LoggerService - Central wrapper for Winston logger
@@ -21,13 +22,10 @@ import { Logger } from 'winston';
  */
 @Injectable()
 export class LoggerService implements NestLoggerService {
-  private readonly logger: Logger;
-
-  constructor() {
-    // We'll use a singleton pattern or direct Winston import
-    // For now, this is a placeholder - actual implementation needs Winston instance
-    this.logger = null as unknown as Logger;
-  }
+  constructor(
+    @Inject(WINSTON_MODULE_PROVIDER)
+    private readonly logger: Logger,
+  ) {}
 
   /**
    * Log an info message

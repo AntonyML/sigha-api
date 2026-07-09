@@ -21,6 +21,7 @@ export enum YearsSchooling {
     TECHNICAL_DEGREE = 'technical degree',
     INCOMPLETE_UNIVERSITY = 'incomplete university',
     COMPLETE_UNIVERSITY = 'complete university',
+    UNIVERSITY = 'university',
     POSTGRADUATE = 'postgraduate',
     NOT_SPECIFIED = 'not specified'
 }
