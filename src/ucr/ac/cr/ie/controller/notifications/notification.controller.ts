@@ -1,5 +1,7 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, UseGuards, Query, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, UseGuards, Query, Request, UseInterceptors } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import { CacheInterceptor, CacheKey, CacheTTL } from '@nestjs/cache-manager';
 import { NotificationService } from '../../services/notifications';
 import { CreateNotificationDto, UpdateNotificationDto, SearchNotificationDto } from '../../dto/notifications';
 import { JwtAuthGuard, RolesGuard } from '../../common/guards';
@@ -31,26 +33,30 @@ export class NotificationController {
     }
 
     @Get()
-    @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.DIRECTOR, RoleType.NURSE, RoleType.SOCIAL_WORKER)
-    @ApiOperation({
-        summary: 'Listar notificaciones',
-        description: 'Obtiene una lista paginada de notificaciones con filtros opcionales.'
-    })
-    @ApiQuery({ name: 'search', required: false, description: 'Término de búsqueda' })
-    @ApiQuery({ name: 'sendDateFrom', required: false, description: 'Fecha inicio' })
-    @ApiQuery({ name: 'sendDateTo', required: false, description: 'Fecha fin' })
-    @ApiQuery({ name: 'nSent', required: false, description: 'Estado de envío' })
-    @ApiQuery({ name: 'idSender', required: false, description: 'ID del remitente' })
-    @ApiQuery({ name: 'page', required: false, description: 'Página' })
-    @ApiQuery({ name: 'limit', required: false, description: 'Elementos por página' })
-    @ApiResponse({
-        status: 200,
-        description: 'Lista de notificaciones obtenida exitosamente'
-    })
-    @ApiResponse({ status: 403, description: 'Sin permisos suficientes' })
-    async findAll(@Query() searchDto: SearchNotificationDto) {
-        return await this.notificationService.findAll(searchDto);
-    }
+        @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.DIRECTOR, RoleType.NURSE, RoleType.SOCIAL_WORKER)
+        @Throttle({ default: { ttl: 60000, limit: 20 } })
+        @UseInterceptors(CacheInterceptor)
+        @CacheKey('notifications-unread')
+        @CacheTTL(15000)
+        @ApiOperation({
+            summary: 'Listar notificaciones',
+            description: 'Obtiene una lista paginada de notificaciones con filtros opcionales.'
+        })
+        @ApiQuery({ name: 'search', required: false, description: 'Término de búsqueda' })
+        @ApiQuery({ name: 'sendDateFrom', required: false, description: 'Fecha inicio' })
+        @ApiQuery({ name: 'sendDateTo', required: false, description: 'Fecha fin' })
+        @ApiQuery({ name: 'nSent', required: false, description: 'Estado de envío' })
+        @ApiQuery({ name: 'idSender', required: false, description: 'ID del remitente' })
+        @ApiQuery({ name: 'page', required: false, description: 'Página' })
+        @ApiQuery({ name: 'limit', required: false, description: 'Elementos por página' })
+        @ApiResponse({
+            status: 200,
+            description: 'Lista de notificaciones obtenida exitosamente'
+        })
+        @ApiResponse({ status: 403, description: 'Sin permisos suficientes' })
+        async findAll(@Query() searchDto: SearchNotificationDto) {
+            return await this.notificationService.findAll(searchDto);
+        }
 
     @Get(':id')
     @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.DIRECTOR, RoleType.NURSE, RoleType.SOCIAL_WORKER)

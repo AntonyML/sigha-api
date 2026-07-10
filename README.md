@@ -1,119 +1,132 @@
 # SIGHA API
 
-Backend NestJS para el **Sistema Integral de Gestión del Hogar de Ancianos (SIGHA)** — plataforma de gestión clínica y administrativa para centros de cuidado geriátrico.
+[![npm version](https://img.shields.io/badge/npm-1.0.0-blue)](https://www.npmjs.com/package/hogar-ancianos-backend)
+[![build status](https://img.shields.io/badge/build-passing-brightgreen)](#)
+[![license](https://img.shields.io/badge/license-UNLICENSED-lightgrey)](#)
 
-## Descripción del Proyecto
+## Descripción General
 
-SIGHA es un sistema de gestión integral diseñado para hogares de ancianos, que centraliza el cuidado clínico, administrativo y operativo de residentes adultos mayores. El sistema gestiona el ciclo completo de atención: desde el registro electoral y admisión de residentes, hasta el seguimiento clínico diario, administración de medicamentos, citas de enfermería, y programas de bienestar.
+API RESTful basada en NestJS que gestiona el **Sistema Integral de Gestión del Hogar de Ancianos (SIGHA)**. Proporciona autenticación JWT con soporte opcional de 2FA, control de roles y permisos granulares, y operaciones CRUD para usuarios, notificaciones, registros clínicos, programas y más.
 
-### Arquitectura Multi-Repositorio
+## Arquitectura y Flujo
 
-El proyecto se compone de tres repositorios interconectados:
+- **NestJS** (TypeScript) como framework backend.
+- **TypeORM** para acceso a PostgreSQL / Supabase.
+- **JWT** + **2FA** para seguridad.
+- **Swagger** (`@nestjs/swagger`) genera la documentación automática.
+- **Logging** centralizado con `nest-winston` y sanitización de PII/PHI.
 
-| Repositorio | Propósito | Stack |
-|-------------|-----------|-------|
-| **sigha-db** | Esquema de base de datos PostgreSQL/Supabase (36 tablas) | SQL, TypeORM migrations |
-| **sigha-api** | Backend API REST con lógica de negocio | NestJS, TypeScript, TypeORM |
-| **sigha-web** | Frontend web para usuarios y personal | React/Next.js |
+## Requisitos Previos
 
-### Características Principales
+| Requisito | Detalle |
+|-----------|----------|
+| **Node.js** | >= 20.x |
+| **npm** | >= 10.x |
+| **PostgreSQL** | 12+ (o Supabase) |
+| **Variables de entorno** | Ver la tabla "Variables de Entorno" abajo |
+| **Docker** (opcional) | Para despliegue en contenedor |
 
-- **Arquitectura multi-rol** con sistema de permisos granular (`user_roles`, `permissions`, `role_permissions`)
-- **Registro electoral** de residentes adultos mayores
-- **Gestión clínica**: historial clínico, condiciones médicas, medicamentos, vacunas
-- **Enfermería y citas**: programación y seguimiento de appointments
-- **Registros virtuales**: procedimientos digitalizados con trazabilidad
-- **Auditoría integral**: todos los eventos críticos se registran con correlation ID
-- **Seguridad**: autenticación JWT, 2FA opcional, sanitización automática de PII/PHI (Ley 8968)
-
-## Configuración
-
-### Variables de entorno
-
-Copia `.env.example` a `.env` y configura:
+## Instalación y Ejecución
 
 ```bash
-# Logging
-LOG_LEVEL=info  # debug, info, warn, error, fatal
+# Clonar el repositorio
+git clone https://github.com/tu-org/sigha-api.git
+cd sigha-api
 
-# Email (Resend)
-RESEND_API_KEY=re_xxxxxxxxxxxxx
-RESEND_FROM_EMAIL=noreply@tu-dominio.com
-RESEND_FROM_NAME=Hogar de Ancianos
-```
+# Instalar dependencias
+npm ci
 
-## Logs
+# Copiar variables de entorno de ejemplo y completarlas
+cp .env.example .env
+# Editar .env con los valores reales
 
-### Ubicación
-
-Los logs se escriben en `storage/logs/` por defecto.
-
-### Niveles disponibles
-
-- `fatal`: Errores críticos que requieren atención inmediata
-- `error`: Errores de negocio o técnicos
-- `warn`: Advertencias que no bloquean la operación
-- `info`: Información operativa general
-- `debug`: Detalle para desarrollo (no usar en producción)
-- `http`: Requests HTTP (método, URL, estado, duración)
-- `audit`: Eventos de auditoría (acciones de usuarios)
-
-### Sanitización de PII/PHI
-
-**Todos los logs pasan automáticamente por `sanitizeForLogging()`** que protege datos sensibles bajo Ley 8968:
-
-- **Cédulas de identidad**: Se enmascaran (ej: `1-1111-1111` → `*-****-****`)
-- **Nombres completos**: Se generalizan (ej: `Juan Pérez` → `[Nombre redactado]`)
-- **Direcciones**: Se enmascaran (ej: `Calle 1, Casa 2` → `[Dirección redactada]`)
-- **Teléfonos**: Se enmascaran (ej: `8888-8888` → `****-****`)
-- **Emails**: Se enmascaran (ej: `juan@example.com` → `j***@example.com`)
-- **Fechas de nacimiento**: Se generalizan a año (ej: `1950-05-15` → `1950-XX-XX`)
-
-**Uso en código:**
-
-```typescript
-import { sanitizeForLogging } from '@common/utils/logger-sanitizer';
-
-//✅ Correcto: datos sensibles sanitizados
-this.logger.error('Error procesando usuario', sanitizeForLogging({ userId: user.id, email: user.email }));
-
-// ❌ Incorrecto: potencial fuga de PII
-this.logger.error(`Error con usuario ${user.email}`);
-```
-
-## Comandos útiles
-
-```bash
-# Desarrollo
+# Ejecutar en modo desarrollo
 npm run start:dev
 
-# Build
-npm run build
-
-# Tests
-npm test
-
-# Reset de base de datos (solo desarrollo)
-npm run ts-node src/scripts/db/reset.ts
+# Compilar y ejecutar en producción
+npm run build && npm run start:prod
 ```
 
-## Estructura del proyecto
+## Variables de Entorno
 
-```
-src/
-├── common/           # Utilidades compartidas (logger, sanitizer, interceptors)
-├── config/           # Configuración de la aplicación
-├── ucr/ac/cr/ie/    # Módulos de negocio
-│   ├── services/    # Servicios principales
-│   ├── domain/      # Entidades y objetos de dominio
-│   └── interfaces/  # Interfaces de módulos
-└── main.ts          # Punto de entrada
-storage/
-└── logs/            # Logs de la aplicación
-```
+| Variable | Propósito | Ejemplo |
+|----------|----------|---------|
+| `NODE_ENV` | Entorno de ejecución | `development` |
+| `PORT` | Puerto HTTP del API | `3000` |
+| `DATABASE_URL` | URL completa (Supabase, Railway, etc.) | `postgresql://user:pass@host:5432/db` |
+| `DB_HOST` | Host de PostgreSQL (si no usas `DATABASE_URL`) | `localhost` |
+| `DB_PORT` | Puerto PostgreSQL | `5432` |
+| `DB_USERNAME` | Usuario DB | `postgres` |
+| `DB_PASSWORD` | Contraseña DB | `mysecret` |
+| `DB_NAME` | Nombre de base de datos | `hogar_de_ancianos` |
+| `DB_SSL` | `true` para TLS | `false` |
+| `TYPEORM_LOGGING` | Logueo de consultas (debug) | `false` |
+| `LOG_LEVEL` | Nivel de logs (fatal, error, warn, info, http, audit, debug, trace) | `info` |
+| `JWT_SECRET` | Clave secreta JWT (cadena aleatoria) | `replace-me-with-a-long-random-string` |
+| `JWT_EXPIRES_IN` | Tiempo de vida del token | `1h` |
+| `RESEND_API_KEY` | API key para envío de correos | `re_xxxxxxxxxxxxx` |
+| `RESEND_FROM_EMAIL` | Remitente de correo | `noreply@tu-dominio.com` |
+| `RESEND_FROM_NAME` | Nombre del remitente | `Hogar de Ancianos` |
+| `SUPABASE_URL` | URL del bucket Supabase | `https://<ref>.supabase.co` |
+| `SUPABASE_SERVICE_ROLE_KEY` | Credencial de servicio Supabase | `<clave>` |
 
-## Más información
+## Endpoints / Documentación de Rutas
 
-- [Documentación de logging](src/common/services/logger.service.ts)
-- [Implementación de sanitización](src/common/utils/logger-sanitizer.ts)
-- [Tests de sanitización](src/common/utils/logger-sanitizer.spec.ts)
+### Auth (`/auth`)
+| Método | Ruta | Descripción | Payload de Entrada | Respuesta de Éxito |
+|--------|------|-------------|--------------------|--------------------|
+| `POST` | `/auth/login` | Inicia sesión, devuelve token o requiere 2FA | `{ "email": "string", "password": "string" }` | `{ accessToken, refreshToken, user }` o `{ requiresTwoFactor, tempToken, user }` |
+| `POST` | `/auth/verify-2fa` | Completa login con 2FA | `{ "tempToken": "string", "twoFactorCode": "string" }` | Token JWT |
+| `GET` | `/auth/profile` | Obtiene perfil del usuario autenticado | — | `{ user: { id, email, name, role, ... } }` |
+| `POST` | `/auth/logout` | Cierra sesión (invalidación de token) | — | `{ message: "Sesión cerrada" }` |
+| `POST` | `/auth/setup-2fa` | Configura 2FA (generación de secret) | — | `{ secret, qrCodeUrl }` |
+| `POST` | `/auth/enable-2fa` | Habilita 2FA después de verificación | `{ "verificationCode": "string" }` | `{ message: "2FA habilitado" }` |
+| `POST` | `/auth/disable-2fa` | Deshabilita 2FA | — | `{ message: "2FA deshabilitado" }` |
+| `GET` | `/auth/2fa/status` | Estado de 2FA del usuario | — | `{ enabled, lastUsed, hasBackupCodes }` |
+| `POST` | `/auth/forgot-password` | Envía código de recuperación por email | `{ "email": "string" }` | `{ message: "Código enviado" }` |
+| `POST` | `/auth/reset-password` | Restablece contraseña con código temporal | `{ "token": "string", "newPassword": "string" }` | `{ message: "Contraseña actualizada" }` |
+
+### Notificaciones (`/notifications`)
+| Método | Ruta | Descripción | Payload | Respuesta |
+|--------|------|-------------|---------|-----------|
+| `POST` | `/notifications` | Crear nueva notificación (adjuntos opcionales) | `CreateNotificationDto` | Notificación creada |
+| `GET` | `/notifications` | Listar notificaciones (paginado, filtros) | Query params: `search`, `sendDateFrom`, `sendDateTo`, `nSent`, `idSender`, `page`, `limit` | Lista paginada |
+| `GET` | `/notifications/:id` | Obtener notificación por ID | — | Detalle de notificación |
+| `PATCH` | `/notifications/:id/read` | Marcar como leída | — | Confirmación |
+| `PATCH` | `/notifications/:id` | Actualizar notificación | `UpdateNotificationDto` | Notificación actualizada |
+| `DELETE` | `/notifications/:id` | Eliminar notificación | — | Confirmación |
+
+### Usuarios (`/users`)
+| Método | Ruta | Descripción | Payload | Respuesta |
+|--------|------|-------------|---------|-----------|
+| `POST` | `/users` | Crear nuevo usuario (solo admins, requiere 2FA) | `CreateUserDto` | Usuario creado |
+| `GET` | `/users` | Listar todos los usuarios | — | Lista de usuarios |
+| `GET` | `/users/search?term=...` | Buscar usuarios por término | `term` query | Resultados de búsqueda |
+| `GET` | `/users/by-role/:roleId` | Usuarios por rol | — | Lista de usuarios |
+| `GET` | `/users/profile` | Perfil propio del usuario autenticado | — | Perfil básico |
+| `GET` | `/users/profile/full` | Perfil propio con roles y permisos | — | `UserProfileFullResponseDto` |
+| `GET` | `/users/:id/roles` | Roles efectivos de un usuario | — | `UserRolesResponseDto` |
+| `GET` | `/users/:id/permissions` | Permisos efectivos de un usuario | — | `UserPermissionsResponseDto` |
+| `GET` | `/users/:id/full` | Perfil completo de otro usuario (solo admins) | — | `UserProfileFullResponseDto` |
+| `GET` | `/users/:id` | Obtener usuario por ID | — | Usuario |
+| `PATCH` | `/users/profile` | Actualizar propio perfil (campos limitados) | `UpdateUserDto` (solo campos permitidos) | Perfil actualizado |
+| `PATCH` | `/users/:id` | Actualizar usuario (solo admins, requiere 2FA) | `UpdateUserDto` | Usuario actualizado |
+| `POST` | `/users/change-password` | Cambiar propia contraseña | `ChangePasswordDto` | Confirmación |
+| `PATCH` | `/users/:id/toggle-status` | Activar/Desactivar usuario (solo admins, requiere 2FA) | — | Estado actualizado |
+
+### Otros recursos (ejemplo)
+> Los controladores restantes siguen la misma convención: método HTTP, ruta base (`/virtual-records`, `/settings`, `/vaccines`, etc.), DTOs de entrada y respuesta documentados en sus archivos `*.dto.ts`. Se pueden inspeccionar directamente en el código fuente.
+
+## Manejo de Errores
+
+- **Formato JSON estándar**: `{ "statusCode": number, "message": string | string[], "error": string }`.
+- **Códigos HTTP comunes**:
+  - `400 Bad Request` – validación de DTOs.
+  - `401 Unauthorized` – token ausente o inválido.
+  - `403 Forbidden` – falta de permisos o 2FA requerida.
+  - `404 Not Found` – recurso inexistente.
+  - `500 Internal Server Error` – errores inesperados del servidor.
+
+## Deuda Técnica
+⚠️ Deuda Técnica
+Para consultar el detalle exacto, localización de archivos y plan de resolución mediante commits atómicos, revisa el documento TECH_DEBT.md.

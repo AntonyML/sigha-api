@@ -1,7 +1,8 @@
 import { Module, Global } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
-import { ConfigService } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { CacheModule } from '@nestjs/cache-manager';
 import { AuthService, UserRoleService } from './services/auth';
 import { AuthController } from './controller/auth/auth.controller';
 import { authProviders } from './repository/auth/auth.providers';
@@ -21,8 +22,17 @@ import { AuditModule } from './audit.module';
             useFactory: (configService: ConfigService) => ({
                 secret: configService.get<string>('JWT_SECRET'),
                 signOptions: {
-                    expiresIn: '1h' // Token de acceso de 1 hora para testing
+                    expiresIn: '1h'
                 },
+            }),
+            inject: [ConfigService],
+        }),
+        CacheModule.registerAsync({
+            imports: [ConfigModule],
+            useFactory: async (configService: ConfigService) => ({
+                ttl: configService.get<number>('CACHE_TTL_2FA_STATUS') || 30000, // 30s default for 2FA status
+                max: 100,
+                isGlobal: false,
             }),
             inject: [ConfigService],
         }),

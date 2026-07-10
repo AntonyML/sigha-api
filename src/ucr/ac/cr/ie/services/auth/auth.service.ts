@@ -2,6 +2,8 @@ import { Injectable, UnauthorizedException, BadRequestException, Inject, NotFoun
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { Repository, MoreThan } from 'typeorm';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 import { User } from '../../domain/auth/core/user.entity';
 import { UserSession } from '../../domain/auth/sessions/user-session.entity';
 import { UserTwoFactor } from '../../domain/auth/security/user-two-factor.entity';
@@ -35,6 +37,7 @@ export class AuthService {
         private readonly emailService: EmailService,
         private readonly auditService: AuditService,
         private readonly userRoleService: UserRoleService,
+        @Inject(CACHE_MANAGER) private cacheManager: Cache,
     ) { }
 
     /**
@@ -306,20 +309,28 @@ export class AuthService {
         }
 
         // Registrar auditoría de habilitación de 2FA
-        await this.auditService.createDigitalRecord(
-            userId,
-            {
-                action: AuditAction.UPDATE,
-                tableName: 'user_two_factors',
-                recordId: userId,
-                description: '2FA habilitado exitosamente'
-            }
-        );
+                        await this.auditService.createDigitalRecord(
+                            userId,
+                            {
+                                action: AuditAction.UPDATE,
+                                tableName: 'user_two_factors',
+                                recordId: userId,
+                                description: '2FA habilitado exitosamente'
+                            }
+                        );
 
-        return {
-            success: true,
-            backupCodes,
-        };
+                        // Regenerar tokens con twoFactorVerified = true para evitar logout forzado
+                        const tokens = await this.generateTokens(user, undefined, undefined, true);
+
+                        // Invalidar caché de estado 2FA
+                        await this.cacheManager.del('2fa-status');
+
+                        return {
+                            success: true,
+                            backupCodes,
+                            accessToken: tokens.accessToken,
+                            refreshToken: tokens.refreshToken,
+                        };
     }
 
     /**
@@ -338,43 +349,58 @@ export class AuthService {
         await this.twoFactorRepository.remove(twoFactor);
 
         // Registrar auditoría de deshabilitación de 2FA
-        await this.auditService.createDigitalRecord(
-            userId,
-            {
-                action: AuditAction.DELETE,
-                tableName: 'user_two_factors',
-                recordId: userId,
-                description: '2FA deshabilitado'
-            }
-        );
+                await this.auditService.createDigitalRecord(
+                    userId,
+                    {
+                        action: AuditAction.DELETE,
+                        tableName: 'user_two_factors',
+                        recordId: userId,
+                        description: '2FA deshabilitado'
+                    }
+                );
 
-        return { success: true };
+                // Invalidar caché de estado 2FA
+                await this.cacheManager.del('2fa-status');
+
+                return { success: true };
     }
 
     /**
-     * Obtiene el estado actual de 2FA para un usuario
-     */
-    async get2FAStatus(userId: number): Promise<TwoFactorStatusResponse> {
-        const twoFactor = await this.twoFactorRepository.findOne({
-            where: { userId },
-        });
+         * Obtiene el estado actual de 2FA para un usuario
+         */
+        async get2FAStatus(userId: number): Promise<TwoFactorStatusResponse> {
+            // Intentar obtener del caché primero
+            const cacheKey = `2fa-status-${userId}`;
+            const cached = await this.cacheManager.get<TwoFactorStatusResponse>(cacheKey);
+            if (cached) {
+                return cached;
+            }
 
-        if (!twoFactor) {
-            return {
-                enabled: false,
-                lastUsed: null,
-                hasBackupCodes: false,
+            const twoFactor = await this.twoFactorRepository.findOne({
+                where: { userId },
+            });
+
+            if (!twoFactor) {
+                return {
+                    enabled: false,
+                    lastUsed: null,
+                    hasBackupCodes: false,
+                };
+            }
+
+            const backupCodes = JSON.parse(twoFactor.tfaBackupCodes || '[]');
+
+            const result = {
+                enabled: twoFactor.tfaEnabled,
+                lastUsed: twoFactor.tfaLastUsed,
+                hasBackupCodes: backupCodes.length > 0,
             };
+
+            // Guardar en caché por 60 segundos
+            await this.cacheManager.set(cacheKey, result, 60000);
+
+            return result;
         }
-
-        const backupCodes = JSON.parse(twoFactor.tfaBackupCodes || '[]');
-
-        return {
-            enabled: twoFactor.tfaEnabled,
-            lastUsed: twoFactor.tfaLastUsed,
-            hasBackupCodes: backupCodes.length > 0,
-        };
-    }
 
     /**
      * Cierra sesión
