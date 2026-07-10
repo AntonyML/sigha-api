@@ -1,5 +1,7 @@
 import { Injectable, BadRequestException, NotFoundException, Inject } from '@nestjs/common';
 import { Repository } from 'typeorm';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 import { LoggerService } from '@common/services/logger.service';
 import { sanitizeForLogging } from '@common/utils/logger-sanitizer';
 import { Notification, NotificationAttachment, NotificationStatus } from '../../domain/notifications';
@@ -16,6 +18,7 @@ export class NotificationService {
         @Inject('NotificationAttachmentRepository')
         private notificationAttachmentRepository: Repository<NotificationAttachment>,
         private readonly auditService: AuditService,
+        @Inject(CACHE_MANAGER) private cacheManager: Cache,
     ) { }
 
     /**
@@ -58,18 +61,21 @@ export class NotificationService {
         }
 
         // Auditoría
-        try {
-            await this.auditService.createDigitalRecord(userId, {
-                action: AuditAction.CREATE,
-                tableName: 'notifications',
-                recordId: savedNotification.id,
-                description: `Notificación "${savedNotification.nTitle}" creada`,
-            });
-        } catch (e) {
-            this.logger.error('Audit error (notifications create)', sanitizeForLogging({ error: String(e) }));
-        }
+                try {
+                    await this.auditService.createDigitalRecord(userId, {
+                        action: AuditAction.CREATE,
+                        tableName: 'notifications',
+                        recordId: savedNotification.id,
+                        description: `Notificación "${savedNotification.nTitle}" creada`,
+                    });
+                } catch (e) {
+                    this.logger.error('Audit error (notifications create)', sanitizeForLogging({ error: String(e) }));
+                }
 
-        return savedNotification;
+                // Invalidar caché de notificaciones no leídas
+                await this.cacheManager.del(`notifications-unread::*`);
+
+                return savedNotification;
     }
 
     /**
@@ -161,17 +167,20 @@ export class NotificationService {
 
         // Auditoría
         try {
-            await this.auditService.createDigitalRecord(userId, {
-                action: AuditAction.UPDATE,
-                tableName: 'notifications',
-                recordId: id,
-                description: `Notificación "${notification.nTitle}" actualizada`,
-            });
-        } catch (e) {
-            this.logger.error('Audit error (notifications update)', sanitizeForLogging({ error: String(e) }));
-        }
+                    await this.auditService.createDigitalRecord(userId, {
+                        action: AuditAction.UPDATE,
+                        tableName: 'notifications',
+                        recordId: id,
+                        description: `Notificación "${notification.nTitle}" actualizada`,
+                    });
+                } catch (e) {
+                    this.logger.error('Audit error (notifications update)', sanitizeForLogging({ error: String(e) }));
+                }
 
-        return updated;
+                // Invalidar caché de notificaciones no leídas
+                await this.cacheManager.del(`notifications-unread::*`);
+
+                return updated;
     }
 
     /**
@@ -183,18 +192,21 @@ export class NotificationService {
         const updated = await this.notificationRepository.save(notification);
 
         try {
-            await this.auditService.createDigitalRecord(userId, {
-                action: AuditAction.UPDATE,
-                tableName: 'notifications',
-                recordId: id,
-                description: `Notificación "${notification.nTitle}" marcada como leída`,
-            });
-        } catch (e) {
-            this.logger.error('Audit error (notifications markAsRead)', sanitizeForLogging({ error: String(e) }));
-        }
+                    await this.auditService.createDigitalRecord(userId, {
+                        action: AuditAction.UPDATE,
+                        tableName: 'notifications',
+                        recordId: id,
+                        description: `Notificación "${notification.nTitle}" marcada como leída`,
+                    });
+                } catch (e) {
+                    this.logger.error('Audit error (notifications markAsRead)', sanitizeForLogging({ error: String(e) }));
+                }
 
-        return updated;
-    }
+                // Invalidar caché de notificaciones no leídas
+                await this.cacheManager.del(`notifications-unread::*`);
+
+                return updated;
+            }
 
     /**
      * Eliminar notificación
@@ -209,15 +221,18 @@ export class NotificationService {
         await this.notificationRepository.remove(notification);
 
         // Auditoría
-        try {
-            await this.auditService.createDigitalRecord(userId, {
-                action: AuditAction.DELETE,
-                tableName: 'notifications',
-                recordId: id,
-                description: `Notificación "${notification.nTitle}" eliminada`,
-            });
-        } catch (e) {
-            this.logger.error('Audit error (notifications remove)', sanitizeForLogging({ error: String(e) }));
-        }
-    }
+                try {
+                    await this.auditService.createDigitalRecord(userId, {
+                        action: AuditAction.DELETE,
+                        tableName: 'notifications',
+                        recordId: id,
+                        description: `Notificación "${notification.nTitle}" eliminada`,
+                    });
+                } catch (e) {
+                    this.logger.error('Audit error (notifications remove)', sanitizeForLogging({ error: String(e) }));
+                }
+
+                // Invalidar caché de notificaciones no leídas
+                await this.cacheManager.del(`notifications-unread::*`);
+            }
 }
