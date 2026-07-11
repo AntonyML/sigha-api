@@ -5,6 +5,7 @@
   "author": "UCR Development Team",
   "private": true,
   "license": "UNLICENSED",
+  "packageManager": "pnpm@10.33.0",
   "dependencies": {
     "@nestjs/cache-manager": "^3.1.3",
     "@nestjs/common": "^11.1.6",
@@ -51,7 +52,6 @@
     "@types/pdfkit": "^0.17.3",
     "@types/qrcode": "^1.5.5",
     "@types/speakeasy": "^2.0.10",
-    "@types/uuid": "^10.0.0",
     "chromedriver": "^142.0.1",
     "jest": "^30.2.0",
     "jest-junit": "^16.0.0",
@@ -70,7 +70,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
-    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
+    "test:debug": "pnpm exec node --inspect-brk -r tsconfig-paths/register -r ts-node/register ./node_modules/jest/bin/jest.js --runInBand",
     "test:luis": "jest tests/luis/unit --coverage --forceExit --detectOpenHandles",
     "test:luis:coverage": "jest tests/luis/unit --coverage --coverageReporters=json --coverageReporters=lcov --coverageReporters=text-summary --forceExit --detectOpenHandles",
     "setup:users": "ts-node src/scripts/admin/create-super-users.ts",
@@ -78,6 +78,14 @@
     "disable:2fa:admin": "ts-node src/scripts/admin/disable-2fa.ts admin@hogarancianos.com",
     "disable:2fa:superadmin": "ts-node src/scripts/admin/disable-2fa.ts superadmin@hogarancianos.com",
     "db:reset": "ts-node src/scripts/db/reset.ts",
-    "db:check": "ts-node src/scripts/db/check-schema.ts"
+    "db:check": "ts-node src/scripts/db/check-schema.ts",
+    "clean": "rimraf dist",
+    "typecheck": "tsc --noEmit",
+    "lint:deps": "knip",
+    "outdated": "pnpm outdated"
+  },
+  "engines": {
+    "node": ">=22",
+    "pnpm": ">=10"
   }
 }
