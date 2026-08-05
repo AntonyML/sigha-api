@@ -12,6 +12,10 @@
 .env.production
 .env.test
 
+# Untracked env-file copies WITHOUT leading dot (env, env.production, env.supabase, ...)
+env
+env.*
+
 # Supabase
 .env.supabase
 .env.supabase.local
