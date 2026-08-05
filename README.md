@@ -34,7 +34,7 @@ git clone https://github.com/tu-org/sigha-api.git
 cd sigha-api
 
 # Instalar dependencias
-npm ci
+npm install
 
 # Copiar variables de entorno de ejemplo y completarlas
 cp .env.example .env
