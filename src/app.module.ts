@@ -39,8 +39,8 @@ import { UserRequestsModule } from './ucr/ac/cr/ie/user-requests.module';
       isGlobal: true,
     }),
     ThrottlerModule.forRoot([{
-      ttl: 60000,
-      limit: 5,
+      ttl: Number(process.env.THROTTLE_TTL ?? 60000),
+      limit: Number(process.env.THROTTLE_LIMIT ?? 100),
     }]),
     // Global Winston logger
     WinstonModule.forRoot(createWinstonLogger()),
