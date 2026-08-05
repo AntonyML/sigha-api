@@ -45,12 +45,13 @@ export class UpdateProgramDataDto {
 }
 
 export class UpdateFamilyDataDto {
-    @ApiProperty({ description: 'Family identification number' })
+    @ApiProperty({ description: 'Family identification number', required: false })
+    @IsOptional()
     @IsString()
     @IsNotEmpty({ message: 'Family identification is required' })
     @Length(9, 15, { message: 'Identification must be between 9 and 15 characters' })
     @Validate(IdentificationFormatConstraint)
-    pf_identification: string;
+    pf_identification?: string;
 
     @ApiProperty({ description: 'Family document type (nacional|dimex|nite|pasaporte)', required: false, default: 'nacional' })
     @IsString()
@@ -58,23 +59,26 @@ export class UpdateFamilyDataDto {
     @IsIn(['nacional', 'dimex', 'nite', 'pasaporte'])
     pf_document_type?: string;
 
-    @ApiProperty({ description: 'First name' })
+    @ApiProperty({ description: 'First name', required: false })
+    @IsOptional()
     @IsString()
     @IsNotEmpty({ message: 'Family first name is required' })
     @Length(2, 50, { message: 'First name must be between 2 and 50 characters' })
-    pf_name: string;
+    pf_name?: string;
 
-    @ApiProperty({ description: 'First last name' })
+    @ApiProperty({ description: 'First last name', required: false })
+    @IsOptional()
     @IsString()
     @IsNotEmpty({ message: 'Family first last name is required' })
     @Length(2, 50, { message: 'First last name must be between 2 and 50 characters' })
-    pf_f_last_name: string;
+    pf_f_last_name?: string;
 
-    @ApiProperty({ description: 'Second last name' })
+    @ApiProperty({ description: 'Second last name', required: false })
+    @IsOptional()
     @IsString()
     @IsNotEmpty({ message: 'Family second last name is required' })
     @Length(2, 50, { message: 'Second last name must be between 2 and 50 characters' })
-    pf_s_last_name: string;
+    pf_s_last_name?: string;
 
     @ApiProperty({ description: 'Phone number', required: false })
     @IsOptional()
@@ -89,11 +93,13 @@ export class UpdateFamilyDataDto {
 
     @ApiProperty({ 
         description: 'Relationship to older adult',
-        enum: KinshipType 
+        enum: KinshipType,
+        required: false
     })
+    @IsOptional()
     @IsString()
     @IsEnum(KinshipType, { message: 'Invalid kinship type' })
-    pf_kinship: string;
+    pf_kinship?: string;
 }
 
 export class UpdateClinicalConditionDataDto {
@@ -222,10 +228,11 @@ export class UpdateClinicalHistoryDataDto {
 }
 
 export class UpdateVirtualRecordDirectDto {
-    @ApiProperty({ description: 'Older adult ID to update' })
+    @ApiProperty({ description: 'Older adult ID to update', required: false })
+    @IsOptional()
     @IsNumber()
     @IsPositive({ message: 'ID must be a positive number' })
-    id: number;
+    id?: number;
 
     @ApiProperty({ description: 'Older adult identification number' })
     @IsString()
