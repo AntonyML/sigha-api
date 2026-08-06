@@ -1,11 +1,10 @@
-import { Controller, Post, Body, UseGuards, Request, Get, Param, HttpCode, UseInterceptors } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Request, Get, Param, HttpCode } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService, LoginDto } from '../../services/auth/auth.service';
 import { JwtAuthGuard, TwoFactorGuard } from '../../common/guards';
 import { Public, Require2FA } from '../../common/decorators';
 import { ForgotPasswordDto, ResetPasswordDto } from '../../dto/auth';
-import { CacheInterceptor, CacheKey, CacheTTL } from '@nestjs/cache-manager';
 
 @ApiTags('Autenticación')
 @Controller('auth')
@@ -143,9 +142,6 @@ export class AuthController {
     @UseGuards(JwtAuthGuard)
         @ApiBearerAuth('jwt')
         @Throttle({ default: { ttl: 60000, limit: 30 } })
-        @UseInterceptors(CacheInterceptor)
-        @CacheKey('2fa-status')
-        @CacheTTL(60000)
         @Get('2fa/status')
         @ApiOperation({
             summary: 'Obtener estado de autenticación de dos factores',

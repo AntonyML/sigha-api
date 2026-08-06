@@ -322,8 +322,8 @@ export class AuthService {
                         // Regenerar tokens con twoFactorVerified = true para evitar logout forzado
                         const tokens = await this.generateTokens(user, undefined, undefined, true);
 
-                        // Invalidar caché de estado 2FA
-                        await this.cacheManager.del('2fa-status');
+                        // Invalidar caché de estado 2FA de este usuario
+                        await this.cacheManager.del(`2fa-status-${userId}`);
 
                         return {
                             success: true,
@@ -359,8 +359,8 @@ export class AuthService {
                     }
                 );
 
-                // Invalidar caché de estado 2FA
-                await this.cacheManager.del('2fa-status');
+                // Invalidar caché de estado 2FA de este usuario
+                await this.cacheManager.del(`2fa-status-${userId}`);
 
                 return { success: true };
     }
