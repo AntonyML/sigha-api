@@ -6,10 +6,10 @@ export class Role {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ 
+  @Column({
     name: 'r_name',
-    type: 'enum',
-    enum: ['super admin', 'admin', 'director', 'nurse', 'physiotherapist', 'psychologist', 'social worker', 'not specified'],
+    type: 'varchar',
+    length: 50,
     default: 'not specified'
   })
   rName: string;
