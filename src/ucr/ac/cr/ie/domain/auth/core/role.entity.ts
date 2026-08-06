@@ -9,7 +9,7 @@ export class Role {
   @Column({
     name: 'r_name',
     type: 'varchar',
-    length: 50,
+    length: 100,
     default: 'not specified'
   })
   rName: string;
