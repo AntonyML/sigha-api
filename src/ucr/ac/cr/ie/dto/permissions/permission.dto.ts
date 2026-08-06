@@ -1,6 +1,6 @@
 import {
   IsString, IsNotEmpty, IsEnum, IsBoolean, IsOptional,
-  MaxLength, MinLength
+  MaxLength, MinLength, IsArray, IsInt
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { PermissionModule, PermissionAction } from '../../domain/permissions';
@@ -69,5 +69,7 @@ export class UpdateRolePermissionsDto {
     type: [Number],
     example: [1, 2, 3],
   })
+  @IsArray()
+  @IsInt({ each: true })
   permissionIds: number[];
 }
