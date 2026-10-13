@@ -13,7 +13,7 @@ export class CreateSpecializedAreaDto {
     @IsString()
     saDescription?: string;
 
-    @ApiPropertyOptional({ description: 'Contact email', example: 'nursing@hogar.cr', maxLength: 256 })
+    @ApiPropertyOptional({ description: 'Contact email', example: 'nursing@sigha.cr', maxLength: 256 })
     @IsOptional()
     @IsEmail()
     @MaxLength(256)

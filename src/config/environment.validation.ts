@@ -77,7 +77,7 @@ export class EnvironmentVariables {
   @ValidateIf((o) => !o.DATABASE_URL)
   @IsString({ message: 'DB_NAME debe ser una cadena de texto' })
   @IsNotEmpty({ message: 'DB_NAME es requerido si no se define DATABASE_URL' })
-  DB_NAME: string = 'hogar_de_ancianos';
+  DB_NAME: string = 'sigha';
 
   @IsIn(['true', 'false'], { message: 'DB_SSL debe ser true o false' })
   DB_SSL: string = 'false';

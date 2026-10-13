@@ -27,7 +27,7 @@ export class ResendService {
   constructor(private readonly configService: ConfigService) {
     const apiKey = (this.configService.get<string>('RESEND_API_KEY') || '').trim();
     this.fromEmail = (this.configService.get<string>('RESEND_FROM_EMAIL') || '').trim();
-    this.fromName = (this.configService.get<string>('RESEND_FROM_NAME') || 'Sistema Hogar de Ancianos').trim();
+    this.fromName = (this.configService.get<string>('RESEND_FROM_NAME') || 'Sistema Integral de Gestión Holística y de Asistencia').trim();
     this.enabled = Boolean(apiKey) && Boolean(this.fromEmail);
 
     if (!this.enabled) {

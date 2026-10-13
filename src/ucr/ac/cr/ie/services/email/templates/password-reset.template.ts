@@ -1,6 +1,6 @@
 import { PasswordResetParams } from '../email.types';
 
-const SYSTEM_NAME = 'Sistema Hogar de Ancianos';
+const SYSTEM_NAME = 'Sistema Integral de Gestión Holística y de Asistencia';
 
 export function buildPasswordResetSubject(): string {
   return `Recuperación de contraseña - ${SYSTEM_NAME}`;

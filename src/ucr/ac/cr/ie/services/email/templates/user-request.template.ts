@@ -1,4 +1,4 @@
-const SYSTEM_NAME = 'Sistema Hogar de Ancianos';
+const SYSTEM_NAME = 'Sistema Integral de Gestión Holística y de Asistencia';
 
 export interface UserRequestEmailParams {
   requesterName: string;

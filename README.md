@@ -1,12 +1,12 @@
 # SIGHA API
 
-[![npm version](https://img.shields.io/badge/npm-1.0.0-blue)](https://www.npmjs.com/package/hogar-ancianos-backend)
+[![npm version](https://img.shields.io/badge/npm-1.0.0-blue)](https://www.npmjs.com/package/sigha-backend)
 [![build status](https://img.shields.io/badge/build-passing-brightgreen)](#)
 [![license](https://img.shields.io/badge/license-UNLICENSED-lightgrey)](#)
 
 ## Descripción General
 
-API RESTful basada en NestJS que gestiona el **Sistema Integral de Gestión del Hogar de Ancianos (SIGHA)**. Proporciona autenticación JWT con soporte opcional de 2FA, control de roles y permisos granulares, y operaciones CRUD para usuarios, notificaciones, registros clínicos, programas y más.
+API RESTful basada en NestJS que gestiona el **Sistema Integral de Gestión Holística y de Asistencia (SIGHA)**. Proporciona autenticación JWT con soporte opcional de 2FA, control de roles y permisos granulares, y operaciones CRUD para usuarios, notificaciones, registros clínicos, programas y más.
 
 ## Arquitectura y Flujo
 
@@ -68,7 +68,7 @@ bun run build && bun run start:prod
 | `DB_PORT` | Puerto PostgreSQL | `5432` |
 | `DB_USERNAME` | Usuario DB | `postgres` |
 | `DB_PASSWORD` | Contraseña DB | `mysecret` |
-| `DB_NAME` | Nombre de base de datos | `hogar_de_ancianos` |
+| `DB_NAME` | Nombre de base de datos | `sigha` |
 | `DB_SSL` | `true` para TLS | `false` |
 | `TYPEORM_LOGGING` | Logueo de consultas (debug) | `false` |
 | `LOG_LEVEL` | Nivel de logs (fatal, error, warn, info, http, audit, debug, trace) | `info` |
@@ -76,7 +76,7 @@ bun run build && bun run start:prod
 | `JWT_EXPIRES_IN` | Tiempo de vida del token | `1h` |
 | `RESEND_API_KEY` | API key para envío de correos | `re_xxxxxxxxxxxxx` |
 | `RESEND_FROM_EMAIL` | Remitente de correo | `noreply@tu-dominio.com` |
-| `RESEND_FROM_NAME` | Nombre del remitente | `Hogar de Ancianos` |
+| `RESEND_FROM_NAME` | Nombre del remitente | `Sistema Integral de Gestión Holística y de Asistencia` |
 | `SUPABASE_URL` | URL del bucket Supabase | `https://<ref>.supabase.co` |
 | `SUPABASE_SERVICE_ROLE_KEY` | Credencial de servicio Supabase | `<clave>` |
 

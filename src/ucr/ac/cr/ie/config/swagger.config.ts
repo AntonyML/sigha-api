@@ -3,8 +3,8 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 export function setupSwagger(app: INestApplication) {
     const config = new DocumentBuilder()
-        .setTitle('Sistema Hogar de Ancianos API')
-        .setDescription('API completa para la gestión integral de hogar de ancianos. Incluye autenticación JWT con 2FA, gestión de usuarios, roles y auditoría.')
+        .setTitle('Sistema Integral de Gestión Holística y de Asistencia API')
+        .setDescription('API completa para la gestión holística y de asistencia. Incluye autenticación JWT con 2FA, gestión de usuarios, roles y auditoría.')
         .setVersion('1.0.0')
         .addServer('http://localhost:3000', 'Desarrollo Local')
         .addTag('auth', 'Endpoints de autenticación y seguridad')

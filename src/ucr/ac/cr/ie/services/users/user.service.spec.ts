@@ -49,7 +49,7 @@ describe('UserService', () => {
 
     const validCreateUserDto = {
         uIdentification: '303030303',
-        uEmail: 'nuevo@hogarancianos.com',
+        uEmail: 'nuevo@sigha.cr',
         uPassword: STRONG_PASSWORD,
         uName: 'Juan',
         uFLastName: 'Pérez',
@@ -64,7 +64,7 @@ describe('UserService', () => {
             uIdentification: '101010101',
             uName: 'Ana',
             uFLastName: 'García',
-            uEmail: 'ana@hogarancianos.com',
+            uEmail: 'ana@sigha.cr',
             uEmailVerified: false,
             uIsActive: true,
             uPassword: storedHash,
@@ -74,7 +74,7 @@ describe('UserService', () => {
             uIdentification: '202020202',
             uName: 'Luis',
             uFLastName: 'López',
-            uEmail: 'luis@hogarancianos.com',
+            uEmail: 'luis@sigha.cr',
             uEmailVerified: false,
             uIsActive: true,
         });
@@ -193,7 +193,7 @@ describe('UserService', () => {
         it('debe crear usuario, asignar rol y registrar auditoría con la acción CREATE', async () => {
             const saved = await service.createUser(validCreateUserDto as any);
 
-            expect(saved.uEmail).toBe('nuevo@hogarancianos.com');
+            expect(saved.uEmail).toBe('nuevo@sigha.cr');
             expect(saved.uPassword).not.toBe(STRONG_PASSWORD);
             expect(mockUserRoleService.assignRole).toHaveBeenCalledWith(saved.id, 2, undefined, true);
             expect(mockAuditService.createDigitalRecord).toHaveBeenCalledTimes(1);
@@ -206,7 +206,7 @@ describe('UserService', () => {
 
         it('debe rechazar cuando el email ya está en uso', async () => {
             await expect(
-                service.createUser({ ...validCreateUserDto, uEmail: 'ana@hogarancianos.com' } as any),
+                service.createUser({ ...validCreateUserDto, uEmail: 'ana@sigha.cr' } as any),
             ).rejects.toThrow('El email ya está en uso');
             expect(mockUserRepo.save).toHaveBeenCalledTimes(0);
         });
@@ -282,7 +282,7 @@ describe('UserService', () => {
         });
 
         it('debe rechazar un nuevo email que pertenece a otro usuario', async () => {
-            await expect(service.updateUser(2, { uEmail: 'ana@hogarancianos.com' } as any, 1))
+            await expect(service.updateUser(2, { uEmail: 'ana@sigha.cr' } as any, 1))
                 .rejects.toThrow('El email ya está en uso');
         });
 

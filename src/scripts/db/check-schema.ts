@@ -3,7 +3,7 @@ import { DataSource } from 'typeorm';
 
 config();
 
-const DEFAULT_DB = 'hogar_de_ancianos';
+const DEFAULT_DB = 'sigha';
 const DEFAULT_SCHEMA = 'public';
 
 async function checkDatabaseSchema(): Promise<void> {
