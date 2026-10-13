@@ -51,11 +51,11 @@ bun run test:cov
 bun run build && bun run start:prod
 ```
 
-## Flujo de Trabajo Git
+## Flujo de Trabajo Git (multi-agente con worktrees)
 
-- `dev` es la rama principal de integración.
-- Para cualquier tarea o feature, crea una rama a partir de `dev` (ej. `feature/<nombre>` o `agent/<id>/<tarea>`).
-- Una vez finalizados y verificados los cambios, **todos los cambios deben integrarse (merge) directamente a `dev`**.
+- `dev` es la rama de integración y el checkout principal (`C:\DEV\sigha\sigha-api`) **no se edita**: siempre en `dev`, siempre limpio. Solo el coordinador integra ahí.
+- Cada agente trabaja en su worktree aislado `C:\DEV\sigha\_wt\sigha-api\<id>-<tarea>` con rama `agent/<id>/<tarea>` creada desde `origin/dev`.
+- Antes de empezar: reclama tus archivos en `C:\DEV\sigha\_wt\_claims\sigha-api.json` (dos agentes nunca tocan el mismo archivo). Protocolo completo en `C:\DEV\sigha\AGENTS.md` y `AGENTS.md`.
 
 ## Variables de Entorno
 
