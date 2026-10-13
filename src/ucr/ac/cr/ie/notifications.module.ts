@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { CacheModule } from '@nestjs/cache-manager';
 import { NotificationController } from './controller/notifications/notification.controller';
 import { NotificationService } from './services/notifications/notification.service';
+import { NotificationDispatchService } from './services/notifications/notification-dispatch.service';
 import { notificationProviders } from './repository/notifications/notification.providers';
 import { DatabaseModule } from './database.module';
 import { AuditModule } from './audit.module';
@@ -25,7 +26,8 @@ import { AuditModule } from './audit.module';
     providers: [
         ...notificationProviders,
         NotificationService,
+        NotificationDispatchService,
     ],
-    exports: [NotificationService],
+    exports: [NotificationService, NotificationDispatchService],
 })
 export class NotificationsModule { }
