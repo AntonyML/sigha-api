@@ -49,6 +49,15 @@ bun run build --cwd "C:\DEV\sigha\_wt\sigha-api\<id>-<tarea>"
 
 No levantes dos `start:dev` en el puerto `3000`; si necesitas servidor, pide al coordinador un `PORT` distinto.
 
+### Verificación posterior al merge en `dev` (coordinador)
+
+Después de que el agente entregue la rama como `done`, el coordinador hace el
+merge a `dev` y vuelve a verificar el cambio desde el checkout principal. Ejecuta
+`typecheck`, las pruebas pertinentes y `build` según el alcance, además de una
+comprobación funcional del endpoint o flujo afectado. Que pase en el worktree no
+sustituye esta verificación. Si falla, conserva el worktree para corregirlo y no
+marques el claim `integrated` ni limpies la rama hasta que pase en `dev`.
+
 ### Entrega al coordinador (no integras tú)
 
 Commit en tu rama, `git status` limpio, marca tu claim `done`/`blocked` y entrega: rama, worktree, `baseSha`, `git diff --stat`, archivos tocados, verificaciones con resultado y nota lista para `CHANGELOG.md` (`YYYY-MM-DD | agent/<id>/<tarea> | tipo: resumen | verificación: resultado`). **No edites `CHANGELOG.md` ni la sección `Resueltas` de `TECH_DEBT.md`**: solo el coordinador los actualiza tras integrar.
