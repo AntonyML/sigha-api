@@ -20,8 +20,8 @@ API RESTful basada en NestJS que gestiona el **Sistema Integral de Gestión del 
 
 | Requisito | Detalle |
 |-----------|----------|
-| **Node.js** | >= 20.x |
-| **npm** | >= 10.x |
+| **Bun** | >= 1.1.x (Recomendado 1.3+) |
+| **Node.js** (opcional/compatibilidad) | >= 22.x |
 | **PostgreSQL** | 12+ (o Supabase) |
 | **Variables de entorno** | Ver la tabla "Variables de Entorno" abajo |
 | **Docker** (opcional) | Para despliegue en contenedor |
@@ -33,18 +33,22 @@ API RESTful basada en NestJS que gestiona el **Sistema Integral de Gestión del 
 git clone https://github.com/tu-org/sigha-api.git
 cd sigha-api
 
-# Instalar dependencias
-npm install
+# Instalar dependencias con Bun
+bun install
 
 # Copiar variables de entorno de ejemplo y completarlas
 cp .env.example .env
 # Editar .env con los valores reales
 
 # Ejecutar en modo desarrollo
-npm run start:dev
+bun run start:dev
+
+# Ejecutar tests
+bun test
+bun run test:cov
 
 # Compilar y ejecutar en producción
-npm run build && npm run start:prod
+bun run build && bun run start:prod
 ```
 
 ## Variables de Entorno

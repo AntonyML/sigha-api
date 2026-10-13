@@ -1,0 +1,7 @@
+# Bun configuration for sigha-api
+
+[install]
+exact = false
+
+[test]
+root = "."

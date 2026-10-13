@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { Repository, MoreThan } from 'typeorm';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
+import type { Cache } from 'cache-manager';
 import { User } from '../../domain/auth/core/user.entity';
 import { UserSession } from '../../domain/auth/sessions/user-session.entity';
 import { UserTwoFactor } from '../../domain/auth/security/user-two-factor.entity';

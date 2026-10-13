@@ -1,7 +1,7 @@
 import { Injectable, BadRequestException, NotFoundException, Inject } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
+import type { Cache } from 'cache-manager';
 import { LoggerService } from '@common/services/logger.service';
 import { sanitizeForLogging } from '@common/utils/logger-sanitizer';
 import { Notification, NotificationAttachment, NotificationStatus } from '../../domain/notifications';
