@@ -7,7 +7,6 @@ import { AuthService, UserRoleService } from './services/auth';
 import { AuthController } from './controller/auth/auth.controller';
 import { authProviders } from './repository/auth/auth.providers';
 import { DatabaseModule } from './database.module';
-import { StartupService } from './services/startup.service';
 import { EmailModule } from './email.module';
 import { AuditModule } from './audit.module';
 
@@ -41,7 +40,6 @@ import { AuditModule } from './audit.module';
     providers: [
         AuthService,
         UserRoleService,
-        StartupService,
         ...authProviders,
     ],
     exports: [AuthService, UserRoleService, JwtModule, ...authProviders],
