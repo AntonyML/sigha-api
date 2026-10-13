@@ -4,7 +4,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 export class LoginDto {
     @ApiProperty({
         description: 'Email del usuario',
-        example: 'admin@hogarancianos.com'
+        example: 'admin@sigha.cr'
     })
     @IsEmail({}, { message: 'El email debe tener un formato válido' })
     uEmail: string;

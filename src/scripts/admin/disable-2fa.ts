@@ -69,7 +69,7 @@ async function disable2FAForUser(email: string) {
 }
 
 // Obtener email de argumentos de línea de comandos
-const email = process.argv.find(arg => arg.includes('@')) || 'superadmin@hogarancianos.com';
+const email = process.argv.find(arg => arg.includes('@')) || 'superadmin@sigha.cr';
 
 console.log('[START] Iniciando script para deshabilitar 2FA...');
 disable2FAForUser(email).then(() => {

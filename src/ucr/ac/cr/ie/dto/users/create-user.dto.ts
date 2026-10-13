@@ -34,7 +34,7 @@ export class CreateUserDto {
 
     @ApiProperty({
         description: 'Email del usuario',
-        example: 'juan.perez@hogarancianos.com'
+        example: 'juan.perez@sigha.cr'
     })
     @IsEmail({}, { message: 'El email debe tener un formato válido' })
     uEmail: string;

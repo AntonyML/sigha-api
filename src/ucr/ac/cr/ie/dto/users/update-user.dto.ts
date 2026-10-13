@@ -28,7 +28,7 @@ export class UpdateUserDto {
 
     @ApiPropertyOptional({
         description: 'Email del usuario',
-        example: 'juan.carlos@hogarancianos.com'
+        example: 'juan.carlos@sigha.cr'
     })
     @IsOptional()
     @IsEmail({}, { message: 'El email debe tener un formato válido' })
