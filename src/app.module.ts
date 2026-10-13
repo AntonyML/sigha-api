@@ -4,6 +4,7 @@ import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { LoggerModule } from './common/services/logger.module';
 import { WinstonModule } from 'nest-winston';
 import { createWinstonLogger } from './config/logger.config';
+import { validateEnv } from './config/environment.validation';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { DatabaseModule } from './ucr/ac/cr/ie/database.module';
@@ -37,6 +38,7 @@ import { UserRequestsModule } from './ucr/ac/cr/ie/user-requests.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      validate: validateEnv,
     }),
     ThrottlerModule.forRoot([{
       ttl: Number(process.env.THROTTLE_TTL ?? 60000),
