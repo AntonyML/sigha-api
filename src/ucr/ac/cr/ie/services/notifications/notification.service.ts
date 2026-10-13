@@ -1,10 +1,10 @@
-import { Injectable, BadRequestException, NotFoundException, Inject } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { Injectable, BadRequestException, NotFoundException, Inject, Optional } from '@nestjs/common';
+import { DataSource, EntityManager, Repository } from 'typeorm';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import type { Cache } from 'cache-manager';
 import { LoggerService } from '@common/services/logger.service';
 import { sanitizeForLogging } from '@common/utils/logger-sanitizer';
-import type { Notification, NotificationAttachment } from '../../domain/notifications';
+import { Notification, type NotificationAttachment } from '../../domain/notifications';
 import { NotificationStatus } from '../../domain/notifications/notification-status.enum';
 import { CreateNotificationDto, UpdateNotificationDto, SearchNotificationDto } from '../../dto/notifications';
 import { AuditService } from '../audit/audit.service';
@@ -20,6 +20,9 @@ export class NotificationService {
         private notificationAttachmentRepository: Repository<NotificationAttachment>,
         private readonly auditService: AuditService,
         @Inject(CACHE_MANAGER) private cacheManager: Cache,
+        @Optional()
+        @Inject('DataSource')
+        private dataSource?: DataSource,
     ) { }
 
     /** TTL (ms) de la caché de listado de notificaciones por usuario */
@@ -225,30 +228,83 @@ export class NotificationService {
     }
 
     /**
-     * Marcar notificación como leída
+     * Marcar notificación como leída con control de concurrencia mediante transacción
+     * y bloqueo pesimista a nivel de fila (pessimistic_write).
      */
     async markAsRead(id: number, userId: number): Promise<Notification> {
-        const notification = await this.findOne(id);
-        notification.nStatus = NotificationStatus.READ;
-        const updated = await this.notificationRepository.save(notification);
+        const executeMarkAsRead = async (
+            findFn: (targetId: number) => Promise<Notification | null>,
+            saveFn: (entity: Notification) => Promise<Notification>,
+        ): Promise<{ notification: Notification; wasAlreadyRead: boolean }> => {
+            const notification = await findFn(id);
 
-        try {
-                    await this.auditService.createDigitalRecord(userId, {
-                        action: AuditAction.UPDATE,
-                        tableName: 'notifications',
-                        recordId: id,
-                        description: `Notificación "${notification.nTitle}" marcada como leída`,
-                    });
-                } catch (e) {
-                    this.logger.error('Audit error (notifications markAsRead)', sanitizeForLogging({ error: String(e) }));
-                }
-
-                // Invalidar caché de listados (versión global) y la de los usuarios implicados
-                this.invalidateUnreadCache();
-                await this.invalidateUserUnreadCache(userId, notification.idSender);
-
-                return updated;
+            if (!notification) {
+                throw new NotFoundException('Notificación no encontrada');
             }
+
+            // Operación idempotente: si ya estaba leída por otra transacción concurrente, no duplicar mutación ni auditoría
+            if (notification.nStatus === NotificationStatus.READ) {
+                return { notification, wasAlreadyRead: true };
+            }
+
+            notification.nStatus = NotificationStatus.READ;
+            const updated = await saveFn(notification);
+            return { notification: updated, wasAlreadyRead: false };
+        };
+
+        let result: { notification: Notification; wasAlreadyRead: boolean };
+
+        if (this.dataSource?.transaction) {
+            result = await this.dataSource.transaction(async (manager: EntityManager) => {
+                return executeMarkAsRead(
+                    (targetId) => manager.findOne(Notification, {
+                        where: { id: targetId },
+                        lock: { mode: 'pessimistic_write' },
+                        relations: ['sender', 'attachments'],
+                    }),
+                    (entity) => manager.save(entity),
+                );
+            });
+        } else if (this.notificationRepository.manager?.transaction) {
+            result = await this.notificationRepository.manager.transaction(async (manager: EntityManager) => {
+                return executeMarkAsRead(
+                    (targetId) => manager.findOne(Notification, {
+                        where: { id: targetId },
+                        lock: { mode: 'pessimistic_write' },
+                        relations: ['sender', 'attachments'],
+                    }),
+                    (entity) => manager.save(entity),
+                );
+            });
+        } else {
+            result = await executeMarkAsRead(
+                (targetId) => this.findOne(targetId),
+                (entity) => this.notificationRepository.save(entity),
+            );
+        }
+
+        const { notification, wasAlreadyRead } = result;
+
+        if (!wasAlreadyRead) {
+            // Auditoría solo cuando el cambio de estado se realizó de forma efectiva
+            try {
+                await this.auditService.createDigitalRecord(userId, {
+                    action: AuditAction.UPDATE,
+                    tableName: 'notifications',
+                    recordId: id,
+                    description: `Notificación "${notification.nTitle}" marcada como leída`,
+                });
+            } catch (e) {
+                this.logger.error('Audit error (notifications markAsRead)', sanitizeForLogging({ error: String(e) }));
+            }
+
+            // Invalidar caché de listados (versión global) y la de los usuarios implicados
+            this.invalidateUnreadCache();
+            await this.invalidateUserUnreadCache(userId, notification.idSender);
+        }
+
+        return notification;
+    }
 
     /**
      * Eliminar notificación
