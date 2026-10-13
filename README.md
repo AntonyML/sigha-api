@@ -51,6 +51,12 @@ bun run test:cov
 bun run build && bun run start:prod
 ```
 
+## Flujo de Trabajo Git
+
+- `dev` es la rama principal de integración.
+- Para cualquier tarea o feature, crea una rama a partir de `dev` (ej. `feature/<nombre>` o `agent/<id>/<tarea>`).
+- Una vez finalizados y verificados los cambios, **todos los cambios deben integrarse (merge) directamente a `dev`**.
+
 ## Variables de Entorno
 
 | Variable | Propósito | Ejemplo |

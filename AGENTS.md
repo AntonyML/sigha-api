@@ -17,8 +17,9 @@ Al iniciar, identifica tu trabajo con: `Agente: <id/rol> | proyecto: sigha-api |
 ### Ramas y worktrees
 
 - `dev` es la rama de integración. Cada agente trabaja en un worktree exclusivo y una rama única `agent/<id>/<tarea>`, creada desde `dev`; usa `~/worktrees/sigha-api/<id>-<tarea>` como ubicación del worktree.
+- **Flujo de cambios**: Después de crear la rama e implementar y verificar la tarea, **todos los cambios deben ir e integrarse directamente a `dev`**.
 - Si no existe `dev` local ni `origin/dev`, detén la creación de ramas y pide al mantenedor que establezca `dev` desde una base aprobada. `main` queda reservada: no hagas checkout, no bases ramas de tarea en ella ni la uses como destino de commit, merge o integración.
-- No compartas worktrees, ramas ni sesiones de edición. Cada agente confirma cambios únicamente en su propia rama.
+- No compartas worktrees, ramas ni sesiones de edición. Cada agente confirma cambios únicamente en su propia rama antes de su integración a `dev`.
 - Para analizar arquitectura, flujos o impacto, consulta CodeGraph antes de buscar archivos. Cada worktree necesita su propio `.codegraph/`; si falta, ejecuta `gentle-ai codegraph init --cwd <ruta-del-worktree>`. No copies ni compartas índices. Después de editar, deja sincronizar al watcher; usa `codegraph sync` solo si está apagado o el índice queda desactualizado.
 
 ### Operaciones Git y bloqueos
