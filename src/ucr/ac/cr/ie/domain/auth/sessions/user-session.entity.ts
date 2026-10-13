@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, type Relation } from 'typeorm';
 import { User } from '../core/user.entity';
 
 @Entity('user_sessions')
@@ -35,7 +35,7 @@ export class UserSession {
 
   @ManyToOne(() => User, user => user.sessions)
   @JoinColumn({ name: 'user_id' })
-  user: User;
+  user: Relation<User>;
 
   constructor(
     id?: number,

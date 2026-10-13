@@ -2,12 +2,8 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, Jo
 import { User } from '../auth/core/user.entity';
 import { NotificationAttachment } from './index';
 
-export enum NotificationStatus {
-    PENDING = 'pending',
-    SENT = 'sent',
-    FAILED = 'failed',
-    READ = 'read',
-}
+import { NotificationStatus } from './notification-status.enum';
+export { NotificationStatus };
 
 @Entity('notifications')
 export class Notification {
