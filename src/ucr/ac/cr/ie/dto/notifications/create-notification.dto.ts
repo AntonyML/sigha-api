@@ -1,6 +1,32 @@
-import { IsString, IsOptional, IsDateString, MaxLength, IsArray, ValidateNested, IsBoolean } from 'class-validator';
+import { IsString, IsOptional, IsDateString, MaxLength, IsArray, ValidateNested, IsBoolean, IsIn, Matches, IsNumber, Min, Max, Validate, ValidatorConstraint, ValidatorConstraintInterface, ValidationArguments } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
+
+export const ALLOWED_ATTACHMENT_MIME_TYPES = ['application/pdf', 'image/jpeg', 'image/png'] as const;
+export const ALLOWED_ATTACHMENT_EXTENSIONS = ['pdf', 'jpg', 'jpeg', 'png'] as const;
+
+const MIME_BY_EXTENSION: Record<string, readonly string[]> = {
+    pdf: ['application/pdf'],
+    jpg: ['image/jpeg'],
+    jpeg: ['image/jpeg'],
+    png: ['image/png'],
+};
+
+@ValidatorConstraint({ name: 'IsAttachmentMimeConsistent', async: false })
+export class IsAttachmentMimeConsistent implements ValidatorConstraintInterface {
+    validate(mime: unknown, args: ValidationArguments): boolean {
+        const obj = args.object as CreateNotificationAttachmentDto;
+        if (typeof mime !== 'string' || typeof obj?.naFileName !== 'string') return false;
+        const ext = obj.naFileName.split('.').pop()?.toLowerCase();
+        if (!ext) return false;
+        const allowed = MIME_BY_EXTENSION[ext];
+        return !!allowed && allowed.includes(mime);
+    }
+
+    defaultMessage(): string {
+        return 'El tipo MIME no coincide con la extensión del archivo (permitidos: pdf→application/pdf, jpg/jpeg→image/jpeg, png→image/png)';
+    }
+}
 
 export class CreateNotificationAttachmentDto {
     @ApiProperty({
@@ -9,6 +35,7 @@ export class CreateNotificationAttachmentDto {
     })
     @IsString({ message: 'El nombre del archivo debe ser una cadena de texto' })
     @MaxLength(150, { message: 'El nombre del archivo no puede exceder 150 caracteres' })
+    @Matches(/\.(pdf|jpe?g|png)$/i, { message: 'La extensión del archivo no es válida. Permitidas: pdf, jpg, jpeg, png' })
     naFileName: string;
 
     @ApiProperty({
@@ -25,12 +52,17 @@ export class CreateNotificationAttachmentDto {
     })
     @IsString({ message: 'El tipo MIME debe ser una cadena de texto' })
     @MaxLength(100, { message: 'El tipo MIME no puede exceder 100 caracteres' })
+    @IsIn([...ALLOWED_ATTACHMENT_MIME_TYPES], { message: 'Tipo MIME no permitido. Permitidos: application/pdf, image/jpeg, image/png' })
+    @Validate(IsAttachmentMimeConsistent)
     naFileMimeType: string;
 
     @ApiProperty({
         description: 'Tamaño del archivo en KB (máximo 5 MB = 5120 KB)',
         example: 1024
     })
+    @IsNumber({}, { message: 'El tamaño del archivo debe ser un número' })
+    @Min(1, { message: 'El tamaño del archivo debe ser mayor a 0 KB' })
+    @Max(5120, { message: 'El tamaño del archivo no puede exceder 5120 KB (5 MB)' })
     naFileSizeKb: number;
 }
 

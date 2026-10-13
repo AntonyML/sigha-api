@@ -17,8 +17,11 @@ Esta tabla resume los problemas técnicos detectados en el código fuente, junto
 
 | **Notificaciones - Push en tiempo real** | Las notificaciones solo se obtienen mediante peticiones HTTP; no hay mecanismo push (WebSocket/SSE). | Medio: experiencia de usuario pobre, latencia en la entrega, carga innecesaria al cliente. | Implementar un gateway NestJS con WebSocket o Server‑Sent Events para push de notificaciones; usar un broker (Redis) para escalar. |
 | **Cache de notificaciones** | Se usa la clave `notifications-unread::*` y se elimina con wildcard, afectando a todos los usuarios. | Bajo: sobre‑borrado de caché, posible pérdida de datos en alta concurrencia. | Refactorizar a caché por usuario (`notifications-unread:${userId}`) y establecer TTL; usar patrones de invalidación más finos. |
-| **Validación de archivos adjuntos** | No se valida el tipo MIME ni la extensión de los archivos adjuntos en `CreateNotificationDto`. | Medio: riesgo de subir archivos peligrosos o incompatibles. | Añadir validaciones de MIME y extensión en DTO y servicio; limitar tipos permitidos (pdf, jpg, png, etc.). |
 | **Manejo de concurrencia al marcar como leída** | La actualización del estado de la notificación no está envuelta en transacción ni usa control de versiones. | Bajo: posible condición de carrera si varios procesos marcan simultáneamente. | Utilizar transacciones de TypeORM o `optimistic locking` con columna de versión para asegurar consistencia. |
 | **Job de envío programado** | No existe proceso que envíe automáticamente notificaciones pendientes (`nSent = false`). | Medio: notificaciones pueden quedar sin enviar, requerir intervención manual. | Implementar un job (Bull, Agenda o worker thread) que procese notificaciones pendientes, actualice `nSent` y maneje reintentos. |
 
 > **Nota**: Cada ítem debe priorizarse en el backlog de desarrollo y asignarse a un sprint de refactorización. Se recomienda crear tareas en el sistema de gestión de proyectos con la información detallada de esta tabla.
+
+## Resueltas (no retomar — evita duplicación entre agentes)
+
+- [2026-10-13] `Validación de archivos adjuntos` — RESUELTA. Alcance: `src/ucr/ac/cr/ie/dto/notifications/create-notification.dto.ts` (whitelist MIME `application/pdf, image/jpeg, image/png` + extensiones `pdf/jpg/jpeg/png` + consistencia MIME↔extensión + tamaño numérico 1–5120 KB). Verificación: `bun run typecheck` limpio, script de 5 casos class-validator OK, `bun test` 25 pass / 0 fail.
