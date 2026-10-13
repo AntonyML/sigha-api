@@ -4,7 +4,8 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import type { Cache } from 'cache-manager';
 import { LoggerService } from '@common/services/logger.service';
 import { sanitizeForLogging } from '@common/utils/logger-sanitizer';
-import { Notification, NotificationAttachment, NotificationStatus } from '../../domain/notifications';
+import type { Notification, NotificationAttachment } from '../../domain/notifications';
+import { NotificationStatus } from '../../domain/notifications/notification-status.enum';
 import { CreateNotificationDto, UpdateNotificationDto, SearchNotificationDto } from '../../dto/notifications';
 import { AuditService } from '../audit/audit.service';
 import { AuditAction, AuditReportType } from '../../domain/audit';
@@ -20,6 +21,35 @@ export class NotificationService {
         private readonly auditService: AuditService,
         @Inject(CACHE_MANAGER) private cacheManager: Cache,
     ) { }
+
+    /** TTL (ms) de la caché de listado de notificaciones por usuario */
+    private static readonly UNREAD_CACHE_TTL_MS = 15000;
+
+    /**
+     * Versión global de invalidación de la caché de listados.
+     * Incrementarla invalida de forma atómica todas las claves emitidas
+     * (`notifications-unread:<usuario>:v<versión>:<filtros>`) sin necesidad
+     * de borrados por wildcard; las claves obsoletas expiran por TTL.
+     * Limitación: al residir en memoria es por proceso; con múltiples
+     * instancias conviene mover la versión al propio store (p. ej. Redis).
+     */
+    private unreadCacheVersion = 0;
+
+    /**
+     * Invalida todos los listados cacheados de notificaciones no leídas.
+     */
+    private invalidateUnreadCache(): void {
+        this.unreadCacheVersion++;
+    }
+
+    /**
+     * Construye la clave de caché por usuario y filtros de búsqueda.
+     */
+    private unreadCacheKey(userId: number, searchDto: SearchNotificationDto): string {
+        const { search, sendDateFrom, sendDateTo, nSent, idSender, page = 1, limit = 10 } = searchDto;
+        const fingerprint = JSON.stringify({ search, sendDateFrom, sendDateTo, nSent, idSender, page, limit });
+        return `notifications-unread:${userId}:v${this.unreadCacheVersion}:${fingerprint}`;
+    }
 
     /**
      * Crear una nueva notificación
@@ -72,8 +102,9 @@ export class NotificationService {
                     this.logger.error('Audit error (notifications create)', sanitizeForLogging({ error: String(e) }));
                 }
 
-                // Invalidar caché de notificaciones no leídas
-                await this.cacheManager.del(`notifications-unread::*`);
+                // Invalidar caché de listados (versión global) y la del creador
+                this.invalidateUnreadCache();
+                await this.invalidateUserUnreadCache(userId);
 
                 return savedNotification;
     }
@@ -81,7 +112,13 @@ export class NotificationService {
     /**
      * Obtener todas las notificaciones con filtros y paginación
      */
-    async findAll(searchDto: SearchNotificationDto): Promise<{ data: Notification[]; total: number; page: number; limit: number }> {
+    async findAll(searchDto: SearchNotificationDto, userId: number = 0): Promise<{ data: Notification[]; total: number; page: number; limit: number }> {
+        const cacheKey = this.unreadCacheKey(userId, searchDto);
+        const cached = await this.cacheManager.get<{ data: Notification[]; total: number; page: number; limit: number }>(cacheKey);
+        if (cached) {
+            return cached;
+        }
+
         const { search, sendDateFrom, sendDateTo, nSent, idSender, page = 1, limit = 10 } = searchDto;
 
         const queryBuilder = this.notificationRepository
@@ -118,7 +155,10 @@ export class NotificationService {
 
         const [data, total] = await queryBuilder.getManyAndCount();
 
-        return { data, total, page, limit };
+        const result = { data, total, page, limit };
+        await this.cacheManager.set(cacheKey, result, NotificationService.UNREAD_CACHE_TTL_MS);
+
+        return result;
     }
 
     /**
@@ -177,8 +217,9 @@ export class NotificationService {
                     this.logger.error('Audit error (notifications update)', sanitizeForLogging({ error: String(e) }));
                 }
 
-                // Invalidar caché de notificaciones no leídas
-                await this.cacheManager.del(`notifications-unread::*`);
+                // Invalidar caché de listados (versión global) y la de los usuarios implicados
+                this.invalidateUnreadCache();
+                await this.invalidateUserUnreadCache(userId, notification.idSender);
 
                 return updated;
     }
@@ -202,8 +243,9 @@ export class NotificationService {
                     this.logger.error('Audit error (notifications markAsRead)', sanitizeForLogging({ error: String(e) }));
                 }
 
-                // Invalidar caché de notificaciones no leídas
-                await this.cacheManager.del(`notifications-unread::*`);
+                // Invalidar caché de listados (versión global) y la de los usuarios implicados
+                this.invalidateUnreadCache();
+                await this.invalidateUserUnreadCache(userId, notification.idSender);
 
                 return updated;
             }
@@ -232,7 +274,47 @@ export class NotificationService {
                     this.logger.error('Audit error (notifications remove)', sanitizeForLogging({ error: String(e) }));
                 }
 
-                // Invalidar caché de notificaciones no leídas
-                await this.cacheManager.del(`notifications-unread::*`);
+                // Invalidar caché de listados (versión global) y la de los usuarios implicados
+                this.invalidateUnreadCache();
+                await this.invalidateUserUnreadCache(userId, notification.idSender);
             }
+
+    /**
+     * Obtener notificaciones no leídas para un usuario específico con caché por usuario
+     */
+    async getUnreadForUser(userId: number, limit = 10): Promise<Notification[]> {
+        if (!userId) {
+            return [];
+        }
+
+        const cacheKey = `notifications-unread:${userId}`;
+        const cached = await this.cacheManager.get<Notification[]>(cacheKey);
+        if (cached) {
+            return cached;
+        }
+
+        const notifications = await this.notificationRepository.find({
+            where: {
+                idSender: userId,
+                nStatus: NotificationStatus.PENDING,
+            },
+            order: { nSendDate: 'DESC' },
+            take: limit,
+            relations: ['sender', 'attachments'],
+        });
+
+        // Almacenar en caché con TTL de 60 segundos
+        await this.cacheManager.set(cacheKey, notifications, 60000);
+        return notifications;
+    }
+
+    /**
+     * Invalida la caché de notificaciones no leídas para usuarios específicos
+     */
+    private async invalidateUserUnreadCache(...userIds: (number | undefined | null)[]): Promise<void> {
+        const uniqueIds = Array.from(new Set(userIds.filter((id): id is number => typeof id === 'number' && id > 0)));
+        await Promise.all(
+            uniqueIds.map(userId => this.cacheManager.del(`notifications-unread:${userId}`))
+        );
+    }
 }

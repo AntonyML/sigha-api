@@ -1,7 +1,6 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, UseGuards, Query, Request, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, UseGuards, Query, Request } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
-import { CacheInterceptor, CacheKey, CacheTTL } from '@nestjs/cache-manager';
 import { NotificationService } from '../../services/notifications';
 import { CreateNotificationDto, UpdateNotificationDto, SearchNotificationDto } from '../../dto/notifications';
 import { JwtAuthGuard, RolesGuard } from '../../common/guards';
@@ -33,30 +32,46 @@ export class NotificationController {
     }
 
     @Get()
-        @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.DIRECTOR, RoleType.NURSE, RoleType.SOCIAL_WORKER)
-        @Throttle({ default: { ttl: 60000, limit: 20 } })
-        @UseInterceptors(CacheInterceptor)
-        @CacheKey('notifications-unread')
-        @CacheTTL(15000)
-        @ApiOperation({
-            summary: 'Listar notificaciones',
-            description: 'Obtiene una lista paginada de notificaciones con filtros opcionales.'
-        })
-        @ApiQuery({ name: 'search', required: false, description: 'Término de búsqueda' })
-        @ApiQuery({ name: 'sendDateFrom', required: false, description: 'Fecha inicio' })
-        @ApiQuery({ name: 'sendDateTo', required: false, description: 'Fecha fin' })
-        @ApiQuery({ name: 'nSent', required: false, description: 'Estado de envío' })
-        @ApiQuery({ name: 'idSender', required: false, description: 'ID del remitente' })
-        @ApiQuery({ name: 'page', required: false, description: 'Página' })
-        @ApiQuery({ name: 'limit', required: false, description: 'Elementos por página' })
-        @ApiResponse({
-            status: 200,
-            description: 'Lista de notificaciones obtenida exitosamente'
-        })
-        @ApiResponse({ status: 403, description: 'Sin permisos suficientes' })
-        async findAll(@Query() searchDto: SearchNotificationDto) {
-            return await this.notificationService.findAll(searchDto);
-        }
+    @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.DIRECTOR, RoleType.NURSE, RoleType.SOCIAL_WORKER)
+    @Throttle({ default: { ttl: 60000, limit: 20 } })
+    @ApiOperation({
+        summary: 'Listar notificaciones',
+        description: 'Obtiene una lista paginada de notificaciones con filtros opcionales.'
+    })
+    @ApiQuery({ name: 'search', required: false, description: 'Término de búsqueda' })
+    @ApiQuery({ name: 'sendDateFrom', required: false, description: 'Fecha inicio' })
+    @ApiQuery({ name: 'sendDateTo', required: false, description: 'Fecha fin' })
+    @ApiQuery({ name: 'nSent', required: false, description: 'Estado de envío' })
+    @ApiQuery({ name: 'idSender', required: false, description: 'ID del remitente' })
+    @ApiQuery({ name: 'page', required: false, description: 'Página' })
+    @ApiQuery({ name: 'limit', required: false, description: 'Elementos por página' })
+    @ApiResponse({
+        status: 200,
+        description: 'Lista de notificaciones obtenida exitosamente'
+    })
+    @ApiResponse({ status: 403, description: 'Sin permisos suficientes' })
+    async findAll(@Query() searchDto: SearchNotificationDto, @Request() req) {
+        const userId = req?.user?.userId ?? 0;
+        return await this.notificationService.findAll(searchDto, userId);
+    }
+
+    @Get('unread')
+    @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.DIRECTOR, RoleType.NURSE, RoleType.SOCIAL_WORKER)
+    @Throttle({ default: { ttl: 60000, limit: 30 } })
+    @ApiOperation({
+        summary: 'Obtener notificaciones no leídas del usuario',
+        description: 'Obtiene las notificaciones no leídas para el usuario autenticado con caché individual.'
+    })
+    @ApiQuery({ name: 'limit', required: false, description: 'Límite de notificaciones (por defecto 10)' })
+    @ApiResponse({
+        status: 200,
+        description: 'Lista de notificaciones no leídas obtenida exitosamente'
+    })
+    @ApiResponse({ status: 403, description: 'Sin permisos suficientes' })
+    async getUnread(@Request() req, @Query('limit') limit?: number) {
+        const userId = req?.user?.userId;
+        return await this.notificationService.getUnreadForUser(userId, limit ? +limit : 10);
+    }
 
     @Get(':id')
     @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.DIRECTOR, RoleType.NURSE, RoleType.SOCIAL_WORKER)
@@ -70,8 +85,8 @@ export class NotificationController {
     })
     @ApiResponse({ status: 403, description: 'Sin permisos suficientes' })
     @ApiResponse({ status: 404, description: 'Notificación no encontrada' })
-    async findOne(@Param('id') id: string) {
-        return await this.notificationService.findOne(+id);
+    async findOne(@Param('id', ParseIntPipe) id: number) {
+        return await this.notificationService.findOne(id);
     }
 
     @Patch(':id/read')
@@ -103,9 +118,9 @@ export class NotificationController {
     @ApiResponse({ status: 400, description: 'Datos inválidos' })
     @ApiResponse({ status: 403, description: 'Sin permisos suficientes' })
     @ApiResponse({ status: 404, description: 'Notificación no encontrada' })
-    async update(@Param('id') id: string, @Body() updateNotificationDto: UpdateNotificationDto, @Request() req) {
+    async update(@Param('id', ParseIntPipe) id: number, @Body() updateNotificationDto: UpdateNotificationDto, @Request() req) {
         const userId = req?.user?.userId;
-        return await this.notificationService.update(+id, updateNotificationDto, userId);
+        return await this.notificationService.update(id, updateNotificationDto, userId);
     }
 
     @Delete(':id')
@@ -120,8 +135,8 @@ export class NotificationController {
     })
     @ApiResponse({ status: 403, description: 'Sin permisos suficientes' })
     @ApiResponse({ status: 404, description: 'Notificación no encontrada' })
-    async remove(@Param('id') id: string, @Request() req) {
+    async remove(@Param('id', ParseIntPipe) id: number, @Request() req) {
         const userId = req?.user?.userId;
-        return await this.notificationService.remove(+id, userId);
+        return await this.notificationService.remove(id, userId);
     }
 }
