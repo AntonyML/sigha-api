@@ -3,13 +3,13 @@ import { Throttle } from '@nestjs/throttler';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { NotificationService } from '../../services/notifications';
 import { CreateNotificationDto, UpdateNotificationDto, SearchNotificationDto } from '../../dto/notifications';
-import { JwtAuthGuard, RolesGuard } from '../../common/guards';
-import { Roles, Public } from '../../common/decorators';
+import { JwtAuthGuard, RolesGuard, TenantGuard } from '../../common/guards';
+import { Roles, Public, ActiveOrg } from '../../common/decorators';
 import { RoleType } from '../../domain/auth/core/role.entity';
 
 @ApiTags('Notificaciones')
 @Controller('notifications')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, TenantGuard)
 @ApiBearerAuth('jwt')
 export class NotificationController {
     constructor(private readonly notificationService: NotificationService) { }
@@ -26,9 +26,13 @@ export class NotificationController {
     })
     @ApiResponse({ status: 400, description: 'Datos inválidos' })
     @ApiResponse({ status: 403, description: 'Sin permisos suficientes' })
-    async create(@Body() createNotificationDto: CreateNotificationDto, @Request() req) {
+    async create(
+        @Body() createNotificationDto: CreateNotificationDto,
+        @Request() req,
+        @ActiveOrg() orgId: number,
+    ) {
         const userId = req?.user?.userId;
-        return await this.notificationService.create(createNotificationDto, userId);
+        return await this.notificationService.create(createNotificationDto, userId, orgId);
     }
 
     @Get()
@@ -50,9 +54,13 @@ export class NotificationController {
         description: 'Lista de notificaciones obtenida exitosamente'
     })
     @ApiResponse({ status: 403, description: 'Sin permisos suficientes' })
-    async findAll(@Query() searchDto: SearchNotificationDto, @Request() req) {
+    async findAll(
+        @Query() searchDto: SearchNotificationDto,
+        @Request() req,
+        @ActiveOrg() orgId: number,
+    ) {
         const userId = req?.user?.userId ?? 0;
-        return await this.notificationService.findAll(searchDto, userId);
+        return await this.notificationService.findAll(searchDto, userId, orgId);
     }
 
     @Get('unread')
@@ -68,9 +76,13 @@ export class NotificationController {
         description: 'Lista de notificaciones no leídas obtenida exitosamente'
     })
     @ApiResponse({ status: 403, description: 'Sin permisos suficientes' })
-    async getUnread(@Request() req, @Query('limit') limit?: number) {
+    async getUnread(
+        @Request() req,
+        @ActiveOrg() orgId: number,
+        @Query('limit') limit?: number,
+    ) {
         const userId = req?.user?.userId;
-        return await this.notificationService.getUnreadForUser(userId, limit ? +limit : 10);
+        return await this.notificationService.getUnreadForUser(userId, limit ? +limit : 10, orgId);
     }
 
     @Get(':id')
@@ -85,8 +97,11 @@ export class NotificationController {
     })
     @ApiResponse({ status: 403, description: 'Sin permisos suficientes' })
     @ApiResponse({ status: 404, description: 'Notificación no encontrada' })
-    async findOne(@Param('id', ParseIntPipe) id: number) {
-        return await this.notificationService.findOne(id);
+    async findOne(
+        @Param('id', ParseIntPipe) id: number,
+        @ActiveOrg() orgId: number,
+    ) {
+        return await this.notificationService.findOne(id, orgId);
     }
 
     @Patch(':id/read')
@@ -100,9 +115,13 @@ export class NotificationController {
         description: 'Notificación marcada como leída'
     })
     @ApiResponse({ status: 404, description: 'Notificación no encontrada' })
-    async markAsRead(@Param('id', ParseIntPipe) id: number, @Request() req) {
+    async markAsRead(
+        @Param('id', ParseIntPipe) id: number,
+        @Request() req,
+        @ActiveOrg() orgId: number,
+    ) {
         const userId = req?.user?.userId;
-        return await this.notificationService.markAsRead(id, userId);
+        return await this.notificationService.markAsRead(id, userId, orgId);
     }
 
     @Patch(':id')
@@ -118,9 +137,14 @@ export class NotificationController {
     @ApiResponse({ status: 400, description: 'Datos inválidos' })
     @ApiResponse({ status: 403, description: 'Sin permisos suficientes' })
     @ApiResponse({ status: 404, description: 'Notificación no encontrada' })
-    async update(@Param('id', ParseIntPipe) id: number, @Body() updateNotificationDto: UpdateNotificationDto, @Request() req) {
+    async update(
+        @Param('id', ParseIntPipe) id: number,
+        @Body() updateNotificationDto: UpdateNotificationDto,
+        @Request() req,
+        @ActiveOrg() orgId: number,
+    ) {
         const userId = req?.user?.userId;
-        return await this.notificationService.update(id, updateNotificationDto, userId);
+        return await this.notificationService.update(id, updateNotificationDto, userId, orgId);
     }
 
     @Delete(':id')
@@ -135,8 +159,12 @@ export class NotificationController {
     })
     @ApiResponse({ status: 403, description: 'Sin permisos suficientes' })
     @ApiResponse({ status: 404, description: 'Notificación no encontrada' })
-    async remove(@Param('id', ParseIntPipe) id: number, @Request() req) {
+    async remove(
+        @Param('id', ParseIntPipe) id: number,
+        @Request() req,
+        @ActiveOrg() orgId: number,
+    ) {
         const userId = req?.user?.userId;
-        return await this.notificationService.remove(id, userId);
+        return await this.notificationService.remove(id, userId, orgId);
     }
 }

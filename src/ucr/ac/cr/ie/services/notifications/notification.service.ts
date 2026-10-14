@@ -6,6 +6,7 @@ import { LoggerService } from '@common/services/logger.service';
 import { sanitizeForLogging } from '@common/utils/logger-sanitizer';
 import { Notification, type NotificationAttachment } from '../../domain/notifications';
 import { NotificationStatus } from '../../domain/notifications/notification-status.enum';
+import { OrganizationMember } from '../../domain/organizations';
 import { CreateNotificationDto, UpdateNotificationDto, SearchNotificationDto } from '../../dto/notifications';
 import { AuditService } from '../audit/audit.service';
 import { AuditAction, AuditReportType } from '../../domain/audit';
@@ -23,6 +24,9 @@ export class NotificationService {
         @Optional()
         @Inject('DataSource')
         private dataSource?: DataSource,
+        @Optional()
+        @Inject('OrganizationMemberRepository')
+        private organizationMemberRepository?: Repository<OrganizationMember>,
     ) { }
 
     /** TTL (ms) de la caché de listado de notificaciones por usuario */
@@ -39,6 +43,46 @@ export class NotificationService {
     private unreadCacheVersion = 0;
 
     /**
+     * PATRÓN DE SCOPING MULTI-TENANT (MÓDULO DE REFERENCIA: NOTIFICATIONS)
+     * ====================================================================
+     * Diseño y Mecanismo:
+     * - La tabla legacy `notifications` no cuenta con una columna `organization_id`.
+     * - Por ende, el aislamiento por tenant se realiza mediante la pertenencia del remitente
+     *   (`n.id_sender`) a la organización activa a través de la tabla `organization_members`.
+     * - Todo listado y búsqueda aplica un filtro EXISTS sobre `organization_members` con `organization_id = :orgId`.
+     * - Las consultas individuales (`findOne`, `update`, `remove`, `markAsRead`) verifican que el remitente
+     *   de la notificación pertenezca a la organización activa; de lo contrario devuelven `NotFoundException` (404)
+     *   para evitar la enumeración de identificadores entre distintas organizaciones.
+     *
+     * Limitación conocida:
+     * - Si un usuario pertenece a múltiples organizaciones, las notificaciones que cree serán visibles en todas
+     *   las organizaciones donde él sea miembro, ya que no se fija la organización de destino al momento de crear la notificación.
+     *
+     * Recomendación y Follow-up para los siguientes módulos:
+     * - Para los módulos restantes (~30 módulos de negocio), agregar una columna directa `organization_id INTEGER NOT NULL`
+     *   con clave foránea hacia `organizations(id)` e índice B-Tree `idx_<table>_organization_id`.
+     * - Esto permitirá un filtrado directo a nivel de fila (`WHERE table.organization_id = :orgId`), mayor rendimiento
+     *   y soporte estricto para entidades que pertenezcan a una única organización específica.
+     */
+    private async checkUserInOrg(userId: number, orgId: number): Promise<boolean> {
+        if (!userId || !orgId) return false;
+        if (this.organizationMemberRepository) {
+            const member = await this.organizationMemberRepository.findOne({
+                where: { userId, organizationId: orgId },
+            });
+            return Boolean(member);
+        }
+        if (this.dataSource) {
+            const repo = this.dataSource.getRepository(OrganizationMember);
+            const member = await repo.findOne({
+                where: { userId, organizationId: orgId },
+            });
+            return Boolean(member);
+        }
+        return true;
+    }
+
+    /**
      * Invalida todos los listados cacheados de notificaciones no leídas.
      */
     private invalidateUnreadCache(): void {
@@ -46,18 +90,18 @@ export class NotificationService {
     }
 
     /**
-     * Construye la clave de caché por usuario y filtros de búsqueda.
+     * Construye la clave de caché por usuario, filtros de búsqueda y organización activa.
      */
-    private unreadCacheKey(userId: number, searchDto: SearchNotificationDto): string {
+    private unreadCacheKey(userId: number, searchDto: SearchNotificationDto, orgId?: number): string {
         const { search, sendDateFrom, sendDateTo, nSent, idSender, page = 1, limit = 10 } = searchDto;
-        const fingerprint = JSON.stringify({ search, sendDateFrom, sendDateTo, nSent, idSender, page, limit });
-        return `notifications-unread:${userId}:v${this.unreadCacheVersion}:${fingerprint}`;
+        const fingerprint = JSON.stringify({ search, sendDateFrom, sendDateTo, nSent, idSender, page, limit, orgId });
+        return `notifications-unread:org-${orgId ?? 'all'}:${userId}:v${this.unreadCacheVersion}:${fingerprint}`;
     }
 
     /**
      * Crear una nueva notificación
      */
-    async create(createNotificationDto: CreateNotificationDto, userId: number): Promise<Notification> {
+    async create(createNotificationDto: CreateNotificationDto, userId: number, orgId?: number): Promise<Notification> {
         const { nTitle, nMessage, nSendDate, nSent, attachments } = createNotificationDto;
 
         // Validar tamaño de archivos adjuntos (máximo 5MB total)
@@ -115,8 +159,8 @@ export class NotificationService {
     /**
      * Obtener todas las notificaciones con filtros y paginación
      */
-    async findAll(searchDto: SearchNotificationDto, userId: number = 0): Promise<{ data: Notification[]; total: number; page: number; limit: number }> {
-        const cacheKey = this.unreadCacheKey(userId, searchDto);
+    async findAll(searchDto: SearchNotificationDto, userId: number = 0, orgId?: number): Promise<{ data: Notification[]; total: number; page: number; limit: number }> {
+        const cacheKey = this.unreadCacheKey(userId, searchDto, orgId);
         const cached = await this.cacheManager.get<{ data: Notification[]; total: number; page: number; limit: number }>(cacheKey);
         if (cached) {
             return cached;
@@ -128,6 +172,17 @@ export class NotificationService {
             .createQueryBuilder('n')
             .leftJoinAndSelect('n.sender', 'sender')
             .leftJoinAndSelect('n.attachments', 'attachments');
+
+        // Scoping por organización activa: sólo incluye notificaciones cuyos creadores son miembros de la organización activa
+        if (orgId) {
+            queryBuilder.andWhere(
+                `EXISTS (
+                    SELECT 1 FROM organization_members om
+                    WHERE om.user_id = n.id_sender AND om.organization_id = :activeOrgId
+                )`,
+                { activeOrgId: orgId }
+            );
+        }
 
         // Filtros
         if (search) {
@@ -165,9 +220,9 @@ export class NotificationService {
     }
 
     /**
-     * Obtener notificación por ID
+     * Obtener notificación por ID con verificación de scoping por organización activa
      */
-    async findOne(id: number): Promise<Notification> {
+    async findOne(id: number, orgId?: number): Promise<Notification> {
         const notification = await this.notificationRepository.findOne({
             where: { id },
             relations: ['sender', 'attachments'],
@@ -177,14 +232,21 @@ export class NotificationService {
             throw new NotFoundException('Notificación no encontrada');
         }
 
+        if (orgId) {
+            const belongs = await this.checkUserInOrg(notification.idSender, orgId);
+            if (!belongs) {
+                throw new NotFoundException('Notificación no encontrada');
+            }
+        }
+
         return notification;
     }
 
     /**
      * Actualizar notificación
      */
-    async update(id: number, updateNotificationDto: UpdateNotificationDto, userId: number): Promise<Notification> {
-        const notification = await this.findOne(id);
+    async update(id: number, updateNotificationDto: UpdateNotificationDto, userId: number, orgId?: number): Promise<Notification> {
+        const notification = await this.findOne(id, orgId);
 
         // Actualizar campos
         if (updateNotificationDto.nTitle) notification.nTitle = updateNotificationDto.nTitle;
@@ -231,7 +293,11 @@ export class NotificationService {
      * Marcar notificación como leída con control de concurrencia mediante transacción
      * y bloqueo pesimista a nivel de fila (pessimistic_write).
      */
-    async markAsRead(id: number, userId: number): Promise<Notification> {
+    async markAsRead(id: number, userId: number, orgId?: number): Promise<Notification> {
+        if (orgId) {
+            await this.findOne(id, orgId);
+        }
+
         const executeMarkAsRead = async (
             findFn: (targetId: number) => Promise<Notification | null>,
             saveFn: (entity: Notification) => Promise<Notification>,
@@ -309,8 +375,8 @@ export class NotificationService {
     /**
      * Eliminar notificación
      */
-    async remove(id: number, userId: number): Promise<void> {
-        const notification = await this.findOne(id);
+    async remove(id: number, userId: number, orgId?: number): Promise<void> {
+        const notification = await this.findOne(id, orgId);
 
         // Eliminar adjuntos (y archivos físicos si es necesario)
         await this.notificationAttachmentRepository.delete({ idNotification: id });
@@ -319,31 +385,40 @@ export class NotificationService {
         await this.notificationRepository.remove(notification);
 
         // Auditoría
-                try {
-                    await this.auditService.createDigitalRecord(userId, {
-                        action: AuditAction.DELETE,
-                        tableName: 'notifications',
-                        recordId: id,
-                        description: `Notificación "${notification.nTitle}" eliminada`,
-                    });
-                } catch (e) {
-                    this.logger.error('Audit error (notifications remove)', sanitizeForLogging({ error: String(e) }));
-                }
+        try {
+            await this.auditService.createDigitalRecord(userId, {
+                action: AuditAction.DELETE,
+                tableName: 'notifications',
+                recordId: id,
+                description: `Notificación "${notification.nTitle}" eliminada`,
+            });
+        } catch (e) {
+            this.logger.error('Audit error (notifications remove)', sanitizeForLogging({ error: String(e) }));
+        }
 
-                // Invalidar caché de listados (versión global) y la de los usuarios implicados
-                this.invalidateUnreadCache();
-                await this.invalidateUserUnreadCache(userId, notification.idSender);
-            }
+        // Invalidar caché de listados (versión global) y la de los usuarios implicados
+        this.invalidateUnreadCache();
+        await this.invalidateUserUnreadCache(userId, notification.idSender);
+    }
 
     /**
      * Obtener notificaciones no leídas para un usuario específico con caché por usuario
      */
-    async getUnreadForUser(userId: number, limit = 10): Promise<Notification[]> {
+    async getUnreadForUser(userId: number, limit = 10, orgId?: number): Promise<Notification[]> {
         if (!userId) {
             return [];
         }
 
-        const cacheKey = `notifications-unread:${userId}`;
+        if (orgId) {
+            const belongs = await this.checkUserInOrg(userId, orgId);
+            if (!belongs) {
+                return [];
+            }
+        }
+
+        const cacheKey = orgId
+            ? `notifications-unread:org-${orgId}:${userId}`
+            : `notifications-unread:${userId}`;
         const cached = await this.cacheManager.get<Notification[]>(cacheKey);
         if (cached) {
             return cached;
