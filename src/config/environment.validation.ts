@@ -115,6 +115,14 @@ export class EnvironmentVariables {
   @IsString({ message: 'RESEND_FROM_NAME debe ser una cadena de texto' })
   RESEND_FROM_NAME?: string;
 
+  @ValidateIf((o) => o.MAILER_BASE_URL !== undefined && o.MAILER_BASE_URL !== '')
+  @Matches(/^https?:\/\/.+/, { message: 'MAILER_BASE_URL debe ser una URL http(s) válida' })
+  MAILER_BASE_URL?: string;
+
+  @IsOptional()
+  @IsString({ message: 'MAILER_APP_KEY debe ser una cadena de texto' })
+  MAILER_APP_KEY?: string;
+
   @ValidateIf((o) => o.SUPABASE_URL !== undefined && o.SUPABASE_URL !== '')
   @Matches(/^https?:\/\/.+/, { message: 'SUPABASE_URL debe ser una URL http(s) válida' })
   SUPABASE_URL?: string;

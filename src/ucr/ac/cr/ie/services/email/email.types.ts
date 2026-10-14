@@ -28,3 +28,20 @@ export interface UserRequestParams {
   requesterPhone: string;
   reason: string;
 }
+
+export interface UserRequestConfirmationParams {
+  to: EmailRecipient;
+}
+
+export interface WelcomeUserParams {
+  to: EmailRecipient;
+  roleName: string;
+  activationUrl: string;
+}
+
+export interface EmailVerificationParams {
+  to: EmailRecipient;
+  code: string;
+  expirationLabel?: string;
+}
+

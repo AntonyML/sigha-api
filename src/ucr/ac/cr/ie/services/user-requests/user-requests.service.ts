@@ -60,6 +60,21 @@ export class UserRequestsService {
       );
     }
 
+    // Enviar confirmación al solicitante de la cuenta (no bloqueante)
+    try {
+      await this.emailService.sendUserRequestConfirmation({
+        to: {
+          email: dto.email,
+          firstName: dto.fullName,
+        },
+      });
+    } catch (confErr) {
+      this.logger.warn(
+        '[UserRequestsService] Error no bloqueante al enviar confirmación al solicitante',
+        sanitizeForLogging({ error: String(confErr) }),
+      );
+    }
+
     try {
       await this.auditService.logAuditDbFunction({
         userId: SYSTEM_USER_ID,
