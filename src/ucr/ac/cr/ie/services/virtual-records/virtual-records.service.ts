@@ -63,7 +63,7 @@ export class VirtualRecordsService {
 
 
     async createVirtualRecordDirect(createDto: CreateVirtualRecordDirectDto): Promise<{ message: string; data: OlderAdult }> {
-        // Delegate to the create_virtual_file() SQL function (migration 009).
+        // Delegate to the create_virtual_file() SQL function (migrations 011/019).
         // The function runs the whole creation in a single transaction, validates
         // identifiers / required fields, and returns the new ids.
         const queryRunner = this.dataSource.createQueryRunner();
@@ -90,7 +90,8 @@ export class VirtualRecordsService {
                     $34::bool, $35::numeric, $36::numeric, $37::numeric,
                     $38::varchar, $39::bool, $40::varchar, $41::text, $42::e_clinical_rcvg,
                     $43::bool, $44::bool,
-                    $45::int[], $46::int[], $47::int[], $48::jsonb
+                    $45::int[], $46::int[], $47::int[], $48::jsonb,
+                    $49::varchar, $50::varchar
                 )`,
                 [
                     createDto.oa_identification,
@@ -141,6 +142,8 @@ export class VirtualRecordsService {
                     ch?.vaccines?.map(v => v.id) ?? null,
                     createDto.program?.sub_programs?.map(s => s.id) ?? null,
                     medicationsJson,
+                    createDto.oa_document_type ?? 'nacional',
+                    createDto.family?.pf_document_type ?? 'nacional',
                 ],
             );
 

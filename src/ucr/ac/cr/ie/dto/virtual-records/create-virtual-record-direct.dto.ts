@@ -9,6 +9,7 @@ import {
     IsEnum, 
     IsDateString,
     IsNotEmpty,
+    IsDefined,
     IsIn,
     Length,
     Min,
@@ -16,7 +17,8 @@ import {
     IsPositive,
     Matches,
     ArrayMinSize,
-    Validate
+    Validate,
+    ValidateIf
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
@@ -31,11 +33,10 @@ export class SubProgramDataDto {
 }
 
 export class ProgramDataDto {
-    @ApiProperty({ description: 'Program ID', required: false })
-    @IsOptional()
-    @IsNumber()
+    @ApiProperty({ description: 'Program ID' })
+    @IsNumber({}, { message: 'Program ID is required and must be a number' })
     @IsPositive({ message: 'Program ID must be a positive number' })
-    id?: number;
+    id: number;
 
     @ApiProperty({ description: 'Sub programs', required: false })
     @IsOptional()
@@ -77,16 +78,17 @@ export class FamilyDataDto {
     @Length(2, 50, { message: 'Second last name must be between 2 and 50 characters' })
     pf_s_last_name: string;
 
-    @ApiProperty({ description: 'Phone number', required: false })
-    @IsOptional()
+    @ApiProperty({ description: 'Phone number' })
     @IsString()
+    @IsNotEmpty({ message: 'Family phone number is required' })
     @Matches(/^[0-9-+\s()]+$/, { message: 'Phone number format is invalid' })
-    pf_phone_number?: string;
+    pf_phone_number: string;
 
-    @ApiProperty({ description: 'Email address', required: false })
-    @IsOptional()
+    @ApiProperty({ description: 'Email address' })
+    @IsString()
+    @IsNotEmpty({ message: 'Family email is required' })
     @IsEmail({}, { message: 'Invalid email format' })
-    pf_email?: string;
+    pf_email: string;
 
     @ApiProperty({ 
         description: 'Relationship to older adult',
@@ -169,9 +171,10 @@ export class ClinicalHistoryDataDto {
     @IsBoolean({ message: 'Neoplasms field must be a boolean' })
     ch_neoplasms: boolean;
 
-    @ApiProperty({ description: 'Neoplasms description', required: false })
-    @IsOptional()
+    @ApiProperty({ description: 'Neoplasms description (required when ch_neoplasms is true)', required: false })
+    @ValidateIf(o => o.ch_neoplasms === true)
     @IsString()
+    @IsNotEmpty({ message: 'Neoplasms description is required when neoplasms are indicated' })
     @Length(0, 1000, { message: 'Neoplasms description cannot exceed 1000 characters' })
     ch_neoplasms_description?: string;
 
@@ -300,9 +303,10 @@ export class CreateVirtualRecordDirectDto {
     @IsBoolean({ message: 'Other income status must be a boolean' })
     oa_other: boolean;
 
-    @ApiProperty({ description: 'Other income description', required: false })
-    @IsOptional()
+    @ApiProperty({ description: 'Other income description (required when oa_other is true)', required: false })
+    @ValidateIf(o => o.oa_other === true)
     @IsString()
+    @IsNotEmpty({ message: 'Other income description is required when other income is indicated' })
     @Length(0, 500, { message: 'Other income description cannot exceed 500 characters' })
     oa_other_description?: string;
 
@@ -338,8 +342,9 @@ export class CreateVirtualRecordDirectDto {
     @IsEnum(OlderAdultStatus, { message: 'Invalid older adult status' })
     oa_status: string;
 
-    @ApiProperty({ description: 'Death date', required: false })
-    @IsOptional()
+    @ApiProperty({ description: 'Death date (required when oa_status is dead)', required: false })
+    @ValidateIf(o => o.oa_status === OlderAdultStatus.DEAD)
+    @IsNotEmpty({ message: 'Death date is required when status is dead' })
     @IsDateString({}, { message: 'Invalid death date format. Use ISO date format (YYYY-MM-DD)' })
     oa_death_date?: string;
 
@@ -387,11 +392,11 @@ export class CreateVirtualRecordDirectDto {
     @Type(() => ProgramDataDto)
     program: ProgramDataDto;
 
-    @ApiProperty({ description: 'Family information', required: false })
-    @IsOptional()
+    @ApiProperty({ description: 'Family information (required: the responsible family member)' })
+    @IsDefined({ message: 'Family information is required' })
     @ValidateNested()
     @Type(() => FamilyDataDto)
-    family?: FamilyDataDto;
+    family: FamilyDataDto;
 
     @ApiProperty({ description: 'Clinical history information', required: false })
     @IsOptional()
