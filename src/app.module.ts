@@ -35,6 +35,7 @@ import { HealthController } from './health.controller';
 import { SettingsModule } from './ucr/ac/cr/ie/settings.module';
 import { UserRequestsModule } from './ucr/ac/cr/ie/user-requests.module';
 import { OrganizationModule } from './ucr/ac/cr/ie/modules/organizations/organization.module';
+import { ContactInquiryModule } from './ucr/ac/cr/ie/contact-inquiry.module';
 
 @Module({
   controllers: [HealthController],
@@ -76,6 +77,7 @@ import { OrganizationModule } from './ucr/ac/cr/ie/modules/organizations/organiz
     SettingsModule,
     UserRequestsModule,
     OrganizationModule,
+    ContactInquiryModule,
   ],
     providers: [
       {

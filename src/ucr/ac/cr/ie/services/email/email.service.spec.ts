@@ -125,4 +125,103 @@ describe('EmailService', () => {
     expect(callArgs.template).toBe('email-verification');
     expect(callArgs.variables.code).toBe('8765 4321');
   });
+
+  it('sendContactInquiry debe enviar plantilla contact-inquiry con los datos del interesado', async () => {
+    const { emailService, mockMailer } = createService();
+
+    const result = await emailService.sendContactInquiry({
+      to: { email: 'contacto@sigha.cr', firstName: 'Admin' },
+      name: 'Mario Vargas',
+      organization: 'Fundación Huellas',
+      email: 'mario@huellas.org',
+      message: 'Consulta sobre planes de voluntariado',
+    });
+
+    expect(result.success).toBe(true);
+    const callArgs = (mockMailer.sendMail as any).mock.calls[0][0];
+    expect(callArgs.template).toBe('contact-inquiry');
+    expect(callArgs.to).toBe('contacto@sigha.cr');
+    expect(callArgs.variables.name).toBe('Mario Vargas');
+    expect(callArgs.variables.organization).toBe('Fundación Huellas');
+  });
+
+  it('sendContactInquiryAutoresponder debe enviar acuse de recibo al interesado', async () => {
+    const { emailService, mockMailer } = createService();
+
+    const result = await emailService.sendContactInquiryAutoresponder({
+      to: { email: 'mario@huellas.org', firstName: 'Mario' },
+      name: 'Mario Vargas',
+    });
+
+    expect(result.success).toBe(true);
+    const callArgs = (mockMailer.sendMail as any).mock.calls[0][0];
+    expect(callArgs.template).toBe('contact-inquiry-autoresponder');
+    expect(callArgs.to).toBe('mario@huellas.org');
+    expect(callArgs.variables.name).toBe('Mario Vargas');
+  });
+
+  it('sendAppointmentReminder debe enviar plantilla appointment-reminder con detalles de cita', async () => {
+    const { emailService, mockMailer } = createService();
+
+    const result = await emailService.sendAppointmentReminder({
+      to: { email: 'familiar@gmail.com', firstName: 'Sonia' },
+      areaName: 'Odontología Geríatrica',
+      patientName: 'Don Carlos Jiménez',
+      recipientName: 'Sonia Jiménez',
+      appointmentDate: '2026-10-20',
+      appointmentTime: '09:00 AM',
+      staffName: 'Dra. Mora',
+      notes: 'Traer radiografías previas',
+    });
+
+    expect(result.success).toBe(true);
+    const callArgs = (mockMailer.sendMail as any).mock.calls[0][0];
+    expect(callArgs.template).toBe('appointment-reminder');
+    expect(callArgs.to).toBe('familiar@gmail.com');
+    expect(callArgs.variables.areaName).toBe('Odontología Geríatrica');
+    expect(callArgs.variables.patientName).toBe('Don Carlos Jiménez');
+  });
+
+  it('sendResidentMedicalAlert debe enviar plantilla resident-medical-alert de urgencia médica', async () => {
+    const { emailService, mockMailer } = createService();
+
+    const result = await emailService.sendResidentMedicalAlert({
+      to: { email: 'contacto@emergencia.cr', firstName: 'Luis' },
+      patientName: 'Doña Rosa Blanco',
+      contactName: 'Luis Blanco',
+      incidentType: 'Caída de propia altura',
+      incidentDate: '2026-10-14 11:30 AM',
+      description: 'Residente resbaló en pasillo norte, signos vitales estables',
+      actionTaken: 'Atención primaria por enfermería y traslado a observación',
+      contactPhone: '2222-3333',
+    });
+
+    expect(result.success).toBe(true);
+    const callArgs = (mockMailer.sendMail as any).mock.calls[0][0];
+    expect(callArgs.template).toBe('resident-medical-alert');
+    expect(callArgs.to).toBe('contacto@emergencia.cr');
+    expect(callArgs.variables.incidentType).toBe('Caída de propia altura');
+  });
+
+  it('sendResidentLeaveEntry debe enviar plantilla resident-leave-entry de salida o ingreso', async () => {
+    const { emailService, mockMailer } = createService();
+
+    const result = await emailService.sendResidentLeaveEntry({
+      to: { email: 'familiar@gmail.com', firstName: 'Patricia' },
+      movementType: 'Salida',
+      patientName: 'Don Manuel Rojas',
+      familiarName: 'Patricia Rojas',
+      movementDateTime: '2026-10-14 02:00 PM',
+      authorizedBy: 'Trabajadora Social Gómez',
+      destinationOrReason: 'Paseo familiar de fin de semana',
+      expectedReturn: '2026-10-16 05:00 PM',
+    });
+
+    expect(result.success).toBe(true);
+    const callArgs = (mockMailer.sendMail as any).mock.calls[0][0];
+    expect(callArgs.template).toBe('resident-leave-entry');
+    expect(callArgs.to).toBe('familiar@gmail.com');
+    expect(callArgs.variables.movementType).toBe('Salida');
+    expect(callArgs.variables.patientName).toBe('Don Manuel Rojas');
+  });
 });
