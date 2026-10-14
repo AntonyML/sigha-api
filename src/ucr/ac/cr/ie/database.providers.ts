@@ -37,6 +37,13 @@ import {
 import { Permission, RolePermission } from './domain/permissions';
 import { Settings } from './domain/settings/settings.entity';
 import { Organization, OrganizationMember } from './domain/organizations';
+import {
+    MedicationCatalog,
+    MedicationPrescription,
+    MedicationAdministration,
+} from './domain/pharmacy';
+import { Icd10Catalog, PatientCondition } from './domain/clinical-conditions';
+import { PatientVaccination } from './domain/vaccines';
 
 /**
  * Build the TypeORM DataSource options from environment variables.
@@ -89,6 +96,12 @@ function buildDataSourceOptions(): DataSourceOptions {
         Settings,
         Organization,
         OrganizationMember,
+        MedicationCatalog,
+        MedicationPrescription,
+        MedicationAdministration,
+        Icd10Catalog,
+        PatientCondition,
+        PatientVaccination,
     ];
 
     const sslEnabled = 
