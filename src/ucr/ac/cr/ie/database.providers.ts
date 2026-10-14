@@ -44,6 +44,18 @@ import {
 } from './domain/pharmacy';
 import { Icd10Catalog, PatientCondition } from './domain/clinical-conditions';
 import { PatientVaccination } from './domain/vaccines';
+import { FacilityRoom, PatientBedAssignment } from './domain/inpatient';
+import {
+    ClinicalEncounter,
+    ClinicalVitalSigns,
+    NursingRound,
+    ClinicalNoteAddendum,
+} from './domain/encounters';
+import {
+    PhysiotherapyEvaluation,
+    PsychologyEvaluation,
+    SocialWorkEvaluation,
+} from './domain/specialties';
 
 /**
  * Build the TypeORM DataSource options from environment variables.
@@ -102,6 +114,15 @@ function buildDataSourceOptions(): DataSourceOptions {
         Icd10Catalog,
         PatientCondition,
         PatientVaccination,
+        FacilityRoom,
+        PatientBedAssignment,
+        ClinicalEncounter,
+        ClinicalVitalSigns,
+        NursingRound,
+        ClinicalNoteAddendum,
+        PhysiotherapyEvaluation,
+        PsychologyEvaluation,
+        SocialWorkEvaluation,
     ];
 
     const sslEnabled = 

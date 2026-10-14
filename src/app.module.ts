@@ -37,6 +37,9 @@ import { UserRequestsModule } from './ucr/ac/cr/ie/user-requests.module';
 import { OrganizationModule } from './ucr/ac/cr/ie/modules/organizations/organization.module';
 import { ContactInquiryModule } from './ucr/ac/cr/ie/contact-inquiry.module';
 import { PharmacyModule } from './ucr/ac/cr/ie/pharmacy.module';
+import { InpatientModule } from './ucr/ac/cr/ie/inpatient.module';
+import { EncountersModule } from './ucr/ac/cr/ie/encounters.module';
+import { SpecialtiesModule } from './ucr/ac/cr/ie/specialties.module';
 
 @Module({
   controllers: [HealthController],
@@ -80,6 +83,9 @@ import { PharmacyModule } from './ucr/ac/cr/ie/pharmacy.module';
     OrganizationModule,
     ContactInquiryModule,
     PharmacyModule,
+    InpatientModule,
+    EncountersModule,
+    SpecialtiesModule,
   ],
     providers: [
       {
