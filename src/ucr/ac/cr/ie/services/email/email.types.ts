@@ -45,3 +45,49 @@ export interface EmailVerificationParams {
   expirationLabel?: string;
 }
 
+export interface ContactInquiryParams {
+  to: EmailRecipient;
+  name: string;
+  organization: string;
+  email: string;
+  message: string;
+}
+
+export interface ContactInquiryAutoresponderParams {
+  to: EmailRecipient;
+  name: string;
+}
+
+export interface AppointmentReminderParams {
+  to: EmailRecipient;
+  areaName: string;
+  patientName: string;
+  recipientName: string;
+  appointmentDate: string;
+  appointmentTime: string;
+  staffName: string;
+  notes?: string;
+}
+
+export interface ResidentMedicalAlertParams {
+  to: EmailRecipient;
+  patientName: string;
+  contactName: string;
+  incidentType: string;
+  incidentDate: string;
+  description: string;
+  actionTaken: string;
+  contactPhone: string;
+}
+
+export interface ResidentLeaveEntryParams {
+  to: EmailRecipient;
+  movementType: 'Salida' | 'Entrada' | string;
+  patientName: string;
+  familiarName: string;
+  movementDateTime: string;
+  authorizedBy: string;
+  destinationOrReason: string;
+  expectedReturn?: string;
+}
+

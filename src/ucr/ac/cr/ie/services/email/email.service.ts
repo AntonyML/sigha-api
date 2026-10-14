@@ -9,6 +9,11 @@ import {
   UserRequestConfirmationParams,
   WelcomeUserParams,
   EmailVerificationParams,
+  ContactInquiryParams,
+  ContactInquiryAutoresponderParams,
+  AppointmentReminderParams,
+  ResidentMedicalAlertParams,
+  ResidentLeaveEntryParams,
 } from './email.types';
 
 @Injectable()
@@ -193,6 +198,159 @@ export class EmailService {
           : 'Error desconocido al enviar código de verificación de email';
       this.logger.error(
         '[EmailService] sendEmailVerification falló',
+        sanitizeForLogging({ message }),
+      );
+      return { success: false, error: message };
+    }
+  }
+
+  async sendContactInquiry(params: ContactInquiryParams): Promise<EmailSendResult> {
+    if (!params?.to?.email) {
+      throw new Error('EmailService.sendContactInquiry: falta el destinatario.');
+    }
+
+    try {
+      const result = await this.mailer.sendMail({
+        template: 'contact-inquiry',
+        to: params.to.email,
+        variables: {
+          name: params.name,
+          organization: params.organization,
+          email: params.email,
+          message: params.message,
+        },
+      });
+      return { success: result.success, messageId: result.messageId };
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : 'Error desconocido al enviar consulta de contacto web';
+      this.logger.error('[EmailService] sendContactInquiry falló', sanitizeForLogging({ message }));
+      return { success: false, error: message };
+    }
+  }
+
+  async sendContactInquiryAutoresponder(
+    params: ContactInquiryAutoresponderParams,
+  ): Promise<EmailSendResult> {
+    if (!params?.to?.email) {
+      throw new Error('EmailService.sendContactInquiryAutoresponder: falta el destinatario.');
+    }
+
+    try {
+      const result = await this.mailer.sendMail({
+        template: 'contact-inquiry-autoresponder',
+        to: params.to.email,
+        variables: {
+          name: params.name,
+        },
+      });
+      return { success: result.success, messageId: result.messageId };
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : 'Error desconocido al enviar confirmación de consulta web';
+      this.logger.error(
+        '[EmailService] sendContactInquiryAutoresponder falló',
+        sanitizeForLogging({ message }),
+      );
+      return { success: false, error: message };
+    }
+  }
+
+  async sendAppointmentReminder(params: AppointmentReminderParams): Promise<EmailSendResult> {
+    if (!params?.to?.email) {
+      throw new Error('EmailService.sendAppointmentReminder: falta el destinatario.');
+    }
+
+    try {
+      const result = await this.mailer.sendMail({
+        template: 'appointment-reminder',
+        to: params.to.email,
+        variables: {
+          areaName: params.areaName,
+          patientName: params.patientName,
+          recipientName: params.recipientName,
+          appointmentDate: params.appointmentDate,
+          appointmentTime: params.appointmentTime,
+          staffName: params.staffName,
+          notes: params.notes || 'Ninguna observación adicional',
+        },
+      });
+      return { success: result.success, messageId: result.messageId };
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : 'Error desconocido al enviar recordatorio de cita médica';
+      this.logger.error(
+        '[EmailService] sendAppointmentReminder falló',
+        sanitizeForLogging({ message }),
+      );
+      return { success: false, error: message };
+    }
+  }
+
+  async sendResidentMedicalAlert(params: ResidentMedicalAlertParams): Promise<EmailSendResult> {
+    if (!params?.to?.email) {
+      throw new Error('EmailService.sendResidentMedicalAlert: falta el destinatario.');
+    }
+
+    try {
+      const result = await this.mailer.sendMail({
+        template: 'resident-medical-alert',
+        to: params.to.email,
+        variables: {
+          patientName: params.patientName,
+          contactName: params.contactName,
+          incidentType: params.incidentType,
+          incidentDate: params.incidentDate,
+          description: params.description,
+          actionTaken: params.actionTaken,
+          contactPhone: params.contactPhone,
+        },
+      });
+      return { success: result.success, messageId: result.messageId };
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : 'Error desconocido al enviar alerta médica de residente';
+      this.logger.error(
+        '[EmailService] sendResidentMedicalAlert falló',
+        sanitizeForLogging({ message }),
+      );
+      return { success: false, error: message };
+    }
+  }
+
+  async sendResidentLeaveEntry(params: ResidentLeaveEntryParams): Promise<EmailSendResult> {
+    if (!params?.to?.email) {
+      throw new Error('EmailService.sendResidentLeaveEntry: falta el destinatario.');
+    }
+
+    try {
+      const result = await this.mailer.sendMail({
+        template: 'resident-leave-entry',
+        to: params.to.email,
+        variables: {
+          movementType: params.movementType,
+          patientName: params.patientName,
+          familiarName: params.familiarName,
+          movementDateTime: params.movementDateTime,
+          authorizedBy: params.authorizedBy,
+          destinationOrReason: params.destinationOrReason,
+          expectedReturn: params.expectedReturn || 'No especificado',
+        },
+      });
+      return { success: result.success, messageId: result.messageId };
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : 'Error desconocido al enviar constancia de entrada/salida de residente';
+      this.logger.error(
+        '[EmailService] sendResidentLeaveEntry falló',
         sanitizeForLogging({ message }),
       );
       return { success: false, error: message };

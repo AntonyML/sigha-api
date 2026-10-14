@@ -1,1 +1,8 @@
-export { SendPasswordResetEmailDto, SendBackupCodesEmailDto, ContactDto } from './send-email.dto';
+export {
+  SendPasswordResetEmailDto,
+  SendBackupCodesEmailDto,
+  SendAppointmentReminderEmailDto,
+  SendResidentMedicalAlertEmailDto,
+  SendResidentLeaveEntryEmailDto,
+  ContactDto,
+} from './send-email.dto';
