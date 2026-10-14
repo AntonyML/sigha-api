@@ -1,4 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Optional, Inject } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import type { Cache } from 'cache-manager';
 import axios from 'axios';
 
 /**
@@ -11,6 +13,13 @@ export interface IdentificationLookupResult {
 }
 
 const LOOKUP_TIMEOUT_MS = 8000;
+const CACHE_KEY_PREFIX = 'id-lookup:';
+// Los nombres de personas físicas o jurídicas asociadas a una cédula son esencialmente estables:
+// se cachean los aciertos positivos por 24 horas (86_400_000 ms) para reducir latencia de ~1200ms a <2ms.
+const POSITIVE_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+// Las respuestas no encontradas o errores de red se cachean brevemente por 5 minutos (300_000 ms)
+// para proteger el API de Hacienda ante ráfagas repetitivas.
+const NEGATIVE_CACHE_TTL_MS = 5 * 60 * 1000;
 
 // Endpoint del proveedor externo. Vive únicamente acá (servidor), nunca en el
 // bundle del frontend. La llamada es servidor-a-servidor, por lo que no
@@ -19,6 +28,12 @@ const IDENTIFICATION_LOOKUP_URL = 'https://api.hacienda.go.cr/fe/ae';
 
 @Injectable()
 export class IdentificationLookupService {
+  constructor(
+    @Optional()
+    @Inject(CACHE_MANAGER)
+    private readonly cacheManager?: Cache,
+  ) {}
+
   /**
    * Busca el nombre asociado a un número de identificación.
    *
@@ -33,6 +48,21 @@ export class IdentificationLookupService {
       return { found: false };
     }
 
+    const cacheKey = `${CACHE_KEY_PREFIX}${digits}`;
+
+    if (this.cacheManager) {
+      try {
+        const cached = await this.cacheManager.get<IdentificationLookupResult>(cacheKey);
+        if (cached !== null && cached !== undefined) {
+          return cached;
+        }
+      } catch {
+        // Un fallo en lectura de caché no debe bloquear la consulta real
+      }
+    }
+
+    let result: IdentificationLookupResult = { found: false };
+
     try {
       const { data } = await axios.get(IDENTIFICATION_LOOKUP_URL, {
         params: { identificacion: digits },
@@ -40,14 +70,24 @@ export class IdentificationLookupService {
       });
 
       if (data?.nombre) {
-        return { found: true, fullName: String(data.nombre) };
+        result = { found: true, fullName: String(data.nombre) };
       }
-      return { found: false };
     } catch {
       // Cualquier error del proveedor (timeout, 404, 500, formato inesperado)
       // se traduce siempre al mismo resultado neutro. El detalle del error
       // real solo debería quedar en logs de servidor si hiciera falta.
-      return { found: false };
+      result = { found: false };
     }
+
+    if (this.cacheManager) {
+      try {
+        const ttl = result.found ? POSITIVE_CACHE_TTL_MS : NEGATIVE_CACHE_TTL_MS;
+        await this.cacheManager.set(cacheKey, result, ttl);
+      } catch {
+        // Un fallo en escritura de caché no debe romper la respuesta al usuario
+      }
+    }
+
+    return result;
   }
 }
