@@ -15,3 +15,4 @@ Formato: `YYYY-MM-DD | <taskId> | tipo: resumen | verificación: resultado`.
 
 2026-10-13 | sigha-api-20261013-8qht | docs: actualizar deuda sobre cadencia y tamaño del lote del job de notificaciones | verificación: typecheck OK, bun test 93 pass/0 fail, build OK; prueba del job 5 pass/0 fail.
 2026-10-13 | sigha-api-20261013-gt3x | build: agregar @nestjs/cli a devDependencies para builds reproducibles en Render | verificación: tsc --noEmit OK, bun test 93 pass/0 fail, nest build OK (worktree y dev).
+2026-10-14 | sigha-api-20261014-n8v2 | perf: optimización N+1 en expedientes virtuales con hidratación en lotes | verificación: typecheck limpio, bun test 98 pass/0 fail, nest build OK (worktree y dev).
