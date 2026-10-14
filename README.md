@@ -36,19 +36,29 @@ cd sigha-api
 # Instalar dependencias con Bun
 bun install
 
-# Copiar variables de entorno de ejemplo y completarlas
+# Opción A: Con Infisical CLI (Recomendado / Inyección de secretos en memoria)
+# 1. Autenticar CLI (solo una vez por máquina)
+infisical login
+
+# 2. Ejecutar en desarrollo inyectando secretos desde Infisical
+bun run start:infisical
+
+# 3. Ejecutar tests con secretos de Infisical
+bun run test:infisical
+
+# Opción B: Con archivo .env local clásico
 cp .env.example .env
 # Editar .env con los valores reales
-
-# Ejecutar en modo desarrollo
 bun run start:dev
 
-# Ejecutar tests
+# Ejecutar tests locales
 bun test
 bun run test:cov
 
 # Compilar y ejecutar en producción
 bun run build && bun run start:prod
+# O en producción con Infisical:
+bun run build && bun run start:prod:infisical
 ```
 
 ## Flujo de Trabajo Git (multi-agente con worktrees)

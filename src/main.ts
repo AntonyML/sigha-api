@@ -69,6 +69,8 @@ async function bootstrap() {
 	if (fs.existsSync(envPath)) {
 		dotenv.config({ path: envPath });
 		logger.info(`Loading environment from: ${envFile}`, { env, envFile });
+	} else {
+		logger.info(`No ${envFile} found; using environment variables provided by runtime / secrets manager (e.g. Infisical)`, { env });
 	}
 	
 	const app = await NestFactory.create(AppModule, {
