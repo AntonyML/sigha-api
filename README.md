@@ -61,6 +61,38 @@ bun run build && bun run start:prod
 bun run build && bun run start:prod:infisical
 ```
 
+## Despliegue en Render (sigha-api)
+
+El repo usa **Bun** (`packageManager: bun@1.3.14`, solo existe `bun.lock`).
+Render fallaba con `pnpm install --frozen-lockfile` porque ese comando por
+defecto no respeta Bun. El fix vive en `render.yaml` (IaC del repo):
+
+- `buildCommand`: `corepack enable` + `bun install --frozen-lockfile` + `bun run build`
+- `startCommand`: `bun dist/main.js` (`bun run start:render` hace lo mismo)
+- `healthCheckPath`: `/health` (controlador público, sin JWT ni DB)
+- `NODE_VERSION: 22.17.0` + `.node-version` (Render pide Node >= 22)
+- `BUN_VERSION: 1.3.14` (igual que `packageManager`)
+- `autoDeploy: false` (despliegas a mano tras revisar)
+
+Pasos en la GUI de Render (sin tocar código):
+
+1. Dashboard → tu servicio `sigha-api` → **Settings → Build & Deploy**:
+   - **Build Command** = `corepack enable && bun install --frozen-lockfile && bun run build`
+   - **Start Command** = `bun dist/main.js`
+   - **Health Check Path** = `/health`
+2. **Environment**: agrega como **Secret** (nunca en el repo):
+   `NODE_ENV=production`, `DATABASE_URL` (+ `DB_SSL=true` si es Supabase/pooler),
+   `JWT_SECRET` (>= 16 chars), `CORS_ORIGINS=https://<tu-front>.onrender.com`.
+   Opcionales: `RESEND_API_KEY`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`.
+   Render inyecta `PORT` solo; `main.ts` ya escucha `0.0.0.0` con ese `PORT`.
+3. **Manual Deploy → Deploy latest commit** (rama `main`, commit `46429fe` o posterior).
+4. Verifica: `GET https://<tu-api>.onrender.com/health` → `{ "status": "ok", ... }`.
+5. Si `render.yaml` existe en la rama desplegada, Render lo propone como
+   Blueprint; acepta **usar esos mismos comandos** (no vuelvas a `pnpm`).
+
+> Nota: `main.ts` carga `.env.production` solo si existe el archivo; en Render
+> no existe y usa las Environment Variables del dashboard (comportamiento esperado).
+
 ## Flujo de Trabajo Git (multi-agente con worktrees)
 
 - `dev` es la rama de integración y el checkout principal (`C:\DEV\sigha\sigha-api`) **no se edita**: siempre en `dev`, siempre limpio. Solo el coordinador integra ahí.

@@ -63,6 +63,7 @@
   "scripts": {
     "build": "nest build",
     "start": "nest start --exec \"bun run\"",
+    "start:render": "bun dist/main.js",
     "start:dev": "nest start --watch --exec \"bun run\"",
     "start:infisical": "infisical run -- nest start --watch --exec \"bun run\"",
     "start:prod": "bun dist/main.js",
