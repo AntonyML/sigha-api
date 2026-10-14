@@ -1,27 +1,17 @@
 import { Injectable, ConflictException, NotFoundException, InternalServerErrorException, BadRequestException, Inject } from '@nestjs/common';
-import { Repository, DataSource } from 'typeorm';
+import { Repository, DataSource, In } from 'typeorm';
 import { LoggerService } from '@common/services/logger.service';
-import {
-    Program,
-    SubProgram,
-    OlderAdult,
-    OlderAdultFamily,
-    ClinicalHistory,
-    ClinicalCondition,
-    Vaccine,
-    ClinicalMedication,
-    ClinicalHistoryAndCondition,
-    VaccinesAndClinicalHistory,
-    OlderAdultSubprogram,
-    MaritalStatus,
-    YearsSchooling,
-    Gender,
-    BloodType,
-    KinshipType,
-    TreatmentType,
-    RcvgType,
-    OlderAdultStatus
-} from '../../domain/virtual-records';
+import { SubProgram } from '../../domain/virtual-records/sub-program.entity';
+import { Program } from '../../domain/virtual-records/program.entity';
+import { OlderAdult, MaritalStatus, YearsSchooling, OlderAdultStatus, Gender, BloodType } from '../../domain/virtual-records/older-adult.entity';
+import { OlderAdultFamily, KinshipType } from '../../domain/virtual-records/older-adult-family.entity';
+import { ClinicalHistory, RcvgType } from '../../domain/virtual-records/clinical-history.entity';
+import { ClinicalCondition } from '../../domain/virtual-records/clinical-condition.entity';
+import { Vaccine } from '../../domain/virtual-records/vaccine.entity';
+import { ClinicalMedication, TreatmentType } from '../../domain/virtual-records/clinical-medication.entity';
+import { ClinicalHistoryAndCondition } from '../../domain/virtual-records/clinical-history-clinical-condition.entity';
+import { VaccinesAndClinicalHistory } from '../../domain/virtual-records/clinical-history-vaccine.entity';
+import { OlderAdultSubprogram } from '../../domain/virtual-records/older-adult-subprogram.entity';
 import { OlderAdultUpdate } from '../../domain/audit';
 import { CreateVirtualRecordDirectDto, UpdateVirtualRecordDirectDto, SearchVirtualRecordsDto } from '../../dto/virtual-records';
 import { sanitizeForLogging } from '@common/utils/logger-sanitizer';
@@ -471,6 +461,238 @@ export class VirtualRecordsService {
         }
     }
 
+    /**
+     * Optimización N+1: Hidrata una lista de adultos mayores con sus programas,
+     * subprogramas, familias e historial clínico en lotes (batch queries) con índices O(1).
+     */
+    private async hydrateVirtualRecords(olderAdults: OlderAdult[]): Promise<any[]> {
+        if (!olderAdults || olderAdults.length === 0) {
+            return [];
+        }
+
+        const adultIds = olderAdults.map(a => a.id);
+        const programIds = [...new Set(olderAdults.map(a => a.idProgram).filter((id): id is number => typeof id === 'number' && id > 0))];
+        const familyIds = [...new Set(olderAdults.map(a => a.idFamily).filter((id): id is number => typeof id === 'number' && id > 0))];
+
+        // Paso 1: Cargar programas, familias, links de subprogramas e historias clínicas en paralelo
+        const [
+            programs,
+            families,
+            subprogramLinks,
+            clinicalHistories
+        ] = await Promise.all([
+            programIds.length > 0 ? this.programRepository.find({ where: { id: In(programIds) } }) : Promise.resolve([]),
+            familyIds.length > 0 ? this.familyRepository.find({ where: { id: In(familyIds) } }) : Promise.resolve([]),
+            this.olderAdultSubprogramRepository.find({ where: { idOlderAdult: In(adultIds) } }),
+            this.clinicalHistoryRepository.find({ where: { idOlderAdult: In(adultIds) } })
+        ]);
+
+        const programMap = new Map(programs.map(p => [p.id, p]));
+        const familyMap = new Map(families.map(f => [f.id, f]));
+        const chByAdultId = new Map(clinicalHistories.map(ch => [ch.idOlderAdult, ch]));
+
+        // Indexar links de subprogramas por idOlderAdult
+        const subprogramLinksByAdultId = new Map<number, OlderAdultSubprogram[]>();
+        for (const link of subprogramLinks) {
+            const list = subprogramLinksByAdultId.get(link.idOlderAdult) || [];
+            list.push(link);
+            subprogramLinksByAdultId.set(link.idOlderAdult, list);
+        }
+
+        const subprogramIds = [...new Set(subprogramLinks.map(sl => sl.idSubProgram))];
+        const chIds = clinicalHistories.map(ch => ch.id);
+
+        // Paso 2: Cargar entidades de subprogramas y detalles de historias clínicas en paralelo
+        const [
+            subPrograms,
+            historyConditions,
+            historyVaccines,
+            medications
+        ] = await Promise.all([
+            subprogramIds.length > 0 ? this.subProgramRepository.find({ where: { id: In(subprogramIds) } }) : Promise.resolve([]),
+            chIds.length > 0 ? this.historyConditionRepository.find({ where: { idCHistory: In(chIds) } }) : Promise.resolve([]),
+            chIds.length > 0 ? this.historyVaccineRepository.find({ where: { idCHistory: In(chIds) } }) : Promise.resolve([]),
+            chIds.length > 0 ? this.medicationRepository.find({ where: { idClinicalHistory: In(chIds) } }) : Promise.resolve([])
+        ]);
+
+        const subProgramMap = new Map(subPrograms.map(sp => [sp.id, sp]));
+
+        // Indexar relaciones intermedias de historia clínica
+        const historyConditionsByChId = new Map<number, ClinicalHistoryAndCondition[]>();
+        for (const hc of historyConditions) {
+            const list = historyConditionsByChId.get(hc.idCHistory) || [];
+            list.push(hc);
+            historyConditionsByChId.set(hc.idCHistory, list);
+        }
+
+        const historyVaccinesByChId = new Map<number, VaccinesAndClinicalHistory[]>();
+        for (const hv of historyVaccines) {
+            const list = historyVaccinesByChId.get(hv.idCHistory) || [];
+            list.push(hv);
+            historyVaccinesByChId.set(hv.idCHistory, list);
+        }
+
+        const medicationsByChId = new Map<number, ClinicalMedication[]>();
+        for (const med of medications) {
+            const list = medicationsByChId.get(med.idClinicalHistory) || [];
+            list.push(med);
+            medicationsByChId.set(med.idClinicalHistory, list);
+        }
+
+        const conditionIds = [...new Set(historyConditions.map(hc => hc.idCCondition))];
+        const vaccineIds = [...new Set(historyVaccines.map(hv => hv.idVaccine))];
+
+        // Paso 3: Cargar catálogos de condiciones y vacunas en paralelo
+        const [
+            conditions,
+            vaccines
+        ] = await Promise.all([
+            conditionIds.length > 0 ? this.clinicalConditionRepository.find({ where: { id: In(conditionIds) } }) : Promise.resolve([]),
+            vaccineIds.length > 0 ? this.vaccineRepository.find({ where: { id: In(vaccineIds) } }) : Promise.resolve([])
+        ]);
+
+        const conditionMap = new Map(conditions.map(c => [c.id, c]));
+        const vaccineMap = new Map(vaccines.map(v => [v.id, v]));
+
+        // Paso 4: Mapear y ensamblar cada adulto mayor en memoria
+        return olderAdults.map(adult => {
+            // Programa y subprogramas
+            let program = null;
+            if (adult.idProgram && programMap.has(adult.idProgram)) {
+                const programEntity = programMap.get(adult.idProgram)!;
+                const links = subprogramLinksByAdultId.get(adult.id) || [];
+                const subProgramsData = links
+                    .map(link => {
+                        const sp = subProgramMap.get(link.idSubProgram);
+                        return sp ? {
+                            id: sp.id,
+                            spName: sp.spName,
+                            idProgram: sp.idProgram
+                        } : null;
+                    })
+                    .filter((sp): sp is NonNullable<typeof sp> => sp !== null);
+
+                program = {
+                    id: programEntity.id,
+                    pName: programEntity.pName,
+                    createAt: programEntity.createAt,
+                    subPrograms: subProgramsData
+                };
+            }
+
+            // Familia y contactos
+            let family = null;
+            if (adult.idFamily && familyMap.has(adult.idFamily)) {
+                const familyEntity = familyMap.get(adult.idFamily)!;
+                family = {
+                    id: familyEntity.id,
+                    pfIdentification: familyEntity.pfIdentification,
+                    pfName: familyEntity.pfName,
+                    pfFLastName: familyEntity.pfFLastName,
+                    pfSLastName: familyEntity.pfSLastName,
+                    pfPhoneNumber: familyEntity.pfPhoneNumber,
+                    pfEmail: familyEntity.pfEmail,
+                    pfKinship: familyEntity.pfKinship,
+                    createAt: familyEntity.createAt,
+                    emergencyContacts: []
+                };
+            }
+
+            // Historia clínica, condiciones, vacunas y medicamentos
+            const clinicalHistory = chByAdultId.get(adult.id);
+            let clinicalData = null;
+            if (clinicalHistory) {
+                const hcs = historyConditionsByChId.get(clinicalHistory.id) || [];
+                const conditionsList = hcs
+                    .map(hc => {
+                        const cond = conditionMap.get(hc.idCCondition);
+                        return cond ? {
+                            id: cond.id,
+                            ccName: cond.ccName
+                        } : null;
+                    })
+                    .filter((c): c is NonNullable<typeof c> => c !== null);
+
+                const hvs = historyVaccinesByChId.get(clinicalHistory.id) || [];
+                const vaccinesList = hvs
+                    .map(hv => {
+                        const v = vaccineMap.get(hv.idVaccine);
+                        return v ? {
+                            id: v.id,
+                            vName: v.vName
+                        } : null;
+                    })
+                    .filter((v): v is NonNullable<typeof v> => v !== null);
+
+                const meds = medicationsByChId.get(clinicalHistory.id) || [];
+                const formattedMeds = meds.map(med => ({
+                    id: med.id,
+                    mMedication: med.mMedication,
+                    mDosage: med.mDosage,
+                    mTreatmentType: med.mTreatmentType,
+                    mStartDate: null,
+                    mObservations: null
+                }));
+
+                clinicalData = {
+                    id: clinicalHistory.id,
+                    chBloodType: adult.oaBloodType,
+                    chAllergies: null,
+                    chEmergencyObservations: clinicalHistory.chObservations,
+                    chFrequentFalls: clinicalHistory.chFrequentFalls,
+                    chWeight: clinicalHistory.chWeight,
+                    chHeight: clinicalHistory.chHeight,
+                    chImc: clinicalHistory.chImc,
+                    chBloodPressure: clinicalHistory.chBloodPressure,
+                    chNeoplasms: clinicalHistory.chNeoplasms,
+                    chNeoplasmsDescription: clinicalHistory.chNeoplasmsDescription,
+                    chObservations: clinicalHistory.chObservations,
+                    chRcvg: clinicalHistory.chRcvg,
+                    chVisionProblems: clinicalHistory.chVisionProblems,
+                    chVisionHearing: clinicalHistory.chVisionHearing,
+                    createAt: clinicalHistory.createAt,
+                    conditions: conditionsList,
+                    vaccines: vaccinesList,
+                    medications: formattedMeds
+                };
+            }
+
+            return {
+                id: adult.id,
+                oaIdentification: adult.oaIdentification,
+                oaName: adult.oaName,
+                oaFLastName: adult.oaFLastName,
+                oaSLastName: adult.oaSLastName,
+                oaBirthdate: adult.oaBirthdate,
+                oaGender: adult.oaGender,
+                oaPhoneNumber: adult.oaPhoneNumber,
+                oaEmail: adult.oaEmail,
+                oaAddress: adult.oaDwelling,
+                oaEntryDate: adult.createAt,
+                oaStatus: adult.oaStatus,
+                oaMaritalStatus: adult.oaMaritalStatus,
+                oaYearsSchooling: adult.oaYearsSchooling,
+                oaPreviousWork: adult.oaPreviousWork,
+                oaIsRetired: adult.oaIsRetired,
+                oaHasPension: adult.oaHasPension,
+                oaOther: adult.oaOther,
+                oaOtherDescription: adult.oaOtherDescription,
+                oaProvince: adult.oaProvince,
+                oaCanton: adult.oaCanton,
+                oaDistrict: adult.oaDistrict,
+                oaChildrenCount: adult.oaChildrenCount,
+                oaDeathDate: adult.oaDeathDate,
+                oaEconomicIncome: adult.oaEconomicIncome,
+                oaProfilePhotoUrl: adult.oaProfilePhotoUrl,
+                oaBloodType: adult.oaBloodType,
+                createAt: adult.createAt,
+                program,
+                family,
+                clinicalHistory: clinicalData
+            };
+        });
+    }
+
     async searchVirtualRecords(searchDto: SearchVirtualRecordsDto): Promise<{ message: string; data: any[] }> {
         try {
             const searchTerm = searchDto.search;
@@ -488,171 +710,8 @@ export class VirtualRecordsService {
 
             const olderAdults = await queryBuilder.getMany();
 
-            // Transform the results to include all related data
-            const transformedData = await Promise.all(
-                olderAdults.map(async (adult) => {
-                    // Get program information
-                    let program = null;
-                    if (adult.idProgram) {
-                        const programEntity = await this.programRepository.findOne({
-                            where: { id: adult.idProgram }
-                        });
-
-                        if (programEntity) {
-                            // Get sub-programs for this older adult
-                            const subPrograms = await this.olderAdultSubprogramRepository.find({
-                                where: { idOlderAdult: adult.id }
-                            });
-
-                            const subProgramsData = await Promise.all(
-                                subPrograms.map(async (oasp) => {
-                                    const subProgram = await this.subProgramRepository.findOne({
-                                        where: { id: oasp.idSubProgram }
-                                    });
-                                    return subProgram ? {
-                                        id: subProgram.id,
-                                        spName: subProgram.spName,
-                                        idProgram: subProgram.idProgram
-                                    } : null;
-                                })
-                            );
-
-                            program = {
-                                id: programEntity.id,
-                                pName: programEntity.pName,
-                                createAt: programEntity.createAt,
-                                subPrograms: subProgramsData.filter(sp => sp !== null)
-                            };
-                        }
-                    }
-
-                    // Get family information
-                    let family = null;
-                    if (adult.idFamily) {
-                        const familyEntity = await this.familyRepository.findOne({
-                            where: { id: adult.idFamily }
-                        });
-
-                        if (familyEntity) {
-                            family = {
-                                id: familyEntity.id,
-                                pfIdentification: familyEntity.pfIdentification,
-                                pfName: familyEntity.pfName,
-                                pfFLastName: familyEntity.pfFLastName,
-                                pfSLastName: familyEntity.pfSLastName,
-                                pfPhoneNumber: familyEntity.pfPhoneNumber,
-                                pfEmail: familyEntity.pfEmail,
-                                pfKinship: familyEntity.pfKinship,
-                                createAt: familyEntity.createAt
-                            };
-                        }
-                    }
-
-                    // Get clinical history with conditions, vaccines, and medications
-                    const clinicalHistory = await this.clinicalHistoryRepository.findOne({
-                        where: { idOlderAdult: adult.id }
-                    });
-
-                    let clinicalData = null;
-                    if (clinicalHistory) {
-                        // Get conditions
-                        const historyConditions = await this.historyConditionRepository.find({
-                            where: { idCHistory: clinicalHistory.id }
-                        });
-
-                        const conditions = await Promise.all(
-                            historyConditions.map(async (hc) => {
-                                const condition = await this.clinicalConditionRepository.findOne({
-                                    where: { id: hc.idCCondition }
-                                });
-                                return condition ? {
-                                    id: condition.id,
-                                    ccName: condition.ccName
-                                } : null;
-                            })
-                        );
-
-                        // Get vaccines
-                        const historyVaccines = await this.historyVaccineRepository.find({
-                            where: { idCHistory: clinicalHistory.id }
-                        });
-
-                        const vaccines = await Promise.all(
-                            historyVaccines.map(async (hv) => {
-                                const vaccine = await this.vaccineRepository.findOne({
-                                    where: { id: hv.idVaccine }
-                                });
-                                return vaccine ? {
-                                    id: vaccine.id,
-                                    vName: vaccine.vName
-                                } : null;
-                            })
-                        );
-
-                        // Get medications
-                        const medications = await this.medicationRepository.find({
-                            where: { idClinicalHistory: clinicalHistory.id }
-                        });
-
-                        clinicalData = {
-                            id: clinicalHistory.id,
-                            chFrequentFalls: clinicalHistory.chFrequentFalls,
-                            chWeight: clinicalHistory.chWeight,
-                            chHeight: clinicalHistory.chHeight,
-                            chImc: clinicalHistory.chImc,
-                            chBloodPressure: clinicalHistory.chBloodPressure,
-                            chNeoplasms: clinicalHistory.chNeoplasms,
-                            chNeoplasmsDescription: clinicalHistory.chNeoplasmsDescription,
-                            chObservations: clinicalHistory.chObservations,
-                            chRcvg: clinicalHistory.chRcvg,
-                            chVisionProblems: clinicalHistory.chVisionProblems,
-                            chVisionHearing: clinicalHistory.chVisionHearing,
-                            createAt: clinicalHistory.createAt,
-                            conditions: conditions.filter(c => c !== null),
-                            vaccines: vaccines.filter(v => v !== null),
-                            medications: medications.map(med => ({
-                                id: med.id,
-                                mMedication: med.mMedication,
-                                mDosage: med.mDosage,
-                                mTreatmentType: med.mTreatmentType
-                            }))
-                        };
-                    }
-
-                    return {
-                        id: adult.id,
-                        oaIdentification: adult.oaIdentification,
-                        oaName: adult.oaName,
-                        oaFLastName: adult.oaFLastName,
-                        oaSLastName: adult.oaSLastName,
-                        oaBirthdate: adult.oaBirthdate,
-                        oaMaritalStatus: adult.oaMaritalStatus,
-                        oaDwelling: adult.oaDwelling,
-                        oaYearsSchooling: adult.oaYearsSchooling,
-                        oaPreviousWork: adult.oaPreviousWork,
-                        oaIsRetired: adult.oaIsRetired,
-                        oaHasPension: adult.oaHasPension,
-                        oaOther: adult.oaOther,
-                        oaOtherDescription: adult.oaOtherDescription,
-                        oaProvince: adult.oaProvince,
-                        oaCanton: adult.oaCanton,
-                        oaDistrict: adult.oaDistrict,
-                        oaChildrenCount: adult.oaChildrenCount,
-                        oaStatus: adult.oaStatus,
-                        oaDeathDate: adult.oaDeathDate,
-                        oaEconomicIncome: adult.oaEconomicIncome,
-                        oaPhoneNumber: adult.oaPhoneNumber,
-                        oaEmail: adult.oaEmail,
-                        oaProfilePhotoUrl: adult.oaProfilePhotoUrl,
-                        oaGender: adult.oaGender,
-                        oaBloodType: adult.oaBloodType,
-                        createAt: adult.createAt,
-                        program,
-                        family,
-                        clinicalHistory: clinicalData
-                    };
-                })
-            );
+            // Transform the results to include all related data in batches (no N+1)
+            const transformedData = await this.hydrateVirtualRecords(olderAdults);
 
             return {
                 message: `Found ${transformedData.length} virtual record(s) matching "${searchTerm}"`,
@@ -672,180 +731,8 @@ export class VirtualRecordsService {
                 order: { id: 'ASC' }
             });
 
-            // Transform the results to include all related data (same logic as searchVirtualRecords)
-            const transformedData = await Promise.all(
-                olderAdults.map(async (adult) => {
-                    // Get program information
-                    let program = null;
-                    if (adult.idProgram) {
-                        const programEntity = await this.programRepository.findOne({
-                            where: { id: adult.idProgram }
-                        });
-
-                        if (programEntity) {
-                            // Get sub-programs for this older adult
-                            const subPrograms = await this.olderAdultSubprogramRepository.find({
-                                where: { idOlderAdult: adult.id }
-                            });
-
-                            const subProgramsData = await Promise.all(
-                                subPrograms.map(async (oasp) => {
-                                    const subProgram = await this.subProgramRepository.findOne({
-                                        where: { id: oasp.idSubProgram }
-                                    });
-                                    return subProgram ? {
-                                        id: subProgram.id,
-                                        spName: subProgram.spName,
-                                        idProgram: subProgram.idProgram
-                                    } : null;
-                                })
-                            );
-
-                            program = {
-                                id: programEntity.id,
-                                pName: programEntity.pName,
-                                createAt: programEntity.createAt,
-                                subPrograms: subProgramsData.filter(sp => sp !== null)
-                            };
-                        }
-                    }
-
-                    // Get family information with emergency contacts
-                    let family = null;
-                    if (adult.idFamily) {
-                        const familyEntity = await this.familyRepository.findOne({
-                            where: { id: adult.idFamily }
-                        });
-
-                        if (familyEntity) {
-                            // Note: Emergency contacts would need a separate entity/repository
-                            // For now, we'll return the family info without emergency contacts
-                            family = {
-                                id: familyEntity.id,
-                                pfIdentification: familyEntity.pfIdentification,
-                                pfName: familyEntity.pfName,
-                                pfFLastName: familyEntity.pfFLastName,
-                                pfSLastName: familyEntity.pfSLastName,
-                                pfPhoneNumber: familyEntity.pfPhoneNumber,
-                                pfEmail: familyEntity.pfEmail,
-                                pfKinship: familyEntity.pfKinship,
-                                createAt: familyEntity.createAt,
-                                emergencyContacts: [] // TODO: Implement emergency contacts entity
-                            };
-                        }
-                    }
-
-                    // Get clinical history with conditions, vaccines, and medications
-                    const clinicalHistory = await this.clinicalHistoryRepository.findOne({
-                        where: { idOlderAdult: adult.id }
-                    });
-
-                    let clinicalData = null;
-                    if (clinicalHistory) {
-                        // Get conditions
-                        const historyConditions = await this.historyConditionRepository.find({
-                            where: { idCHistory: clinicalHistory.id }
-                        });
-
-                        const conditions = await Promise.all(
-                            historyConditions.map(async (hc) => {
-                                const condition = await this.clinicalConditionRepository.findOne({
-                                    where: { id: hc.idCCondition }
-                                });
-                                return condition ? {
-                                    id: condition.id,
-                                    ccName: condition.ccName
-                                } : null;
-                            })
-                        );
-
-                        // Get vaccines
-                        const historyVaccines = await this.historyVaccineRepository.find({
-                            where: { idCHistory: clinicalHistory.id }
-                        });
-
-                        const vaccines = await Promise.all(
-                            historyVaccines.map(async (hv) => {
-                                const vaccine = await this.vaccineRepository.findOne({
-                                    where: { id: hv.idVaccine }
-                                });
-                                return vaccine ? {
-                                    id: vaccine.id,
-                                    vName: vaccine.vName
-                                } : null;
-                            })
-                        );
-
-                        // Get medications
-                        const medications = await this.medicationRepository.find({
-                            where: { idClinicalHistory: clinicalHistory.id }
-                        });
-
-                        clinicalData = {
-                            id: clinicalHistory.id,
-                            chBloodType: adult.oaBloodType, // Include blood type from older adult
-                            chAllergies: null, // TODO: Add allergies field to entity if needed
-                            chEmergencyObservations: clinicalHistory.chObservations,
-                            chFrequentFalls: clinicalHistory.chFrequentFalls,
-                            chWeight: clinicalHistory.chWeight,
-                            chHeight: clinicalHistory.chHeight,
-                            chImc: clinicalHistory.chImc,
-                            chBloodPressure: clinicalHistory.chBloodPressure,
-                            chNeoplasms: clinicalHistory.chNeoplasms,
-                            chNeoplasmsDescription: clinicalHistory.chNeoplasmsDescription,
-                            chObservations: clinicalHistory.chObservations,
-                            chRcvg: clinicalHistory.chRcvg,
-                            chVisionProblems: clinicalHistory.chVisionProblems,
-                            chVisionHearing: clinicalHistory.chVisionHearing,
-                            createAt: clinicalHistory.createAt,
-                            conditions: conditions.filter(c => c !== null),
-                            vaccines: vaccines.filter(v => v !== null),
-                            medications: medications.map(med => ({
-                                id: med.id,
-                                mMedication: med.mMedication,
-                                mDosage: med.mDosage,
-                                mTreatmentType: med.mTreatmentType,
-                                mStartDate: null, // TODO: Add start date field to medication entity if needed
-                                mObservations: null // TODO: Add observations field to medication entity if needed
-                            }))
-                        };
-                    }
-
-                    return {
-                        id: adult.id,
-                        oaIdentification: adult.oaIdentification,
-                        oaName: adult.oaName,
-                        oaFLastName: adult.oaFLastName,
-                        oaSLastName: adult.oaSLastName,
-                        oaBirthdate: adult.oaBirthdate,
-                        oaGender: adult.oaGender,
-                        oaPhoneNumber: adult.oaPhoneNumber,
-                        oaEmail: adult.oaEmail,
-                        oaAddress: adult.oaDwelling,
-                        oaEntryDate: adult.createAt, // Using createAt as entry date
-                        oaStatus: adult.oaStatus,
-                        oaMaritalStatus: adult.oaMaritalStatus,
-                        oaYearsSchooling: adult.oaYearsSchooling,
-                        oaPreviousWork: adult.oaPreviousWork,
-                        oaIsRetired: adult.oaIsRetired,
-                        oaHasPension: adult.oaHasPension,
-                        oaOther: adult.oaOther,
-                        oaOtherDescription: adult.oaOtherDescription,
-                        oaProvince: adult.oaProvince,
-                        oaCanton: adult.oaCanton,
-                        oaDistrict: adult.oaDistrict,
-                        oaChildrenCount: adult.oaChildrenCount,
-                        oaDeathDate: adult.oaDeathDate,
-                        oaEconomicIncome: adult.oaEconomicIncome,
-                        oaProfilePhotoUrl: adult.oaProfilePhotoUrl,
-                        oaBloodType: adult.oaBloodType,
-                        createAt: adult.createAt,
-                        program,
-                        family,
-                        clinicalHistory: clinicalData
-                    };
-                })
-            );
+            // Transform the results to include all related data in batches (no N+1)
+            const transformedData = await this.hydrateVirtualRecords(olderAdults);
 
             return {
                 message: `Found ${transformedData.length} virtual record(s)`,
@@ -915,176 +802,8 @@ export class VirtualRecordsService {
                 throw new NotFoundException(`Virtual record with ID ${id} not found`);
             }
 
-            // Transform the result to include all related data (same logic as getAllVirtualRecords)
-            // Get program information
-            let program = null;
-            if (olderAdult.idProgram) {
-                const programEntity = await this.programRepository.findOne({
-                    where: { id: olderAdult.idProgram }
-                });
-
-                if (programEntity) {
-                    // Get sub-programs for this older adult
-                    const subPrograms = await this.olderAdultSubprogramRepository.find({
-                        where: { idOlderAdult: olderAdult.id }
-                    });
-
-                    const subProgramsData = await Promise.all(
-                        subPrograms.map(async (oasp) => {
-                            const subProgram = await this.subProgramRepository.findOne({
-                                where: { id: oasp.idSubProgram }
-                            });
-                            return subProgram ? {
-                                id: subProgram.id,
-                                spName: subProgram.spName,
-                                idProgram: subProgram.idProgram
-                            } : null;
-                        })
-                    );
-
-                    program = {
-                        id: programEntity.id,
-                        pName: programEntity.pName,
-                        createAt: programEntity.createAt,
-                        subPrograms: subProgramsData.filter(sp => sp !== null)
-                    };
-                }
-            }
-
-            // Get family information with emergency contacts
-            let family = null;
-            if (olderAdult.idFamily) {
-                const familyEntity = await this.familyRepository.findOne({
-                    where: { id: olderAdult.idFamily }
-                });
-
-                if (familyEntity) {
-                    // Note: Emergency contacts would need a separate entity/repository
-                    // For now, we'll return the family info without emergency contacts
-                    family = {
-                        id: familyEntity.id,
-                        pfIdentification: familyEntity.pfIdentification,
-                        pfName: familyEntity.pfName,
-                        pfFLastName: familyEntity.pfFLastName,
-                        pfSLastName: familyEntity.pfSLastName,
-                        pfPhoneNumber: familyEntity.pfPhoneNumber,
-                        pfEmail: familyEntity.pfEmail,
-                        pfKinship: familyEntity.pfKinship,
-                        createAt: familyEntity.createAt,
-                        emergencyContacts: [] // TODO: Implement emergency contacts entity
-                    };
-                }
-            }
-
-            // Get clinical history with conditions, vaccines, and medications
-            const clinicalHistory = await this.clinicalHistoryRepository.findOne({
-                where: { idOlderAdult: olderAdult.id }
-            });
-
-            let clinicalData = null;
-            if (clinicalHistory) {
-                // Get conditions
-                const historyConditions = await this.historyConditionRepository.find({
-                    where: { idCHistory: clinicalHistory.id }
-                });
-
-                const conditions = await Promise.all(
-                    historyConditions.map(async (hc) => {
-                        const condition = await this.clinicalConditionRepository.findOne({
-                            where: { id: hc.idCCondition }
-                        });
-                        return condition ? {
-                            id: condition.id,
-                            ccName: condition.ccName
-                        } : null;
-                    })
-                );
-
-                // Get vaccines
-                const historyVaccines = await this.historyVaccineRepository.find({
-                    where: { idCHistory: clinicalHistory.id }
-                });
-
-                const vaccines = await Promise.all(
-                    historyVaccines.map(async (hv) => {
-                        const vaccine = await this.vaccineRepository.findOne({
-                            where: { id: hv.idVaccine }
-                        });
-                        return vaccine ? {
-                            id: vaccine.id,
-                            vName: vaccine.vName
-                        } : null;
-                    })
-                );
-
-                // Get medications
-                const medications = await this.medicationRepository.find({
-                    where: { idClinicalHistory: clinicalHistory.id }
-                });
-
-                clinicalData = {
-                    id: clinicalHistory.id,
-                    chBloodType: olderAdult.oaBloodType, // Include blood type from older adult
-                    chAllergies: null, // TODO: Add allergies field to entity if needed
-                    chEmergencyObservations: clinicalHistory.chObservations,
-                    chFrequentFalls: clinicalHistory.chFrequentFalls,
-                    chWeight: clinicalHistory.chWeight,
-                    chHeight: clinicalHistory.chHeight,
-                    chImc: clinicalHistory.chImc,
-                    chBloodPressure: clinicalHistory.chBloodPressure,
-                    chNeoplasms: clinicalHistory.chNeoplasms,
-                    chNeoplasmsDescription: clinicalHistory.chNeoplasmsDescription,
-                    chObservations: clinicalHistory.chObservations,
-                    chRcvg: clinicalHistory.chRcvg,
-                    chVisionProblems: clinicalHistory.chVisionProblems,
-                    chVisionHearing: clinicalHistory.chVisionHearing,
-                    createAt: clinicalHistory.createAt,
-                    conditions: conditions.filter(c => c !== null),
-                    vaccines: vaccines.filter(v => v !== null),
-                    medications: medications.map(med => ({
-                        id: med.id,
-                        mMedication: med.mMedication,
-                        mDosage: med.mDosage,
-                        mTreatmentType: med.mTreatmentType,
-                        mStartDate: null, // TODO: Add start date field to medication entity if needed
-                        mObservations: null // TODO: Add observations field to medication entity if needed
-                    }))
-                };
-            }
-
-            const transformedData = {
-                id: olderAdult.id,
-                oaIdentification: olderAdult.oaIdentification,
-                oaName: olderAdult.oaName,
-                oaFLastName: olderAdult.oaFLastName,
-                oaSLastName: olderAdult.oaSLastName,
-                oaBirthdate: olderAdult.oaBirthdate,
-                oaGender: olderAdult.oaGender,
-                oaPhoneNumber: olderAdult.oaPhoneNumber,
-                oaEmail: olderAdult.oaEmail,
-                oaAddress: olderAdult.oaDwelling,
-                oaEntryDate: olderAdult.createAt, // Using createAt as entry date
-                oaStatus: olderAdult.oaStatus,
-                oaMaritalStatus: olderAdult.oaMaritalStatus,
-                oaYearsSchooling: olderAdult.oaYearsSchooling,
-                oaPreviousWork: olderAdult.oaPreviousWork,
-                oaIsRetired: olderAdult.oaIsRetired,
-                oaHasPension: olderAdult.oaHasPension,
-                oaOther: olderAdult.oaOther,
-                oaOtherDescription: olderAdult.oaOtherDescription,
-                oaProvince: olderAdult.oaProvince,
-                oaCanton: olderAdult.oaCanton,
-                oaDistrict: olderAdult.oaDistrict,
-                oaChildrenCount: olderAdult.oaChildrenCount,
-                oaDeathDate: olderAdult.oaDeathDate,
-                oaEconomicIncome: olderAdult.oaEconomicIncome,
-                oaProfilePhotoUrl: olderAdult.oaProfilePhotoUrl,
-                oaBloodType: olderAdult.oaBloodType,
-                createAt: olderAdult.createAt,
-                program,
-                family,
-                clinicalHistory: clinicalData
-            };
+            // Transform the result to include all related data via batch hydration
+            const [transformedData] = await this.hydrateVirtualRecords([olderAdult]);
 
             return {
                 message: 'Virtual record found successfully',
@@ -1092,12 +811,10 @@ export class VirtualRecordsService {
             };
 
         } catch (error) {
-            console.error('Error retrieving virtual record:', error);
-            
             if (error instanceof NotFoundException) {
                 throw error;
             }
-            
+            console.error('Error retrieving virtual record:', error);
             throw new InternalServerErrorException('Failed to retrieve virtual record');
         }
     }
