@@ -33,6 +33,7 @@ import { IdentificationLookupModule } from './ucr/ac/cr/ie/identification-lookup
 import { JwtAuthGuard } from './ucr/ac/cr/ie/common/guards/jwt-auth.guard';
 import { SettingsModule } from './ucr/ac/cr/ie/settings.module';
 import { UserRequestsModule } from './ucr/ac/cr/ie/user-requests.module';
+import { OrganizationModule } from './ucr/ac/cr/ie/modules/organizations/organization.module';
 
 @Module({
   imports: [
@@ -72,6 +73,7 @@ import { UserRequestsModule } from './ucr/ac/cr/ie/user-requests.module';
     IdentificationLookupModule,
     SettingsModule,
     UserRequestsModule,
+    OrganizationModule,
   ],
     providers: [
       {

@@ -8,6 +8,7 @@ import { LoginAttempt } from '../../domain/auth/security/login-attempt.entity';
 import { EmailVerificationToken } from '../../domain/auth/tokens/email-verification-token.entity';
 import { PasswordResetToken } from '../../domain/auth/tokens/password-reset-token.entity';
 import { RoleChange } from '../../domain/roles/role-change.entity';
+import { Organization, OrganizationMember } from '../../domain/organizations';
 
 export const authProviders = [
     {
@@ -53,6 +54,16 @@ export const authProviders = [
     {
         provide: 'RoleChangeRepository',
         useFactory: (dataSource: DataSource) => dataSource.getRepository(RoleChange),
+        inject: ['DataSource'],
+    },
+    {
+        provide: 'OrganizationRepository',
+        useFactory: (dataSource: DataSource) => dataSource.getRepository(Organization),
+        inject: ['DataSource'],
+    },
+    {
+        provide: 'OrganizationMemberRepository',
+        useFactory: (dataSource: DataSource) => dataSource.getRepository(OrganizationMember),
         inject: ['DataSource'],
     },
 ];

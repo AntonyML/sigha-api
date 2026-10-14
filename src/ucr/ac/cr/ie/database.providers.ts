@@ -36,6 +36,7 @@ import {
 } from './domain/nursing';
 import { Permission, RolePermission } from './domain/permissions';
 import { Settings } from './domain/settings/settings.entity';
+import { Organization, OrganizationMember } from './domain/organizations';
 
 /**
  * Build the TypeORM DataSource options from environment variables.
@@ -86,6 +87,8 @@ function buildDataSourceOptions(): DataSourceOptions {
         Permission,
         RolePermission,
         Settings,
+        Organization,
+        OrganizationMember,
     ];
 
     const sslEnabled = 

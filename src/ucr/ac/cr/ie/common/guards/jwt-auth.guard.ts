@@ -101,10 +101,12 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
             const roles = userRoles.map(r => r.rName).sort();
 
             request.user = {
+                id: user.id,
                 userId: user.id,
                 uEmail: user.uEmail,
                 roleIds,
                 roles,
+                orgId: payload.orgId !== undefined ? payload.orgId : null,
             };
 
             return true;

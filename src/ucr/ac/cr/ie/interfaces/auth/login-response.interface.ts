@@ -9,4 +9,11 @@ export interface LoginResponse {
     };
     requiresTwoFactor?: boolean;
     tempToken?: string;
+    organizations?: Array<{
+        id: number;
+        name: string;
+        slug: string;
+        logoUrl: string | null;
+        isPrimary: boolean;
+    }>;
 }

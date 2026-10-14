@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, BadRequestException, Inject, NotFoundException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException, Inject, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { Repository, MoreThan } from 'typeorm';
@@ -8,6 +8,7 @@ import { User } from '../../domain/auth/core/user.entity';
 import { UserSession } from '../../domain/auth/sessions/user-session.entity';
 import { UserTwoFactor } from '../../domain/auth/security/user-two-factor.entity';
 import { PasswordResetToken } from '../../domain/auth/tokens/password-reset-token.entity';
+import { Organization, OrganizationMember } from '../../domain/organizations';
 import { PasswordUtil, DateUtil, TwoFactorUtil } from '../../common/utils';
 import { LoginDto, ForgotPasswordDto, ResetPasswordDto } from '../../dto/auth';
 import { LoginResponse, Setup2FAResponse, Enable2FAResponse, TwoFactorStatusResponse } from '../../interfaces/auth';
@@ -34,6 +35,10 @@ export class AuthService {
         private twoFactorRepository: Repository<UserTwoFactor>,
         @Inject('PasswordResetTokenRepository')
         private passwordResetTokenRepository: Repository<PasswordResetToken>,
+        @Inject('OrganizationRepository')
+        private organizationRepository: Repository<Organization>,
+        @Inject('OrganizationMemberRepository')
+        private organizationMemberRepository: Repository<OrganizationMember>,
         private readonly emailService: EmailService,
         private readonly auditService: AuditService,
         private readonly userRoleService: UserRoleService,
@@ -49,6 +54,27 @@ export class AuthService {
         const roleIds = userRoles.map(r => r.id).sort((a, b) => a - b);
         const roles = userRoles.map(r => r.rName).sort();
         return { roleIds, roles };
+    }
+
+    /**
+     * Resolves the user's active organizations with their primary status.
+     */
+    async getUserOrganizations(userId: number): Promise<Array<{ id: number; name: string; slug: string; logoUrl: string | null; isPrimary: boolean }>> {
+        const members = await this.organizationMemberRepository.find({
+            where: { userId },
+            relations: ['organization'],
+            order: { isPrimary: 'DESC', organizationId: 'ASC' },
+        });
+
+        return members
+            .filter(m => m.organization && m.organization.isActive)
+            .map(m => ({
+                id: m.organization.id,
+                name: m.organization.name,
+                slug: m.organization.slug,
+                logoUrl: m.organization.logoUrl ?? null,
+                isPrimary: Boolean(m.isPrimary),
+            }));
     }
 
     /**
@@ -75,6 +101,7 @@ export class AuthService {
         }
 
         const { roles } = await this.resolveUserRoles(user.id);
+        const organizations = await this.getUserOrganizations(user.id);
 
         const twoFactor = await this.twoFactorRepository.findOne({
             where: { userId: user.id, tfaEnabled: true },
@@ -96,6 +123,7 @@ export class AuthService {
                 },
                 requiresTwoFactor: true,
                 tempToken,
+                organizations,
             };
         }
 
@@ -458,17 +486,37 @@ export class AuthService {
     }
 
     /**
-     * Genera tokens de acceso y actualiza sesión
+     * Genera tokens de acceso y actualiza sesión con el contexto de organización
      */
-    private async generateTokens(user: User, ipAddress?: string, userAgent?: string, twoFactorVerified: boolean = false): Promise<LoginResponse> {
+    private async generateTokens(
+        user: User,
+        ipAddress?: string,
+        userAgent?: string,
+        twoFactorVerified: boolean = false,
+        targetOrgId?: number,
+    ): Promise<LoginResponse> {
         const { roleIds, roles } = await this.resolveUserRoles(user.id);
+        const organizations = await this.getUserOrganizations(user.id);
+
+        let activeOrgId: number | null = null;
+        if (targetOrgId !== undefined) {
+            const match = organizations.find(o => o.id === targetOrgId);
+            if (!match) {
+                throw new ForbiddenException('El usuario no es miembro de la organización solicitada');
+            }
+            activeOrgId = targetOrgId;
+        } else {
+            const primary = organizations.find(o => o.isPrimary) || organizations[0];
+            activeOrgId = primary ? primary.id : null;
+        }
 
         const payload = {
             sub: user.id,
             email: user.uEmail,
             roleIds,
             roles,
-            twoFactorVerified
+            twoFactorVerified,
+            orgId: activeOrgId,
         };
 
         const accessToken = this.jwtService.sign(payload);
@@ -509,6 +557,49 @@ export class AuthService {
                 uName: user.uName,
                 roles,
             },
+            organizations,
+        };
+    }
+
+    /**
+     * Reemite tokens con una nueva organización activa seleccionada.
+     */
+    async switchActiveOrganization(
+        userId: number,
+        organizationId: number,
+        ipAddress?: string,
+        userAgent?: string,
+    ): Promise<{
+        accessToken: string;
+        refreshToken?: string;
+        activeOrganization: { id: number; name: string; slug: string; logoUrl: string | null };
+        organizations: Array<{ id: number; name: string; slug: string; logoUrl: string | null; isPrimary: boolean }>;
+    }> {
+        const user = await this.userRepository.findOne({
+            where: { id: userId, uIsActive: true },
+        });
+        if (!user) {
+            throw new UnauthorizedException('Usuario no encontrado');
+        }
+
+        const organizations = await this.getUserOrganizations(userId);
+        const targetOrg = organizations.find(o => o.id === organizationId);
+        if (!targetOrg) {
+            throw new ForbiddenException('El usuario no es miembro de la organización solicitada');
+        }
+
+        const tokens = await this.generateTokens(user, ipAddress, userAgent, true, organizationId);
+
+        return {
+            accessToken: tokens.accessToken,
+            refreshToken: tokens.refreshToken,
+            activeOrganization: {
+                id: targetOrg.id,
+                name: targetOrg.name,
+                slug: targetOrg.slug,
+                logoUrl: targetOrg.logoUrl,
+            },
+            organizations,
         };
     }
 
