@@ -31,11 +31,13 @@ import { OlderAdultFamilyModule } from './ucr/ac/cr/ie/older-adult-family.module
 import { OlderAdultUpdatesModule } from './ucr/ac/cr/ie/older-adult-updates.module';
 import { IdentificationLookupModule } from './ucr/ac/cr/ie/identification-lookup.module';
 import { JwtAuthGuard } from './ucr/ac/cr/ie/common/guards/jwt-auth.guard';
+import { HealthController } from './health.controller';
 import { SettingsModule } from './ucr/ac/cr/ie/settings.module';
 import { UserRequestsModule } from './ucr/ac/cr/ie/user-requests.module';
 import { OrganizationModule } from './ucr/ac/cr/ie/modules/organizations/organization.module';
 
 @Module({
+  controllers: [HealthController],
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
