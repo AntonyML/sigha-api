@@ -13,3 +13,4 @@ Formato: `YYYY-MM-DD | <taskId> | tipo: resumen | verificación: resultado`.
 2026-10-13 | sigha-api-20261013-m7x2 | feat: configuracion de proyecto Infisical (.infisical.json), scripts de ejecucion desacoplados y documentacion | verificacion: typecheck limpio, bun test 92 pass/0 fail, infisical live injection 92 pass/0 fail, nest build OK (worktree y dev).
 2026-10-13 | sigha-api-20261013-02tp | feat: configurar deploy Render con Bun (render.yaml + GET /health publico + .node-version) | verificación: tsc --noEmit OK, bun test health 1 pass, nest build OK (worktree y dev); render.yaml validado (bun install/build, start dist/main.js, health /health).
 
+2026-10-13 | sigha-api-20261013-8qht | docs: actualizar deuda sobre cadencia y tamaño del lote del job de notificaciones | verificación: typecheck OK, bun test 93 pass/0 fail, build OK; prueba del job 5 pass/0 fail.
