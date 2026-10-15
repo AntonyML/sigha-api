@@ -1,8 +1,9 @@
-# Registro de cambios
+﻿# Registro de cambios
 
 Registra aquí solo cambios integrados en `dev`. El agente que integra agrega una entrada bajo el lock `dev-sigha-api` tras re-verificar el cambio en `dev`; las demás tareas no editan este archivo.
 
 Formato: `YYYY-MM-DD | <taskId> | tipo: resumen | verificación: resultado`.
+2026-10-14 | sigha-api-20261014-k3m9 | tipo: feat Frente 4: LifestyleModule (entidad, DTOs, servicio y controlador health_lifestyle) | verificacion: bun test 171 pass/0 fail, nest build exitoso en dev
 
 - 2026-10-13 | agent/antigravity/migrate-to-bun | chore: migración de runtime, gestor de dependencias y test runner a Bun | verificación: bun install, bun test (25 pass, 0 fail), bun run build y db:check exitosos.
 2026-10-13 | sigha-api-20261013-f4t8 | feat: job de despacho programado de notificaciones pendientes | verificacion: typecheck limpio, bun test 48 pass/0 fail, build OK (worktree y dev).
@@ -22,6 +23,6 @@ Formato: `YYYY-MM-DD | <taskId> | tipo: resumen | verificación: resultado`.
 2026-10-14 | sigha-api-20261014-kpsi | feat: migración de transporte de email a Mailbridge REST (/api/send) con app SIGHA y 6 plantillas | verificación: typecheck limpio, bun test 129 pass/0 fail (12 tests propios de email y mailer), nest build OK (worktree y dev); verificación funcional: app SIGHA y 6 plantillas provisionadas en Mailbridge, envíos con to_override y auditoría validada.
 2026-10-14 | sigha-api-20261014-8z6j | feat: endpoints y métodos tipados para 5 plantillas adicionales (citas, alertas médicas, entradas/salidas) y módulo público de consultas web con Throttler | verificación: bun test 136 pass/0 fail (7 tests nuevos), nest build OK (worktree y dev); módulo contact-inquiries documentado en Swagger.
 
-2026-10-14 | sigha-api-20261014-vex9 | feat: m�dulo Pharmacy (vadem�cum, prescripciones, kardex MAR) y soporte CIE-10 e inmunizaciones completas | verificaci�n: typecheck limpio, bun test 141 pass/0 fail (5 tests nuevos de farmacia/kardex), nest build OK (worktree y dev); endpoints documentados en Swagger.
-2026-10-14 | sigha-api-20261014-q2x8 | feat: encuentros cl�nicos SOAP inmutables, signos vitales num�ricos, rondas de enfermer�a por turno, habitaciones/camas y especialidades geri�tricas (Barthel, Yesavage, Pfeiffer, APGAR) | verificaci�n: typecheck limpio, bun test 158 pass/0 fail (17 tests nuevos), nest build OK (worktree y dev); endpoints documentados en Swagger.
+2026-10-14 | sigha-api-20261014-vex9 | feat: m�dulo Pharmacy (vadem�cum, prescripciones, kardex MAR) y soporte CIE-10 e inmunizaciones completas | verificaci�n: typecheck limpio, bun test 141 pass/0 fail (5 tests nuevos de farmacia/kardex), nest build OK (worktree y dev); endpoints documentados en Swagger.
+2026-10-14 | sigha-api-20261014-q2x8 | feat: encuentros cl�nicos SOAP inmutables, signos vitales num�ricos, rondas de enfermer�a por turno, habitaciones/camas y especialidades geri�tricas (Barthel, Yesavage, Pfeiffer, APGAR) | verificaci�n: typecheck limpio, bun test 158 pass/0 fail (17 tests nuevos), nest build OK (worktree y dev); endpoints documentados en Swagger.
 2026-10-14 | sigha-api-20261014-xneq | feat: proteger Configuraciones Globales con step-up 2FA y permisos admin/superadmin | verificacion: bun test 167 pass/0 fail, typecheck y nest build OK en worktree y dev.
