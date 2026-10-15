@@ -5,6 +5,7 @@ import { Repository, MoreThan } from 'typeorm';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import type { Cache } from 'cache-manager';
 import { User } from '../../domain/auth/core/user.entity';
+import { RoleType } from '../../domain/auth/core/role.entity';
 import { UserSession } from '../../domain/auth/sessions/user-session.entity';
 import { UserTwoFactor } from '../../domain/auth/security/user-two-factor.entity';
 import { PasswordResetToken } from '../../domain/auth/tokens/password-reset-token.entity';
@@ -54,6 +55,88 @@ export class AuthService {
         const roleIds = userRoles.map(r => r.id).sort((a, b) => a - b);
         const roles = userRoles.map(r => r.rName).sort();
         return { roleIds, roles };
+    }
+
+    private async canManageGlobalSettings(userId: number): Promise<boolean> {
+        const roles = await this.userRoleService.findRolesByUserId(userId);
+        return roles.some(role => [RoleType.ADMIN, RoleType.SUPER_ADMIN].includes(role.rName as RoleType));
+    }
+
+    /**
+     * Re-authenticates an administrator with TOTP and issues a short-lived,
+     * purpose-bound token for the global settings endpoints.
+     */
+    async createGlobalSettingsStepUpToken(
+        userId: number,
+        twoFactorCode: string,
+    ): Promise<{ accessToken: string; expiresAt: string }> {
+        const [user, twoFactor, canManage] = await Promise.all([
+            this.userRepository.findOne({ where: { id: userId, uIsActive: true } }),
+            this.twoFactorRepository.findOne({ where: { userId, tfaEnabled: true } }),
+            this.canManageGlobalSettings(userId),
+        ]);
+
+        if (!user) {
+            throw new UnauthorizedException('La sesión no es válida');
+        }
+        if (!canManage) {
+            throw new ForbiddenException('Solo admin o super admin puede acceder a Configuraciones Globales');
+        }
+        if (!twoFactor) {
+            throw new ForbiddenException('Debes tener 2FA habilitado para acceder a Configuraciones Globales');
+        }
+        if (typeof twoFactorCode !== 'string' || !/^\d{6}$/.test(twoFactorCode) || !TwoFactorUtil.verifyToken(twoFactorCode, twoFactor.tfaSecret)) {
+            throw new UnauthorizedException('El código 2FA es inválido o expiró');
+        }
+
+        twoFactor.tfaLastUsed = new Date();
+        await this.twoFactorRepository.save(twoFactor);
+
+        const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+        const accessToken = this.jwtService.sign(
+            { sub: userId, purpose: 'global-settings-step-up' },
+            { expiresIn: '5m' },
+        );
+
+        await this.auditService.logAction(
+            userId,
+            AuditAction.VIEW,
+            'system_settings',
+            undefined,
+            'Acceso a Configuraciones Globales validado con 2FA',
+        );
+
+        return { accessToken, expiresAt: expiresAt.toISOString() };
+    }
+
+    /** Validates the short-lived token and rechecks account, role and 2FA state. */
+    async validateGlobalSettingsStepUpToken(userId: number, token: string): Promise<boolean> {
+        try {
+            const payload = this.jwtService.verify(token);
+            if (payload.sub !== userId || payload.purpose !== 'global-settings-step-up') {
+                return false;
+            }
+
+            const [user, twoFactor, canManage] = await Promise.all([
+                this.userRepository.findOne({ where: { id: userId, uIsActive: true } }),
+                this.twoFactorRepository.findOne({ where: { userId, tfaEnabled: true } }),
+                this.canManageGlobalSettings(userId),
+            ]);
+
+            return Boolean(user && twoFactor && canManage);
+        } catch {
+            return false;
+        }
+    }
+
+    async auditGlobalSettingsChange(userId: number, settingsId: number, description: string): Promise<void> {
+        await this.auditService.logAction(
+            userId,
+            AuditAction.UPDATE,
+            'system_settings',
+            settingsId,
+            description,
+        );
     }
 
     /**

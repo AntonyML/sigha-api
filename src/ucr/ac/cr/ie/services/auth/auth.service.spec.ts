@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import '../../domain/auth/core/user-role.entity';
 import '../../domain/permissions/role-permission.entity';
 import { AuthService } from './auth.service';
-import { UnauthorizedException } from '@nestjs/common';
+import { ForbiddenException, UnauthorizedException } from '@nestjs/common';
 import { User } from '../../domain/auth/core/user.entity';
 import { PasswordUtil, TwoFactorUtil } from '../../common/utils';
 import { AuditAction } from '../../domain/audit';
@@ -69,6 +69,7 @@ describe('AuthService - Optimización de login y verify-2fa', () => {
             createDigitalRecord: mock(async () => ({})),
             computeSessionDuration: mock(async () => 0),
             logAuditDbFunction: mock(async () => {}),
+            logAction: mock(async () => {}),
         };
         mockUserRoleService = {
             findRolesByUserId: mock(async () => [{ id: 1, rName: 'admin' }]),
@@ -234,6 +235,83 @@ describe('AuthService - Optimización de login y verify-2fa', () => {
                 'invalid-token',
                 '123456',
             )).rejects.toThrow(UnauthorizedException);
+        });
+    });
+
+    describe('global settings step-up', () => {
+        it('issues a five-minute token after an active admin verifies TOTP', async () => {
+            const user = new User(1, '123456789', 'Ana', 'Admin', 'ana@example.com', 'hash');
+            const twoFactor = {
+                id: 3,
+                userId: 1,
+                tfaEnabled: true,
+                tfaSecret: 'JBSWY3DPEHPK3PXP',
+                tfaLastUsed: null,
+            };
+            mockUserRepo.findOne = mock(async () => user);
+            mockTwoFactorRepo.findOne = mock(async () => twoFactor);
+
+            const originalVerifyToken = TwoFactorUtil.verifyToken;
+            TwoFactorUtil.verifyToken = mock(() => true);
+            try {
+                const result = await authService.createGlobalSettingsStepUpToken(1, '123456');
+
+                expect(result.accessToken).toBe('token-sub-1');
+                expect(new Date(result.expiresAt).getTime()).toBeGreaterThan(Date.now());
+                expect(mockJwtService.sign).toHaveBeenCalledWith(
+                    { sub: 1, purpose: 'global-settings-step-up' },
+                    { expiresIn: '5m' },
+                );
+                expect(twoFactor.tfaLastUsed).toBeInstanceOf(Date);
+                expect(mockTwoFactorRepo.save).toHaveBeenCalledWith(twoFactor);
+                expect(mockAuditService.logAction).toHaveBeenCalledTimes(1);
+            } finally {
+                TwoFactorUtil.verifyToken = originalVerifyToken;
+            }
+        });
+
+        it('rejects users without an admin role or enabled 2FA', async () => {
+            mockUserRepo.findOne = mock(async () => new User(2, '234567890', 'Diego', 'Director', 'd@example.com', 'hash'));
+            mockTwoFactorRepo.findOne = mock(async () => ({ userId: 2, tfaEnabled: true, tfaSecret: 'secret' }));
+            mockUserRoleService.findRolesByUserId = mock(async () => [{ id: 4, rName: 'director' }]);
+
+            await expect(authService.createGlobalSettingsStepUpToken(2, '123456')).rejects.toThrow(ForbiddenException);
+
+            mockUserRoleService.findRolesByUserId = mock(async () => [{ id: 1, rName: 'admin' }]);
+            mockTwoFactorRepo.findOne = mock(async () => null);
+            await expect(authService.createGlobalSettingsStepUpToken(2, '123456')).rejects.toThrow(ForbiddenException);
+        });
+
+        it('rejects an invalid TOTP without creating a step-up token', async () => {
+            mockUserRepo.findOne = mock(async () => new User(1, '123456789', 'Ana', 'Admin', 'ana@example.com', 'hash'));
+            mockTwoFactorRepo.findOne = mock(async () => ({ userId: 1, tfaEnabled: true, tfaSecret: 'secret' }));
+            const originalVerifyToken = TwoFactorUtil.verifyToken;
+            TwoFactorUtil.verifyToken = mock(() => false);
+
+            try {
+                await expect(authService.createGlobalSettingsStepUpToken(1, '000000')).rejects.toThrow(UnauthorizedException);
+                expect(mockJwtService.sign).not.toHaveBeenCalled();
+            } finally {
+                TwoFactorUtil.verifyToken = originalVerifyToken;
+            }
+        });
+
+        it('accepts only a matching, unexpired step-up token while admin role and 2FA remain active', async () => {
+            mockJwtService.verify = mock((token: string) => {
+                if (token === 'valid-global-token') {
+                    return { sub: 1, purpose: 'global-settings-step-up' };
+                }
+                throw new Error('invalid token');
+            });
+            mockUserRepo.findOne = mock(async () => new User(1, '123456789', 'Ana', 'Admin', 'ana@example.com', 'hash'));
+            mockTwoFactorRepo.findOne = mock(async () => ({ userId: 1, tfaEnabled: true, tfaSecret: 'secret' }));
+
+            expect(await authService.validateGlobalSettingsStepUpToken(1, 'valid-global-token')).toBe(true);
+            expect(await authService.validateGlobalSettingsStepUpToken(2, 'valid-global-token')).toBe(false);
+            expect(await authService.validateGlobalSettingsStepUpToken(1, 'invalid-token')).toBe(false);
+
+            mockUserRoleService.findRolesByUserId = mock(async () => [{ id: 4, rName: 'director' }]);
+            expect(await authService.validateGlobalSettingsStepUpToken(1, 'valid-global-token')).toBe(false);
         });
     });
 });
