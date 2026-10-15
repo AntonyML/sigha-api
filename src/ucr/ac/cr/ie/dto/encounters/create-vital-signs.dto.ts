@@ -87,8 +87,4 @@ export class CreateVitalSignsDto {
     @IsString()
     notes?: string;
 
-    @ApiPropertyOptional({ example: 22, description: 'ID del usuario/personal que registra' })
-    @IsOptional()
-    @IsInt()
-    recordedBy?: number;
 }

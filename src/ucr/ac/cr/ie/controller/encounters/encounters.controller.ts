@@ -6,14 +6,14 @@ import {
     Body,
     Param,
     ParseIntPipe,
-    UseGuards
+    UseGuards,
+    Req,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { EncountersService } from '../../services/encounters';
 import {
     CreateEncounterDto,
     UpdateEncounterSoapDto,
-    SignEncounterDto,
     CreateNoteAddendumDto
 } from '../../dto/encounters';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -57,18 +57,22 @@ export class EncountersController {
     @ApiOperation({ summary: 'Firmar y cerrar definitivamente un encuentro clínico (inmutabilidad médica)' })
     async signEncounter(
         @Param('id', ParseIntPipe) id: number,
-        @Body() dto: SignEncounterDto
+        @Req() request: any
     ) {
-        return this.encountersService.signEncounter(id, dto);
+        return this.encountersService.signEncounter(id, Number(request.user?.userId ?? request.user?.id));
     }
 
     @Post(':id/addendums')
     @ApiOperation({ summary: 'Añadir un addendum (enmienda formal) a una nota clínica ya firmada' })
     async createAddendum(
         @Param('id', ParseIntPipe) id: number,
-        @Body() dto: CreateNoteAddendumDto
+        @Body() dto: CreateNoteAddendumDto,
+        @Req() request: any
     ) {
-        dto.idEncounter = id;
-        return this.encountersService.createAddendum(dto);
+        return this.encountersService.createAddendum(
+            id,
+            Number(request.user?.userId ?? request.user?.id),
+            dto,
+        );
     }
 }

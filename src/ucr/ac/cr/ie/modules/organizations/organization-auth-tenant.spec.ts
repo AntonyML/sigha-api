@@ -147,13 +147,24 @@ describe('SaaS Multi-tenant Authority & Organization Scoping', () => {
     describe('TenantGuard', () => {
         let guard: TenantGuard;
         let reflector: Reflector;
+        let memberRepository: any;
+        let tenantManager: any;
+        let dataSource: any;
 
         beforeEach(() => {
             reflector = new Reflector();
-            guard = new TenantGuard(reflector);
+            memberRepository = { findOne: mock(async () => ({ userId: 1, organizationId: 42 })) };
+            tenantManager = {
+                query: mock(async () => []),
+                getRepository: () => memberRepository,
+            };
+            dataSource = {
+                transaction: mock(async (callback: (manager: any) => unknown) => callback(tenantManager)),
+            };
+            guard = new TenantGuard(reflector, dataSource);
         });
 
-        it('permite el acceso si la ruta está decorada con @SkipTenant', () => {
+        it('permite el acceso si la ruta está decorada con @SkipTenant', async () => {
             const context = {
                 getHandler: () => ({}),
                 getClass: () => ({}),
@@ -164,10 +175,12 @@ describe('SaaS Multi-tenant Authority & Organization Scoping', () => {
 
             reflector.getAllAndOverride = mock(() => true);
 
-            expect(guard.canActivate(context)).toBe(true);
+            expect(await guard.canActivate(context)).toBe(true);
+            expect(dataSource.transaction).not.toHaveBeenCalled();
+            expect(memberRepository.findOne).not.toHaveBeenCalled();
         });
 
-        it('permite el acceso si el usuario tiene un orgId válido', () => {
+        it('permite el acceso solo si el usuario pertenece al orgId activo', async () => {
             const context = {
                 getHandler: () => ({}),
                 getClass: () => ({}),
@@ -178,10 +191,21 @@ describe('SaaS Multi-tenant Authority & Organization Scoping', () => {
 
             reflector.getAllAndOverride = mock(() => false);
 
-            expect(guard.canActivate(context)).toBe(true);
+            expect(await guard.canActivate(context)).toBe(true);
+            expect(dataSource.transaction).toHaveBeenCalledTimes(1);
+            expect(tenantManager.query).toHaveBeenNthCalledWith(1, 'SET LOCAL ROLE sigha_app', undefined);
+            expect(tenantManager.query).toHaveBeenNthCalledWith(
+                2,
+                "SELECT set_config('app.current_tenant_id', $1, true), set_config('app.current_user_id', $2, true)",
+                ['42', '1'],
+            );
+            expect(memberRepository.findOne).toHaveBeenCalledWith({
+                where: { organizationId: 42, userId: 1 },
+                select: { organizationId: true, userId: true },
+            });
         });
 
-        it('lanza 403 Forbidden si el orgId es nulo o indefinido en un endpoint con scope tenant', () => {
+        it('lanza 403 si el orgId es nulo o indefinido en un endpoint con scope tenant', async () => {
             const context = {
                 getHandler: () => ({}),
                 getClass: () => ({}),
@@ -192,7 +216,20 @@ describe('SaaS Multi-tenant Authority & Organization Scoping', () => {
 
             reflector.getAllAndOverride = mock(() => false);
 
-            expect(() => guard.canActivate(context)).toThrow(ForbiddenException);
+            await expect(guard.canActivate(context)).rejects.toThrow(ForbiddenException);
+            expect(dataSource.transaction).not.toHaveBeenCalled();
+        });
+
+        it('rechaza una organización activa que no coincide con una membresía del usuario', async () => {
+            memberRepository.findOne.mockResolvedValue(null);
+            const context = {
+                getHandler: () => ({}),
+                getClass: () => ({}),
+                switchToHttp: () => ({ getRequest: () => ({ user: { id: 1, orgId: 42 } }) }),
+            } as unknown as ExecutionContext;
+            reflector.getAllAndOverride = mock(() => false);
+            await expect(guard.canActivate(context)).rejects.toThrow(ForbiddenException);
+            expect(dataSource.transaction).toHaveBeenCalledTimes(1);
         });
     });
 

@@ -41,6 +41,8 @@ import { InpatientModule } from './ucr/ac/cr/ie/inpatient.module';
 import { EncountersModule } from './ucr/ac/cr/ie/encounters.module';
 import { SpecialtiesModule } from './ucr/ac/cr/ie/specialties.module';
 import { LifestyleModule } from './ucr/ac/cr/ie/lifestyle.module';
+import { TenantGuard } from './ucr/ac/cr/ie/common/guards/tenant.guard';
+import { TenantContextInterceptor } from './common/interceptors/tenant-context.interceptor';
 import { MemosModule } from './ucr/ac/cr/ie/memos.module';
 
 @Module({
@@ -99,6 +101,14 @@ import { MemosModule } from './ucr/ac/cr/ie/memos.module';
       {
         provide: APP_GUARD,
         useClass: JwtAuthGuard,
+      },
+      {
+        provide: APP_GUARD,
+        useClass: TenantGuard,
+      },
+      {
+        provide: APP_INTERCEPTOR,
+        useClass: TenantContextInterceptor,
       },
       {
         provide: APP_INTERCEPTOR,

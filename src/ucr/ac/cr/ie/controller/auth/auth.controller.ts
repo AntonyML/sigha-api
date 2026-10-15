@@ -3,11 +3,12 @@ import { Throttle } from '@nestjs/throttler';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService, LoginDto } from '../../services/auth/auth.service';
 import { JwtAuthGuard, TwoFactorGuard } from '../../common/guards';
-import { Public, Require2FA } from '../../common/decorators';
+import { Public, Require2FA, SkipTenant } from '../../common/decorators';
 import { ForgotPasswordDto, ResetPasswordDto, ActiveOrganizationDto } from '../../dto/auth';
 
 @ApiTags('Autenticación')
 @Controller('auth')
+@SkipTenant()
 export class AuthController {
     constructor(private readonly authService: AuthService) { }
 

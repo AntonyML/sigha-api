@@ -1,149 +1,115 @@
-import { describe, it, expect, beforeEach } from 'bun:test';
+import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { PhysiotherapyEvaluationsService } from './physiotherapy-evaluations.service';
 import { PsychologyEvaluationsService } from './psychology-evaluations.service';
 import { SocialWorkEvaluationsService } from './social-work-evaluations.service';
+import { ClinicalEncounter, ClinicalScaleEvaluation } from '../../domain/encounters';
 
-describe('Specialties Services - Escalas Geriátricas Estandarizadas', () => {
+describe('Specialties Services - shared clinical encounters and scales', () => {
     let physioService: PhysiotherapyEvaluationsService;
     let psyService: PsychologyEvaluationsService;
     let swService: SocialWorkEvaluationsService;
-
     let physioRepo: any;
     let psyRepo: any;
     let swRepo: any;
+    let encounterRepo: any;
+    let scaleRepo: any;
     let olderAdultRepo: any;
+    let manager: any;
 
     beforeEach(() => {
-        olderAdultRepo = {
-            findOne: async (options: any) => ({ id: 1, oaName: 'María' }),
+        olderAdultRepo = { findOne: mock(async () => ({ id: 1, oaName: 'María' })) };
+        physioRepo = { find: mock(async () => []), findOne: mock(async () => null), save: mock() };
+        psyRepo = { find: mock(async () => []), findOne: mock(async () => null), save: mock() };
+        swRepo = { find: mock(async () => []), findOne: mock(async () => null), save: mock() };
+        let encounterId = 40;
+        let scaleId = 80;
+        let persistedEncounter: any;
+        encounterRepo = {
+            create: mock((data: any) => ({ ...data, id: ++encounterId })),
+            save: mock(async (entity: any) => { persistedEncounter = entity; return entity; }),
+            find: mock(async () => []),
+            findOne: mock(async ({ where }: any) => persistedEncounter?.id === where.id ? persistedEncounter : null),
         };
-
-        physioRepo = {
-            create: (data: any) => ({ ...data, id: 1 }),
-            save: async (entity: any) => entity,
-            find: async () => [],
-            findOne: async () => null,
+        scaleRepo = {
+            create: mock((data: any) => ({ ...data, id: ++scaleId })),
+            save: mock(async (entity: any) => entity),
+            find: mock(async () => []),
+            findOne: mock(async () => null),
         };
-
-        psyRepo = {
-            create: (data: any) => ({ ...data, id: 1 }),
-            save: async (entity: any) => entity,
-            find: async () => [],
-            findOne: async () => null,
+        manager = {
+            getRepository: (entity: any) => entity === ClinicalEncounter ? encounterRepo : scaleRepo,
+            transaction: mock(async (callback: (transactionManager: any) => unknown) => callback(manager)),
         };
-
-        swRepo = {
-            create: (data: any) => ({ ...data, id: 1 }),
-            save: async (entity: any) => entity,
-            find: async () => [],
-            findOne: async () => null,
-        };
-
-        physioService = new PhysiotherapyEvaluationsService(physioRepo, olderAdultRepo);
-        psyService = new PsychologyEvaluationsService(psyRepo, olderAdultRepo);
-        swService = new SocialWorkEvaluationsService(swRepo, olderAdultRepo);
+        encounterRepo.manager = manager;
+        physioService = new PhysiotherapyEvaluationsService(physioRepo, olderAdultRepo, encounterRepo, scaleRepo);
+        psyService = new PsychologyEvaluationsService(psyRepo, olderAdultRepo, encounterRepo, scaleRepo);
+        swService = new SocialWorkEvaluationsService(swRepo, olderAdultRepo, encounterRepo, scaleRepo);
     });
 
-    describe('Fisioterapia (Índice de Barthel)', () => {
-        it('debe calcular 100 puntos y nivel independent cuando todas las actividades son autónomas', async () => {
-            const result = await physioService.create({
-                idOlderAdult: 1,
-                evaluatorId: 22,
-                barthelFeeding: 10,
-                barthelBathing: 5,
-                barthelGrooming: 5,
-                barthelDressing: 10,
-                barthelBowels: 10,
-                barthelBladder: 10,
-                barthelToiletUse: 10,
-                barthelTransfers: 15,
-                barthelMobility: 15,
-                barthelStairs: 10,
-            });
+    it('calcula Barthel y persiste un encuentro más una escala, sin escribir la tabla especializada', async () => {
+        const result = await physioService.create({
+            idOlderAdult: 1,
+            barthelFeeding: 10, barthelBathing: 5, barthelGrooming: 5,
+            barthelDressing: 10, barthelBowels: 10, barthelBladder: 10,
+            barthelToiletUse: 10, barthelTransfers: 15, barthelMobility: 15, barthelStairs: 10,
+        }, 22);
 
-            expect(result.barthelTotalScore).toBe(100);
-            expect(result.dependenceLevel).toBe('independent');
-        });
-
-        it('debe calcular dependencia severa cuando el puntaje está entre 21 y 60', async () => {
-            const result = await physioService.create({
-                idOlderAdult: 1,
-                evaluatorId: 22,
-                barthelFeeding: 5,
-                barthelBathing: 0,
-                barthelGrooming: 0,
-                barthelDressing: 5,
-                barthelBowels: 5,
-                barthelBladder: 5,
-                barthelToiletUse: 5,
-                barthelTransfers: 10,
-                barthelMobility: 10,
-                barthelStairs: 5,
-            });
-
-            expect(result.barthelTotalScore).toBe(50);
-            expect(result.dependenceLevel).toBe('severe_dependence');
-        });
+        expect(result.barthelTotalScore).toBe(100);
+        expect(result.dependenceLevel).toBe('independent');
+        expect(result.idEncounter).toBe(41);
+        expect(result.evaluatorId).toBe(22);
+        expect(encounterRepo.save).toHaveBeenCalledTimes(1);
+        expect(scaleRepo.save).toHaveBeenCalledTimes(1);
+        expect(physioRepo.save).not.toHaveBeenCalled();
     });
 
-    describe('Psicología (Yesavage GDS & Pfeiffer SPMSQ)', () => {
-        it('debe clasificar correctamente niveles de depresión según Yesavage GDS', async () => {
-            expect(psyService.determineDepressionSeverity(2)).toBe('normal');
-            expect(psyService.determineDepressionSeverity(6)).toBe('mild_depression');
-            expect(psyService.determineDepressionSeverity(10)).toBe('moderate_depression');
-            expect(psyService.determineDepressionSeverity(14)).toBe('severe_depression');
-        });
+    it('usa el desglose de respuestas para calcular Yesavage y Pfeiffer', async () => {
+        const yesavageResponses = Array.from({ length: 15 }, (_, index) => index < 3);
+        const pfeifferResponses = Array.from({ length: 10 }, (_, index) => index === 0);
+        const result = await psyService.create({
+            idOlderAdult: 1,
+            yesavageGdsScore: 3,
+            yesavageResponses,
+            pfeifferErrorsScore: 1,
+            pfeifferResponses,
+            emotionalState: 'Estable',
+        }, 22);
 
-        it('debe clasificar deterioro cognitivo según errores en Pfeiffer SPMSQ', async () => {
-            expect(psyService.determineCognitiveImpairment(1)).toBe('intact');
-            expect(psyService.determineCognitiveImpairment(3)).toBe('mild_impairment');
-            expect(psyService.determineCognitiveImpairment(6)).toBe('moderate_impairment');
-            expect(psyService.determineCognitiveImpairment(9)).toBe('severe_impairment');
-        });
-
-        it('debe crear evaluación con severidades calculadas', async () => {
-            const evalResult = await psyService.create({
-                idOlderAdult: 1,
-                evaluatorId: 22,
-                yesavageGdsScore: 3,
-                pfeifferErrorsScore: 1,
-                emotionalState: 'Estable',
-            });
-
-            expect(evalResult.depressionSeverity).toBe('normal');
-            expect(evalResult.cognitiveImpairment).toBe('intact');
-        });
+        expect(result.depressionSeverity).toBe('normal');
+        expect(result.cognitiveImpairment).toBe('intact');
+        expect(result.idEncounter).toBe(41);
+        expect(result.scaleEvaluationIds).toEqual([81, 82]);
+        expect(encounterRepo.save).toHaveBeenCalledTimes(2);
+        expect(scaleRepo.save).toHaveBeenCalledTimes(2);
+        expect(psyRepo.save).not.toHaveBeenCalled();
     });
 
-    describe('Trabajo Social (APGAR familiar)', () => {
-        it('debe calcular APGAR 10 y clasificar como altamente funcional', async () => {
-            const result = await swService.create({
-                idOlderAdult: 1,
-                evaluatorId: 22,
-                apgarAdaptation: 2,
-                apgarPartnership: 2,
-                apgarGrowth: 2,
-                apgarAffection: 2,
-                apgarResolve: 2,
-            });
+    it('rechaza un puntaje psicológico que no coincide con las respuestas guardadas', async () => {
+        await expect(psyService.create({
+            idOlderAdult: 1,
+            yesavageGdsScore: 3,
+            yesavageResponses: Array.from({ length: 15 }, () => false),
+        }, 22)).rejects.toThrow('no coincide');
+        expect(encounterRepo.save).not.toHaveBeenCalled();
+    });
 
-            expect(result.apgarTotalScore).toBe(10);
-            expect(result.familyFunctioning).toBe('highly_functional');
-        });
+    it('calcula APGAR y guarda sus cinco respuestas en la escala unificada', async () => {
+        const result = await swService.create({
+            idOlderAdult: 1,
+            apgarAdaptation: 2,
+            apgarPartnership: 2,
+            apgarGrowth: 2,
+            apgarAffection: 2,
+            apgarResolve: 2,
+        }, 22);
 
-        it('debe clasificar disfunción severa cuando el puntaje es menor o igual a 3', async () => {
-            const result = await swService.create({
-                idOlderAdult: 1,
-                evaluatorId: 22,
-                apgarAdaptation: 0,
-                apgarPartnership: 1,
-                apgarGrowth: 0,
-                apgarAffection: 1,
-                apgarResolve: 0,
-            });
-
-            expect(result.apgarTotalScore).toBe(2);
-            expect(result.familyFunctioning).toBe('severe_dysfunction');
-        });
+        expect(result.apgarTotalScore).toBe(10);
+        expect(result.familyFunctioning).toBe('highly_functional');
+        expect(result.evaluatorId).toBe(22);
+        expect(scaleRepo.save).toHaveBeenCalledTimes(1);
+        const saved = scaleRepo.save.mock.calls[0][0] as ClinicalScaleEvaluation;
+        expect(saved.scaleType).toBe('APGAR_FAMILIAR');
+        expect(saved.responsesPayload).toHaveProperty('items');
+        expect(swRepo.save).not.toHaveBeenCalled();
     });
 });

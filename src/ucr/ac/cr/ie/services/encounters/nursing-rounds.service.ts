@@ -1,7 +1,9 @@
-import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import { Injectable, Inject, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
 import { Repository } from 'typeorm';
-import { NursingRound, NursingShift } from '../../domain/encounters';
+import { NursingRound } from '../../domain/encounters';
+import type { NursingShift } from '../../domain/encounters';
 import { CreateNursingRoundDto } from '../../dto/encounters';
+import { getTenantContext } from '../../common/tenant/tenant-context';
 
 @Injectable()
 export class NursingRoundsService {
@@ -12,7 +14,10 @@ export class NursingRoundsService {
         private readonly olderAdultRepository: Repository<any>,
     ) {}
 
-    async recordRound(dto: CreateNursingRoundDto): Promise<NursingRound> {
+    async recordRound(dto: CreateNursingRoundDto, staffId: number): Promise<NursingRound> {
+        if (!Number.isSafeInteger(staffId) || staffId <= 0) {
+            throw new BadRequestException('Se requiere el ID del profesional autenticado');
+        }
         const olderAdult = await this.olderAdultRepository.findOne({
             where: { id: dto.idOlderAdult }
         });
@@ -20,9 +25,22 @@ export class NursingRoundsService {
             throw new NotFoundException(`Adulto mayor con ID ${dto.idOlderAdult} no encontrado`);
         }
 
+        if (!getTenantContext()) {
+            throw new BadRequestException('No se encontró el contexto de organización de la ronda');
+        }
+        const temporaryAbsence = await this.roundRepository.manager.query(
+            `SELECT 1 FROM public.resident_stays
+             WHERE id_older_adult = $1 AND status = 'temporary_absence'
+             LIMIT 1`,
+            [dto.idOlderAdult],
+        ) as unknown[];
+        if (temporaryAbsence.length > 0) {
+            throw new ConflictException('No se pueden registrar rondas de planta mientras el residente está en ausencia temporal');
+        }
+
         const round = this.roundRepository.create({
             idOlderAdult: dto.idOlderAdult,
-            idStaff: dto.idStaff,
+            idStaff: staffId,
             roundDate: dto.roundDate ?? new Date().toISOString().split('T')[0],
             shift: dto.shift,
             idVitalSigns: dto.idVitalSigns,

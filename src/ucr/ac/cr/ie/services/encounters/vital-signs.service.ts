@@ -1,4 +1,4 @@
-import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import { Injectable, Inject, NotFoundException, BadRequestException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { ClinicalVitalSigns } from '../../domain/encounters';
 import { CreateVitalSignsDto } from '../../dto/encounters';
@@ -12,7 +12,10 @@ export class VitalSignsService {
         private readonly olderAdultRepository: Repository<any>,
     ) {}
 
-    async recordVitalSigns(dto: CreateVitalSignsDto): Promise<ClinicalVitalSigns> {
+    async recordVitalSigns(dto: CreateVitalSignsDto, recordedBy: number): Promise<ClinicalVitalSigns> {
+        if (!Number.isSafeInteger(recordedBy) || recordedBy <= 0) {
+            throw new BadRequestException('Se requiere el ID del profesional autenticado');
+        }
         const olderAdult = await this.olderAdultRepository.findOne({
             where: { id: dto.idOlderAdult }
         });
@@ -34,7 +37,7 @@ export class VitalSignsService {
             weightKg: dto.weightKg,
             heightCm: dto.heightCm,
             notes: dto.notes,
-            recordedBy: dto.recordedBy,
+            recordedBy,
             recordedAt: new Date()
         });
 

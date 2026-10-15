@@ -31,7 +31,7 @@ export class MedicationAdministration {
     scheduledTime: Date;
 
     @Column({ name: 'administered_time', type: 'timestamptz', nullable: true })
-    administeredTime?: Date;
+    administeredTime?: Date | null;
 
     @Column({
         type: 'enum',
@@ -41,16 +41,16 @@ export class MedicationAdministration {
     status: AdministrationStatus;
 
     @Column({ name: 'dose_given', length: 100, nullable: true })
-    doseGiven?: string;
+    doseGiven?: string | null;
 
     @Column({ name: 'administered_by', nullable: true })
     administeredBy?: number;
 
     @Column({ name: 'omission_reason', type: 'text', nullable: true })
-    omissionReason?: string;
+    omissionReason?: string | null;
 
     @Column({ type: 'text', nullable: true })
-    observations?: string;
+    observations?: string | null;
 
     @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
     createdAt: Date;

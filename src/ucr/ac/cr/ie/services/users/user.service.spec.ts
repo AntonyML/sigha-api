@@ -10,6 +10,7 @@ import '../../domain/permissions/role-permission.entity';
 import { UserService } from './user.service';
 import { PasswordUtil } from '../../common/utils';
 import { AuditAction } from '../../domain/audit';
+import { runWithTenantContext } from '../../common/tenant/tenant-context';
 
 const STRONG_PASSWORD = 'Segura1!a';
 
@@ -17,6 +18,7 @@ describe('UserService', () => {
     let service: UserService;
     let mockUserRepo: any;
     let mockRoleRepo: any;
+    let tenantManager: any;
     let userStore: Map<number, any>;
 
     const mockLogger: any = {
@@ -173,6 +175,37 @@ describe('UserService', () => {
             }),
         };
 
+        tenantManager = {
+            query: mock(async (sql: string, parameters: unknown[] = []) => {
+                if (sql.includes('create_tenant_user')) {
+                    const [uIdentification, uName, uFLastName, uSLastName, uEmail, uPassword] = parameters as string[];
+                    const id = Math.max(0, ...Array.from(userStore.keys())) + 1;
+                    userStore.set(id, {
+                        id,
+                        uIdentification,
+                        uName,
+                        uFLastName,
+                        uSLastName,
+                        uEmail,
+                        uEmailVerified: false,
+                        uIsActive: true,
+                        uPassword,
+                    });
+                    return [{ id }];
+                }
+                if (sql.includes('get_current_user_password_hash')) {
+                    return [{ password_hash: userStore.get(Number(parameters[0]))?.uPassword }];
+                }
+                if (sql.includes('update_current_user_password')) {
+                    const [id, uPassword] = parameters as [number, string];
+                    const user = userStore.get(id);
+                    if (user) userStore.set(id, { ...user, uPassword });
+                    return [];
+                }
+                throw new Error(`Unexpected tenant SQL in test: ${sql}`);
+            }),
+        };
+
         service = new UserService(
             mockLogger,
             mockUserRepo,
@@ -183,6 +216,16 @@ describe('UserService', () => {
         );
     };
 
+    const asTenantUser = <T>(callback: () => T) => runWithTenantContext(
+        {
+            tenantId: 1,
+            userId: 1,
+            manager: tenantManager as any,
+            queryRunner: {} as any,
+        },
+        callback,
+    );
+
     beforeEach(async () => {
         clearMocks();
         await resetUserStore();
@@ -191,10 +234,10 @@ describe('UserService', () => {
 
     describe('createUser', () => {
         it('debe crear usuario, asignar rol y registrar auditoría con la acción CREATE', async () => {
-            const saved = await service.createUser(validCreateUserDto as any);
+            const saved = await asTenantUser(() => service.createUser(validCreateUserDto as any));
 
             expect(saved.uEmail).toBe('nuevo@sigha.cr');
-            expect(saved.uPassword).not.toBe(STRONG_PASSWORD);
+            expect(saved.uPassword).toBeUndefined();
             expect(mockUserRoleService.assignRole).toHaveBeenCalledWith(saved.id, 2, undefined, true);
             expect(mockAuditService.createDigitalRecord).toHaveBeenCalledTimes(1);
             const [userId, record] = (mockAuditService.createDigitalRecord as any).mock.calls[0];
@@ -301,7 +344,7 @@ describe('UserService', () => {
     describe('changePassword', () => {
         it('debe rechazar la contraseña actual incorrecta sin actualizar ni auditar', async () => {
             await expect(
-                service.changePassword(1, { currentPassword: 'Incorrecta1!', newPassword: STRONG_PASSWORD } as any),
+                asTenantUser(() => service.changePassword(1, { currentPassword: 'Incorrecta1!', newPassword: STRONG_PASSWORD } as any)),
             ).rejects.toThrow('Contraseña actual incorrecta');
             expect(mockUserRepo.update).toHaveBeenCalledTimes(0);
             expect(mockAuditService.createDigitalRecord).toHaveBeenCalledTimes(0);
@@ -309,23 +352,20 @@ describe('UserService', () => {
 
         it('debe rechazar la nueva contraseña débil', async () => {
             await expect(
-                service.changePassword(1, { currentPassword: 'Actual1!a', newPassword: 'corta' } as any),
+                asTenantUser(() => service.changePassword(1, { currentPassword: 'Actual1!a', newPassword: 'corta' } as any)),
             ).rejects.toThrow(BadRequestException);
         });
 
         it('debe actualizar el hash y auditar el cambio', async () => {
-            const result = await service.changePassword(
+            const result = await asTenantUser(() => service.changePassword(
                 1,
                 { currentPassword: 'Actual1!a', newPassword: STRONG_PASSWORD } as any,
-            );
+            ));
 
             expect(result.success).toBe(true);
-            expect(mockUserRepo.update).toHaveBeenCalledTimes(1);
-            const [, patch] = (mockUserRepo.update as any).mock.calls[0];
             const stored = userStore.get(1);
-            expect(patch.uPassword).toBe(stored.uPassword);
             expect(await PasswordUtil.verify(STRONG_PASSWORD, stored.uPassword)).toBe(true);
-            expect(patch.uPassword).not.toBe(STRONG_PASSWORD);
+            expect(stored.uPassword).not.toBe(STRONG_PASSWORD);
 
             expect(mockAuditService.createDigitalRecord).toHaveBeenCalledTimes(1);
             const record = (mockAuditService.createDigitalRecord as any).mock.calls[0][1];
