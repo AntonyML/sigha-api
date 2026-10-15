@@ -13,6 +13,9 @@ export class ClinicalScaleEvaluation {
     @PrimaryGeneratedColumn()
     id!: number;
 
+    @Column({ name: 'tenant_id', type: 'integer' })
+    tenantId!: number;
+
     @Column({ name: 'encounter_id', type: 'integer', nullable: true })
     encounterId?: number | null;
 

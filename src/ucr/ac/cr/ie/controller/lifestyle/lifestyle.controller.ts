@@ -11,16 +11,20 @@ import {
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { LifestyleService } from '../../services/lifestyle';
 import { CreateLifestyleAssessmentDto } from '../../dto/lifestyle';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { RequirePermission } from '../../common/decorators';
+import { JwtAuthGuard, ModulePermissionGuard } from '../../common/guards';
+import { PermissionAction, PermissionModule } from '../../domain/permissions';
 
 @ApiTags('Lifestyle (Estilo de Vida y Hábitos Geriátricos)')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, ModulePermissionGuard)
 @Controller('lifestyle')
+@RequirePermission(PermissionModule.LIFESTYLE, PermissionAction.VIEW)
 export class LifestyleController {
     constructor(private readonly lifestyleService: LifestyleService) {}
 
     @Post('assessments')
+    @RequirePermission(PermissionModule.LIFESTYLE, PermissionAction.CREATE)
     @ApiOperation({ summary: 'Registrar nueva evaluación de estilo de vida y hábitos geriátricos (GNU Health health_lifestyle)' })
     @ApiResponse({ status: 201, description: 'Evaluación registrada exitosamente' })
     async createAssessment(@Body() dto: CreateLifestyleAssessmentDto, @Req() req: any) {

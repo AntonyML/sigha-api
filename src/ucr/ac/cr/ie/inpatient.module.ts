@@ -4,9 +4,10 @@ import { InpatientController } from './controller/inpatient';
 import { InpatientService } from './services/inpatient';
 import { inpatientProviders } from './repository/inpatient';
 import { virtualRecordsProviders } from './repository/virtual-records';
+import { PermissionsModule } from './permissions.module';
 
 @Module({
-    imports: [DatabaseModule],
+    imports: [DatabaseModule, PermissionsModule],
     controllers: [InpatientController],
     providers: [
         InpatientService,
