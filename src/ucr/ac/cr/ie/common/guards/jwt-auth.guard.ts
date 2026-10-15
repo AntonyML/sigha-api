@@ -106,6 +106,10 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
                 uEmail: user.uEmail,
                 roleIds,
                 roles,
+                // Canonical platform-plane context carried by the JWT.
+                platformRole: payload.platformRole ?? null,
+                orgRoleIds: Array.isArray(payload.orgRoleIds) ? payload.orgRoleIds : [],
+                orgRoles: Array.isArray(payload.orgRoles) ? payload.orgRoles : [],
                 orgId: payload.orgId !== undefined ? payload.orgId : null,
             };
 

@@ -47,6 +47,7 @@ import { MemosModule } from './ucr/ac/cr/ie/memos.module';
 import { CarePlanningModule } from './ucr/ac/cr/ie/care-planning.module';
 import { AccessLogsModule } from './ucr/ac/cr/ie/access-logs.module';
 import { SystemAuditModule } from './ucr/ac/cr/ie/system-audit.module';
+import { PlatformModule } from './ucr/ac/cr/ie/platform.module';
 
 @Module({
   controllers: [HealthController],
@@ -98,6 +99,7 @@ import { SystemAuditModule } from './ucr/ac/cr/ie/system-audit.module';
     CarePlanningModule,
     AccessLogsModule,
     SystemAuditModule,
+    PlatformModule,
   ],
     providers: [
       {
