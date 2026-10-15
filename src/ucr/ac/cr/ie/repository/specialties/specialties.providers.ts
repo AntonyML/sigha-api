@@ -4,8 +4,19 @@ import {
     PsychologyEvaluation,
     SocialWorkEvaluation
 } from '../../domain/specialties';
+import { ClinicalEncounter, ClinicalScaleEvaluation } from '../../domain/encounters';
 
 export const specialtiesProviders = [
+    {
+        provide: 'ClinicalEncounterRepository',
+        useFactory: (dataSource: DataSource) => dataSource.getRepository(ClinicalEncounter),
+        inject: ['DataSource'],
+    },
+    {
+        provide: 'ClinicalScaleEvaluationRepository',
+        useFactory: (dataSource: DataSource) => dataSource.getRepository(ClinicalScaleEvaluation),
+        inject: ['DataSource'],
+    },
     {
         provide: 'PhysiotherapyEvaluationRepository',
         useFactory: (dataSource: DataSource) => dataSource.getRepository(PhysiotherapyEvaluation),

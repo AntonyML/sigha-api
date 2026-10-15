@@ -6,12 +6,14 @@ import {
     Param,
     Query,
     ParseIntPipe,
-    UseGuards
+    UseGuards,
+    Req,
+    UnauthorizedException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { NursingRoundsService } from '../../services/encounters';
 import { CreateNursingRoundDto } from '../../dto/encounters';
-import { NursingShift } from '../../domain/encounters';
+import type { NursingShift } from '../../domain/encounters';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 
 @ApiTags('Nursing Rounds (Rondas de Sala por Turno)')
@@ -24,8 +26,12 @@ export class NursingRoundsController {
     @Post()
     @ApiOperation({ summary: 'Registrar ronda de enfermería de sala' })
     @ApiResponse({ status: 201, description: 'Ronda registrada exitosamente' })
-    async recordRound(@Body() dto: CreateNursingRoundDto) {
-        return this.nursingRoundsService.recordRound(dto);
+    async recordRound(@Body() dto: CreateNursingRoundDto, @Req() request: any) {
+        const staffId = Number(request.user?.userId ?? request.user?.id);
+        if (!Number.isSafeInteger(staffId) || staffId <= 0) {
+            throw new UnauthorizedException('No se encontró el profesional autenticado');
+        }
+        return this.nursingRoundsService.recordRound(dto, staffId);
     }
 
     @Get('patient/:patientId')

@@ -50,6 +50,7 @@ import {
     ClinicalVitalSigns,
     NursingRound,
     ClinicalNoteAddendum,
+    ClinicalScaleEvaluation,
 } from './domain/encounters';
 import {
     PhysiotherapyEvaluation,
@@ -57,6 +58,7 @@ import {
     SocialWorkEvaluation,
 } from './domain/specialties';
 import { PatientLifestyleAssessment } from './domain/lifestyle';
+import { createTenantAwareDataSource } from './common/tenant/tenant-aware-data-source';
 
 /**
  * Build the TypeORM DataSource options from environment variables.
@@ -121,6 +123,7 @@ function buildDataSourceOptions(): DataSourceOptions {
         ClinicalVitalSigns,
         NursingRound,
         ClinicalNoteAddendum,
+        ClinicalScaleEvaluation,
         PhysiotherapyEvaluation,
         PsychologyEvaluation,
         SocialWorkEvaluation,
@@ -170,7 +173,8 @@ export const databaseProviders = [
         provide: 'DataSource',
         useFactory: async (): Promise<DataSource> => {
             const dataSource = new DataSource(buildDataSourceOptions());
-            return dataSource.initialize();
+            await dataSource.initialize();
+            return createTenantAwareDataSource(dataSource);
         },
     },
 ];

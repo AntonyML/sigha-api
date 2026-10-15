@@ -26,6 +26,11 @@ export class RecordAdministrationDto {
     @IsInt()
     idOlderAdult?: number;
 
+    @ApiPropertyOptional({ description: 'Fecha y hora ISO de la dosis proyectada que se registra', example: '2026-10-14T14:00:00.000Z' })
+    @IsOptional()
+    @IsDateString()
+    scheduledTime?: string;
+
     @ApiProperty({ enum: AdministrationStatus, example: AdministrationStatus.ADMINISTERED })
     @IsNotEmpty()
     @IsEnum(AdministrationStatus)

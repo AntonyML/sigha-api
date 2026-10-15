@@ -27,6 +27,18 @@ export class ClinicalNoteAddendum {
     @Column({ name: 'signed_at', type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
     signedAt!: Date;
 
+    @Column({ name: 'signed_by', type: 'integer' })
+    signedBy!: number;
+
+    @Column({ name: 'signature_hash', type: 'varchar', length: 64 })
+    signatureHash!: string;
+
+    @Column({ name: 'signature_version', type: 'varchar', length: 32, default: '1' })
+    signatureVersion!: string;
+
+    @Column({ name: 'status', type: 'varchar', length: 16, default: 'signed' })
+    status!: 'signed';
+
     @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
     createdAt!: Date;
 

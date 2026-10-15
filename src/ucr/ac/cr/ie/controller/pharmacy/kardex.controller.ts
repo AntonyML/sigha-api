@@ -53,7 +53,7 @@ export class KardexController {
     })
     @ApiResponse({ status: 200, description: 'Administración registrada exitosamente' })
     async recordAdministration(@Body() dto: RecordAdministrationDto, @Req() req: any) {
-        const staffId = req.user?.id;
+        const staffId = Number(req.user?.userId ?? req.user?.id);
         return this.kardexService.recordAdministration(dto, staffId);
     }
 }

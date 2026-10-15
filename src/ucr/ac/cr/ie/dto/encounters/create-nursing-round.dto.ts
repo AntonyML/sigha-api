@@ -8,11 +8,6 @@ export class CreateNursingRoundDto {
     @IsInt()
     idOlderAdult!: number;
 
-    @ApiProperty({ example: 22, description: 'ID del profesional o auxiliar de enfermería' })
-    @IsNotEmpty()
-    @IsInt()
-    idStaff!: number;
-
     @ApiPropertyOptional({ example: '2026-10-14', description: 'Fecha de la ronda (YYYY-MM-DD)' })
     @IsOptional()
     @IsDateString()

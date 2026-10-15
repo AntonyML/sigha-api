@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsInt, IsDateString, IsEnum } from 'class-validator';
+import { IsOptional, IsInt, IsDateString, IsIn } from 'class-validator';
 import { Type } from 'class-transformer';
 import { AdministrationStatus } from '../../domain/pharmacy';
 
@@ -17,6 +17,6 @@ export class KardexQueryDto {
 
     @ApiPropertyOptional({ enum: AdministrationStatus, description: 'Filtrar por estado de administración' })
     @IsOptional()
-    @IsEnum(AdministrationStatus)
-    status?: AdministrationStatus;
+    @IsIn([...Object.values(AdministrationStatus), 'suspended_absence'])
+    status?: AdministrationStatus | 'suspended_absence';
 }

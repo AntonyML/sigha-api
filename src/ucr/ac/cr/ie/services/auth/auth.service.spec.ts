@@ -44,6 +44,15 @@ describe('AuthService - Optimización de login y verify-2fa', () => {
         };
         mockUserRepo = {
             findOne: mock(async () => null),
+            createQueryBuilder: mock(() => {
+                const queryBuilder: any = {
+                    addSelect: mock(() => queryBuilder),
+                    where: mock(() => queryBuilder),
+                    andWhere: mock(() => queryBuilder),
+                    getOne: mock(async () => mockUserRepo.findOne()),
+                };
+                return queryBuilder;
+            }),
         };
         mockSessionRepo = {
             save: mock(async (session: any) => session),

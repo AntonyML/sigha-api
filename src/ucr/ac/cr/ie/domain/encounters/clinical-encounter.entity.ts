@@ -10,7 +10,7 @@ import {
 } from 'typeorm';
 
 export type EncounterClass = 'ambulatory' | 'inpatient' | 'emergency' | 'home_care';
-export type EncounterStatus = 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
+export type EncounterStatus = 'scheduled' | 'in_progress' | 'completed' | 'cancelled' | 'signed';
 export type EncounterType = 'nursing' | 'medical' | 'physiotherapy' | 'psychology' | 'social_work' | 'specialized';
 
 @Entity({ name: 'clinical_encounters' })
@@ -43,7 +43,7 @@ export class ClinicalEncounter {
     @Column({
         name: 'status',
         type: 'enum',
-        enum: ['scheduled', 'in_progress', 'completed', 'cancelled'],
+        enum: ['scheduled', 'in_progress', 'completed', 'cancelled', 'signed'],
         default: 'scheduled'
     })
     status!: EncounterStatus;
@@ -77,6 +77,21 @@ export class ClinicalEncounter {
 
     @Column({ name: 'signed_by', type: 'integer', nullable: true })
     signedBy?: number | null;
+
+    @Column({ name: 'signature_hash', type: 'varchar', length: 64, nullable: true })
+    signatureHash?: string | null;
+
+    @Column({ name: 'signature_version', type: 'varchar', length: 32, nullable: true })
+    signatureVersion?: string | null;
+
+    @Column({ name: 'specialty_payload', type: 'jsonb', default: () => "'{}'::jsonb" })
+    specialtyPayload!: Record<string, unknown>;
+
+    @Column({ name: 'legacy_source_table', type: 'text', nullable: true })
+    legacySourceTable?: string | null;
+
+    @Column({ name: 'legacy_source_id', type: 'integer', nullable: true })
+    legacySourceId?: number | null;
 
     @Column({ name: 'id_appointment', type: 'integer', nullable: true })
     idAppointment?: number | null;

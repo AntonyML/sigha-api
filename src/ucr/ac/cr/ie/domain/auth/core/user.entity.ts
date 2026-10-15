@@ -25,7 +25,7 @@ export class User {
   @Column({ name: 'u_email_verified', nullable: false, default: false })
   uEmailVerified: boolean;
 
-  @Column({ name: 'u_password', nullable: false })
+  @Column({ name: 'u_password', nullable: false, select: false })
   uPassword: string;
 
   @Column({ name: 'u_is_active', nullable: false, default: true })

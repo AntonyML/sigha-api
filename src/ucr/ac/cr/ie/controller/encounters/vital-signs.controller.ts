@@ -6,7 +6,9 @@ import {
     Param,
     Query,
     ParseIntPipe,
-    UseGuards
+    UseGuards,
+    Req,
+    UnauthorizedException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { VitalSignsService } from '../../services/encounters';
@@ -23,8 +25,12 @@ export class VitalSignsController {
     @Post()
     @ApiOperation({ summary: 'Registrar toma de signos vitales numéricos' })
     @ApiResponse({ status: 201, description: 'Signos vitales registrados exitosamente' })
-    async recordVitalSigns(@Body() dto: CreateVitalSignsDto) {
-        return this.vitalSignsService.recordVitalSigns(dto);
+    async recordVitalSigns(@Body() dto: CreateVitalSignsDto, @Req() request: any) {
+        const recordedBy = Number(request.user?.userId ?? request.user?.id);
+        if (!Number.isSafeInteger(recordedBy) || recordedBy <= 0) {
+            throw new UnauthorizedException('No se encontró el profesional autenticado');
+        }
+        return this.vitalSignsService.recordVitalSigns(dto, recordedBy);
     }
 
     @Get('patient/:patientId')

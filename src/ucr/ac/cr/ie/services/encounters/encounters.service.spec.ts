@@ -1,32 +1,45 @@
 import { describe, it, expect, beforeEach } from 'bun:test';
 import { EncountersService } from './encounters.service';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { ClinicalEncounter, ClinicalNoteAddendum } from '../../domain/encounters';
+import { runWithTenantContext } from '../../common/tenant/tenant-context';
 
 describe('EncountersService', () => {
     let service: EncountersService;
     let encounterRepo: any;
     let addendumRepo: any;
     let olderAdultRepo: any;
+    let manager: any;
 
     beforeEach(() => {
         encounterRepo = {
             create: (data: any) => ({ ...data, id: 10 }),
             save: async (entity: any) => ({ ...entity, id: entity.id || 10 }),
-            findOne: async (options: any) => null,
-            find: async (options: any) => [],
+            findOne: async () => null,
+            find: async () => [],
         };
         addendumRepo = {
             create: (data: any) => ({ ...data, id: 1 }),
             save: async (entity: any) => ({ ...entity, id: 1 }),
         };
-        olderAdultRepo = {
-            findOne: async (options: any) => ({ id: 1, oaName: 'Juan' }),
+        manager = {
+            getRepository: (entity: any) => entity === ClinicalEncounter ? encounterRepo : addendumRepo,
+            transaction: async (callback: (transactionManager: any) => unknown) => callback(manager),
         };
-
+        encounterRepo.manager = manager;
+        addendumRepo.manager = manager;
+        olderAdultRepo = { findOne: async () => ({ id: 1, oaName: 'Juan' }) };
         service = new EncountersService(encounterRepo, addendumRepo, olderAdultRepo);
     });
 
-    it('debe crear un encuentro clínico en estado scheduled', async () => {
+    const withTenant = <T>(callback: () => T): T => runWithTenantContext({
+        tenantId: 7,
+        userId: 22,
+        manager,
+        queryRunner: {} as any,
+    }, callback);
+
+    it('crea un encuentro clínico en estado scheduled', async () => {
         const encounter = await service.createEncounter({
             idOlderAdult: 1,
             encounterType: 'nursing',
@@ -38,91 +51,58 @@ describe('EncountersService', () => {
         expect(encounter.isSigned).toBe(false);
     });
 
-    it('debe rechazar la creación si el paciente no existe', async () => {
+    it('rechaza la creación si el paciente no existe', async () => {
         olderAdultRepo.findOne = async () => null;
-
-        expect(
-            service.createEncounter({
-                idOlderAdult: 999,
-                encounterType: 'nursing',
-            })
-        ).rejects.toThrow(NotFoundException);
+        await expect(service.createEncounter({ idOlderAdult: 999, encounterType: 'nursing' }))
+            .rejects.toThrow(NotFoundException);
     });
 
-    it('debe actualizar notas SOAP si el encuentro no está firmado', async () => {
-        encounterRepo.findOne = async () => ({
-            id: 10,
-            isSigned: false,
-            status: 'scheduled',
-        });
-
+    it('actualiza notas SOAP mientras el encuentro no está firmado', async () => {
+        encounterRepo.findOne = async () => ({ id: 10, isSigned: false, status: 'scheduled' });
         const updated = await service.updateSoap(10, {
             soSubjective: 'Dolor de espalda',
             soPlan: 'Reposo',
             status: 'in_progress',
         });
-
         expect(updated.soSubjective).toBe('Dolor de espalda');
         expect(updated.status).toBe('in_progress');
     });
 
-    it('debe RECHAZAR actualización SOAP con BadRequestException si la nota ya fue firmada (inmutabilidad GNU Health)', async () => {
-        encounterRepo.findOne = async () => ({
-            id: 10,
-            isSigned: true,
-            signedAt: new Date(),
-        });
-
-        expect(
-            service.updateSoap(10, {
-                soSubjective: 'Modificación no permitida',
-            })
-        ).rejects.toThrow(BadRequestException);
+    it('rechaza SOAP firmado', async () => {
+        encounterRepo.findOne = async () => ({ id: 10, isSigned: true, status: 'signed' });
+        await expect(service.updateSoap(10, { soSubjective: 'Cambio' })).rejects.toThrow(BadRequestException);
     });
 
-    it('debe firmar y cerrar el encuentro marcándolo completed', async () => {
+    it('firma con el actor autenticado y genera el hash inmutable versionado', async () => {
         encounterRepo.findOne = async () => ({
-            id: 10,
-            isSigned: false,
-            status: 'in_progress',
+            id: 10, idOlderAdult: 4, isSigned: false, status: 'in_progress',
+            soSubjective: 'Dolor', soObjective: null, soAssessment: 'Gonalgia', soPlan: 'Control',
         });
-
-        const signed = await service.signEncounter(10, { signedBy: 22 });
+        const signed = await withTenant(() => service.signEncounter(10, 22));
         expect(signed.isSigned).toBe(true);
-        expect(signed.status).toBe('completed');
+        expect(signed.status).toBe('signed');
         expect(signed.signedBy).toBe(22);
+        expect(signed.signatureVersion).toBe('1');
+        expect(signed.signatureHash).toMatch(/^[0-9a-f]{64}$/);
     });
 
-    it('debe registrar un addendum solo si el encuentro ya está firmado', async () => {
-        encounterRepo.findOne = async () => ({
-            id: 10,
-            isSigned: true,
-        });
-
-        const addendum = await service.createAddendum({
-            idEncounter: 10,
-            authorId: 22,
+    it('añade una enmienda firmada por el actor autenticado solo a un encuentro firmado', async () => {
+        encounterRepo.findOne = async () => ({ id: 10, idOlderAdult: 4, isSigned: true, status: 'signed' });
+        const addendum = await withTenant(() => service.createAddendum(10, 22, {
             addendumText: 'Dosis ajustada a 500mg',
             reasonForAddendum: 'Aclaración médica',
-        });
-
+        }));
         expect(addendum.id).toBe(1);
-        expect(addendum.addendumText).toBe('Dosis ajustada a 500mg');
+        expect(addendum.authorId).toBe(22);
+        expect(addendum.signedBy).toBe(22);
+        expect(addendum.status).toBe('signed');
+        expect(addendum.signatureHash).toMatch(/^[0-9a-f]{64}$/);
     });
 
-    it('debe rechazar un addendum si el encuentro aún no ha sido firmado', async () => {
-        encounterRepo.findOne = async () => ({
-            id: 10,
-            isSigned: false,
-        });
-
-        expect(
-            service.createAddendum({
-                idEncounter: 10,
-                authorId: 22,
-                addendumText: 'Texto',
-                reasonForAddendum: 'Razón',
-            })
-        ).rejects.toThrow(BadRequestException);
+    it('rechaza addenda si el encuentro aún no ha sido firmado', async () => {
+        encounterRepo.findOne = async () => ({ id: 10, isSigned: false, status: 'in_progress' });
+        await expect(withTenant(() => service.createAddendum(10, 22, {
+            addendumText: 'Texto', reasonForAddendum: 'Razón',
+        }))).rejects.toThrow(BadRequestException);
     });
 });

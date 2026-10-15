@@ -12,11 +12,6 @@ export class CreatePhysiotherapyEvaluationDto {
     @IsInt()
     idEncounter?: number;
 
-    @ApiProperty({ example: 22, description: 'ID del fisioterapeuta evaluador' })
-    @IsNotEmpty()
-    @IsInt()
-    evaluatorId!: number;
-
     @ApiProperty({ example: 10, description: 'Alimentación (0, 5, 10)' })
     @IsNotEmpty()
     @IsInt()

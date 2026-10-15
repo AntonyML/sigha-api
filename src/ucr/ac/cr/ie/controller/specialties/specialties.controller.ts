@@ -5,7 +5,8 @@ import {
     Body,
     Param,
     ParseIntPipe,
-    UseGuards
+    UseGuards,
+    Req,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import {
@@ -35,8 +36,8 @@ export class SpecialtiesController {
     @Post('physiotherapy')
     @ApiOperation({ summary: 'Registrar evaluación de fisioterapia con cálculo automático de Índice de Barthel y Tinetti' })
     @ApiResponse({ status: 201, description: 'Evaluación registrada exitosamente' })
-    async createPhysioEvaluation(@Body() dto: CreatePhysiotherapyEvaluationDto) {
-        return this.physiotherapyService.create(dto);
+    async createPhysioEvaluation(@Body() dto: CreatePhysiotherapyEvaluationDto, @Req() request: any) {
+        return this.physiotherapyService.create(dto, Number(request.user?.userId ?? request.user?.id));
     }
 
     @Get('physiotherapy/patient/:patientId')
@@ -55,8 +56,8 @@ export class SpecialtiesController {
     @Post('psychology')
     @ApiOperation({ summary: 'Registrar evaluación psicológica con escalas Yesavage GDS (depresión) y Pfeiffer SPMSQ (cognitiva)' })
     @ApiResponse({ status: 201, description: 'Evaluación registrada exitosamente' })
-    async createPsyEvaluation(@Body() dto: CreatePsychologyEvaluationDto) {
-        return this.psychologyService.create(dto);
+    async createPsyEvaluation(@Body() dto: CreatePsychologyEvaluationDto, @Req() request: any) {
+        return this.psychologyService.create(dto, Number(request.user?.userId ?? request.user?.id));
     }
 
     @Get('psychology/patient/:patientId')
@@ -75,8 +76,8 @@ export class SpecialtiesController {
     @Post('social-work')
     @ApiOperation({ summary: 'Registrar evaluación de trabajo social con escala APGAR familiar y red de apoyo' })
     @ApiResponse({ status: 201, description: 'Evaluación registrada exitosamente' })
-    async createSocialWorkEvaluation(@Body() dto: CreateSocialWorkEvaluationDto) {
-        return this.socialWorkService.create(dto);
+    async createSocialWorkEvaluation(@Body() dto: CreateSocialWorkEvaluationDto, @Req() request: any) {
+        return this.socialWorkService.create(dto, Number(request.user?.userId ?? request.user?.id));
     }
 
     @Get('social-work/patient/:patientId')

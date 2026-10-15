@@ -12,11 +12,6 @@ export class CreateSocialWorkEvaluationDto {
     @IsInt()
     idEncounter?: number;
 
-    @ApiProperty({ example: 22, description: 'ID del trabajador social evaluador' })
-    @IsNotEmpty()
-    @IsInt()
-    evaluatorId!: number;
-
     @ApiProperty({ example: 2, description: 'Adaptación en APGAR familiar (0=Casi nunca, 1=A veces, 2=Casi siempre)' })
     @IsNotEmpty()
     @IsInt()
