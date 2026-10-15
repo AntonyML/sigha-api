@@ -43,6 +43,7 @@ import { SpecialtiesModule } from './ucr/ac/cr/ie/specialties.module';
 import { LifestyleModule } from './ucr/ac/cr/ie/lifestyle.module';
 import { TenantGuard } from './ucr/ac/cr/ie/common/guards/tenant.guard';
 import { TenantContextInterceptor } from './common/interceptors/tenant-context.interceptor';
+import { MemosModule } from './ucr/ac/cr/ie/memos.module';
 
 @Module({
   controllers: [HealthController],
@@ -90,6 +91,7 @@ import { TenantContextInterceptor } from './common/interceptors/tenant-context.i
     EncountersModule,
     SpecialtiesModule,
     LifestyleModule,
+    MemosModule,
   ],
     providers: [
       {

@@ -59,6 +59,7 @@ import {
 } from './domain/specialties';
 import { PatientLifestyleAssessment } from './domain/lifestyle';
 import { createTenantAwareDataSource } from './common/tenant/tenant-aware-data-source';
+import { ResidentMemo, ResidentMemoAcknowledgment } from './domain/memos';
 
 /**
  * Build the TypeORM DataSource options from environment variables.
@@ -128,6 +129,8 @@ function buildDataSourceOptions(): DataSourceOptions {
         PsychologyEvaluation,
         SocialWorkEvaluation,
         PatientLifestyleAssessment,
+        ResidentMemo,
+        ResidentMemoAcknowledgment,
     ];
 
     const sslEnabled = 
