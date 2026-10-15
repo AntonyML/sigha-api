@@ -24,3 +24,4 @@ Formato: `YYYY-MM-DD | <taskId> | tipo: resumen | verificaciÃ³n: resultado`.
 
 2026-10-14 | sigha-api-20261014-vex9 | feat: módulo Pharmacy (vademécum, prescripciones, kardex MAR) y soporte CIE-10 e inmunizaciones completas | verificación: typecheck limpio, bun test 141 pass/0 fail (5 tests nuevos de farmacia/kardex), nest build OK (worktree y dev); endpoints documentados en Swagger.
 2026-10-14 | sigha-api-20261014-q2x8 | feat: encuentros clínicos SOAP inmutables, signos vitales numéricos, rondas de enfermería por turno, habitaciones/camas y especialidades geriátricas (Barthel, Yesavage, Pfeiffer, APGAR) | verificación: typecheck limpio, bun test 158 pass/0 fail (17 tests nuevos), nest build OK (worktree y dev); endpoints documentados en Swagger.
+2026-10-14 | sigha-api-20261014-xneq | feat: proteger Configuraciones Globales con step-up 2FA y permisos admin/superadmin | verificacion: bun test 167 pass/0 fail, typecheck y nest build OK en worktree y dev.
