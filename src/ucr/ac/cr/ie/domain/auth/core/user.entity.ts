@@ -2,6 +2,15 @@ import { Entity, PrimaryGeneratedColumn, Column, OneToMany, OneToOne } from 'typ
 import { UserSession } from '../sessions/user-session.entity';
 import { UserTwoFactor } from '../security/user-two-factor.entity';
 
+/**
+ * Platform-plane role. Lives outside the organization role catalog: a user
+ * with a platform role manages the SaaS itself, not a single organization.
+ */
+export enum PlatformRole {
+  PLATFORM_OWNER = 'PLATFORM_OWNER',
+  PLATFORM_SUPPORT = 'PLATFORM_SUPPORT',
+}
+
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn()
@@ -31,6 +40,15 @@ export class User {
   @Column({ name: 'u_is_active', nullable: false, default: true })
   uIsActive: boolean;
 
+  @Column({
+    name: 'platform_role',
+    type: 'enum',
+    enum: PlatformRole,
+    enumName: 'e_platform_role',
+    nullable: true,
+  })
+  platformRole?: PlatformRole | null;
+
   @Column({ name: 'create_at', type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   createAt: Date;
 
@@ -50,7 +68,8 @@ export class User {
     uSLastName?: string,
     uEmailVerified: boolean = false,
     uIsActive: boolean = true,
-    createAt?: Date
+    createAt?: Date,
+    platformRole?: PlatformRole | null
   ) {
     this.id = id;
     this.uIdentification = uIdentification;
@@ -62,5 +81,6 @@ export class User {
     this.uPassword = uPassword;
     this.uIsActive = uIsActive;
     this.createAt = createAt || new Date();
+    this.platformRole = platformRole ?? null;
   }
 }
