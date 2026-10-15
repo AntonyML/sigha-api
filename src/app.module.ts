@@ -40,6 +40,7 @@ import { PharmacyModule } from './ucr/ac/cr/ie/pharmacy.module';
 import { InpatientModule } from './ucr/ac/cr/ie/inpatient.module';
 import { EncountersModule } from './ucr/ac/cr/ie/encounters.module';
 import { SpecialtiesModule } from './ucr/ac/cr/ie/specialties.module';
+import { LifestyleModule } from './ucr/ac/cr/ie/lifestyle.module';
 
 @Module({
   controllers: [HealthController],
@@ -86,6 +87,7 @@ import { SpecialtiesModule } from './ucr/ac/cr/ie/specialties.module';
     InpatientModule,
     EncountersModule,
     SpecialtiesModule,
+    LifestyleModule,
   ],
     providers: [
       {

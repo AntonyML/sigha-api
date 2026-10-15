@@ -56,6 +56,7 @@ import {
     PsychologyEvaluation,
     SocialWorkEvaluation,
 } from './domain/specialties';
+import { PatientLifestyleAssessment } from './domain/lifestyle';
 
 /**
  * Build the TypeORM DataSource options from environment variables.
@@ -123,6 +124,7 @@ function buildDataSourceOptions(): DataSourceOptions {
         PhysiotherapyEvaluation,
         PsychologyEvaluation,
         SocialWorkEvaluation,
+        PatientLifestyleAssessment,
     ];
 
     const sslEnabled = 
