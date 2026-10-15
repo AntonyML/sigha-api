@@ -4,3 +4,4 @@ export * from './require-2fa.decorator';
 export * from './audit-log.decorator';
 export * from './active-org.decorator';
 export * from './skip-tenant.decorator';
+export * from './require-permission.decorator';

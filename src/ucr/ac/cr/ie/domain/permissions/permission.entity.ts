@@ -28,6 +28,11 @@ export enum PermissionModule {
   OLDER_ADULT_UPDATES      = 'olderAdultUpdates',
   SPECIALIZED_AREAS        = 'specializedAreas',
   SPECIALIZED_APPOINTMENTS = 'specializedAppointments',
+  CARE_PLANS               = 'carePlans',
+  ACCESS_LOGS              = 'accessLogs',
+  SYSTEM_AUDIT             = 'systemAudit',
+  BEDS                     = 'beds',
+  LIFESTYLE                = 'lifestyle',
 }
 
 export enum PermissionAction {
@@ -48,7 +53,7 @@ export class Permission {
   @Column({ name: 'p_description', length: 255, default: '' })
   pDescription: string;
 
-  @Column({ name: 'p_module', type: 'enum', enum: PermissionModule })
+  @Column({ name: 'p_module', type: 'varchar', length: 32 })
   pModule: PermissionModule;
 
   @Column({ name: 'p_action', type: 'enum', enum: PermissionAction })

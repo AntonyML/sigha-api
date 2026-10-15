@@ -60,6 +60,9 @@ import {
 import { PatientLifestyleAssessment } from './domain/lifestyle';
 import { createTenantAwareDataSource } from './common/tenant/tenant-aware-data-source';
 import { ResidentMemo, ResidentMemoAcknowledgment } from './domain/memos';
+import { CareProgram, CareSubProgram, ResidentProgramEnrollment } from './domain/care-planning';
+import { AccessLog } from './domain/access-logs';
+import { SysAuditLog } from './domain/system-audit';
 
 /**
  * Build the TypeORM DataSource options from environment variables.
@@ -131,6 +134,11 @@ function buildDataSourceOptions(): DataSourceOptions {
         PatientLifestyleAssessment,
         ResidentMemo,
         ResidentMemoAcknowledgment,
+        CareProgram,
+        CareSubProgram,
+        ResidentProgramEnrollment,
+        AccessLog,
+        SysAuditLog,
     ];
 
     const sslEnabled = 

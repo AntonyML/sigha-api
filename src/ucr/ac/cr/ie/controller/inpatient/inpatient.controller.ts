@@ -11,16 +11,20 @@ import {
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { InpatientService } from '../../services/inpatient';
 import { CreateRoomDto, AssignBedDto } from '../../dto/inpatient';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { RequirePermission } from '../../common/decorators';
+import { JwtAuthGuard, ModulePermissionGuard } from '../../common/guards';
+import { PermissionAction, PermissionModule } from '../../domain/permissions';
 
 @ApiTags('Inpatient (Habitaciones y Camas)')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, ModulePermissionGuard)
 @Controller('inpatient')
+@RequirePermission(PermissionModule.BEDS, PermissionAction.VIEW)
 export class InpatientController {
     constructor(private readonly inpatientService: InpatientService) {}
 
     @Post('rooms')
+    @RequirePermission(PermissionModule.BEDS, PermissionAction.CREATE)
     @ApiOperation({ summary: 'Registrar una nueva habitación en el centro residencial' })
     @ApiResponse({ status: 201, description: 'Habitación creada exitosamente' })
     async createRoom(@Body() dto: CreateRoomDto) {
@@ -41,6 +45,7 @@ export class InpatientController {
     }
 
     @Post('beds/assign')
+    @RequirePermission(PermissionModule.BEDS, PermissionAction.CREATE)
     @ApiOperation({ summary: 'Asignar o reubicar de cama a un adulto mayor' })
     @ApiResponse({ status: 201, description: 'Cama asignada exitosamente' })
     async assignBed(@Body() dto: AssignBedDto) {

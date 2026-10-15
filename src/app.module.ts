@@ -44,6 +44,9 @@ import { LifestyleModule } from './ucr/ac/cr/ie/lifestyle.module';
 import { TenantGuard } from './ucr/ac/cr/ie/common/guards/tenant.guard';
 import { TenantContextInterceptor } from './common/interceptors/tenant-context.interceptor';
 import { MemosModule } from './ucr/ac/cr/ie/memos.module';
+import { CarePlanningModule } from './ucr/ac/cr/ie/care-planning.module';
+import { AccessLogsModule } from './ucr/ac/cr/ie/access-logs.module';
+import { SystemAuditModule } from './ucr/ac/cr/ie/system-audit.module';
 
 @Module({
   controllers: [HealthController],
@@ -92,6 +95,9 @@ import { MemosModule } from './ucr/ac/cr/ie/memos.module';
     SpecialtiesModule,
     LifestyleModule,
     MemosModule,
+    CarePlanningModule,
+    AccessLogsModule,
+    SystemAuditModule,
   ],
     providers: [
       {
