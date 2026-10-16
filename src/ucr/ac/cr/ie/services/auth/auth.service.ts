@@ -9,7 +9,13 @@ import { RoleType } from '../../domain/auth/core/role.entity';
 import { UserSession } from '../../domain/auth/sessions/user-session.entity';
 import { UserTwoFactor } from '../../domain/auth/security/user-two-factor.entity';
 import { PasswordResetToken } from '../../domain/auth/tokens/password-reset-token.entity';
-import { Organization, OrganizationMember } from '../../domain/organizations';
+import {
+    Organization,
+    OrganizationBrandingOverrides,
+    OrganizationMember,
+    OrganizationStatus,
+    PlanTier,
+} from '../../domain/organizations';
 import { PasswordUtil, DateUtil, TwoFactorUtil } from '../../common/utils';
 import { LoginDto, ForgotPasswordDto, ResetPasswordDto } from '../../dto/auth';
 import { LoginResponse, Setup2FAResponse, Enable2FAResponse, TwoFactorStatusResponse } from '../../interfaces/auth';
@@ -227,9 +233,18 @@ export class AuthService {
     }
 
     /**
-     * Resolves the user's active organizations with their primary status.
+     * Resolves the user's active organizations with their primary status, branding overrides, lifecycle status, and plan tier.
      */
-    async getUserOrganizations(userId: number): Promise<Array<{ id: number; name: string; slug: string; logoUrl: string | null; isPrimary: boolean }>> {
+    async getUserOrganizations(userId: number): Promise<Array<{
+        id: number;
+        name: string;
+        slug: string;
+        logoUrl: string | null;
+        isPrimary: boolean;
+        brandingOverrides: OrganizationBrandingOverrides | null;
+        status: OrganizationStatus;
+        planTier: PlanTier;
+    }>> {
         const members = await this.organizationMemberRepository.find({
             where: { userId },
             relations: ['organization'],
@@ -244,6 +259,9 @@ export class AuthService {
                 slug: m.organization.slug,
                 logoUrl: m.organization.logoUrl ?? null,
                 isPrimary: Boolean(m.isPrimary),
+                brandingOverrides: m.organization.brandingOverrides ?? null,
+                status: m.organization.status ?? OrganizationStatus.ACTIVE,
+                planTier: m.organization.planTier ?? PlanTier.BASIC,
             }));
     }
 
@@ -677,12 +695,30 @@ export class AuthService {
         preloaded?: {
             roleIds: number[];
             roles: string[];
-            organizations: Array<{ id: number; name: string; slug: string; logoUrl: string | null; isPrimary: boolean }>;
+            organizations: Array<{
+                id: number;
+                name: string;
+                slug: string;
+                logoUrl: string | null;
+                isPrimary: boolean;
+                brandingOverrides: OrganizationBrandingOverrides | null;
+                status: OrganizationStatus;
+                planTier: PlanTier;
+            }>;
         },
     ): Promise<LoginResponse> {
         let roleIds: number[];
         let roles: string[];
-        let organizations: Array<{ id: number; name: string; slug: string; logoUrl: string | null; isPrimary: boolean }>;
+        let organizations: Array<{
+            id: number;
+            name: string;
+            slug: string;
+            logoUrl: string | null;
+            isPrimary: boolean;
+            brandingOverrides: OrganizationBrandingOverrides | null;
+            status: OrganizationStatus;
+            planTier: PlanTier;
+        }>;
 
         if (preloaded) {
             roleIds = preloaded.roleIds;
@@ -788,8 +824,25 @@ export class AuthService {
     ): Promise<{
         accessToken: string;
         refreshToken?: string;
-        activeOrganization: { id: number; name: string; slug: string; logoUrl: string | null };
-        organizations: Array<{ id: number; name: string; slug: string; logoUrl: string | null; isPrimary: boolean }>;
+        activeOrganization: {
+            id: number;
+            name: string;
+            slug: string;
+            logoUrl: string | null;
+            brandingOverrides: OrganizationBrandingOverrides | null;
+            status: OrganizationStatus;
+            planTier: PlanTier;
+        };
+        organizations: Array<{
+            id: number;
+            name: string;
+            slug: string;
+            logoUrl: string | null;
+            isPrimary: boolean;
+            brandingOverrides: OrganizationBrandingOverrides | null;
+            status: OrganizationStatus;
+            planTier: PlanTier;
+        }>;
     }> {
         const [user, organizations, { roleIds, roles }] = await Promise.all([
             this.userRepository.findOne({
@@ -821,6 +874,9 @@ export class AuthService {
                 name: targetOrg.name,
                 slug: targetOrg.slug,
                 logoUrl: targetOrg.logoUrl,
+                brandingOverrides: targetOrg.brandingOverrides,
+                status: targetOrg.status,
+                planTier: targetOrg.planTier,
             },
             organizations,
         };

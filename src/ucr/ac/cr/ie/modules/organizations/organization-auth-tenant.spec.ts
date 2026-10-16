@@ -7,7 +7,7 @@ import { OrganizationService } from './organization.service';
 import { TenantGuard } from '../../common/guards/tenant.guard';
 import { Reflector } from '@nestjs/core';
 import { NotificationService } from '../../services/notifications/notification.service';
-import { Organization } from '../../domain/organizations/organization.entity';
+import { Organization, OrganizationStatus, PlanTier } from '../../domain/organizations/organization.entity';
 import { OrganizationMember } from '../../domain/organizations/organization-member.entity';
 import { User } from '../../domain/auth/core/user.entity';
 
@@ -104,6 +104,9 @@ describe('SaaS Multi-tenant Authority & Organization Scoping', () => {
                 slug: 'hogar-san-pedro',
                 logoUrl: 'https://example.com/logo1.png',
                 isPrimary: true,
+                brandingOverrides: null,
+                status: OrganizationStatus.ACTIVE,
+                planTier: PlanTier.BASIC,
             });
             expect(userOrgs[1]).toEqual({
                 id: 2,
@@ -111,6 +114,9 @@ describe('SaaS Multi-tenant Authority & Organization Scoping', () => {
                 slug: 'fundacion-esperanza',
                 logoUrl: null,
                 isPrimary: false,
+                brandingOverrides: null,
+                status: OrganizationStatus.ACTIVE,
+                planTier: PlanTier.BASIC,
             });
         });
 
@@ -132,6 +138,9 @@ describe('SaaS Multi-tenant Authority & Organization Scoping', () => {
                 name: 'Org 2',
                 slug: 'org-2',
                 logoUrl: null,
+                brandingOverrides: null,
+                status: OrganizationStatus.ACTIVE,
+                planTier: PlanTier.BASIC,
             });
         });
 
