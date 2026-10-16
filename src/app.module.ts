@@ -48,6 +48,8 @@ import { CarePlanningModule } from './ucr/ac/cr/ie/care-planning.module';
 import { AccessLogsModule } from './ucr/ac/cr/ie/access-logs.module';
 import { SystemAuditModule } from './ucr/ac/cr/ie/system-audit.module';
 import { PlatformModule } from './ucr/ac/cr/ie/platform.module';
+import { CoreModule } from './ucr/ac/cr/ie/core.module';
+import { BitacoraModule } from './ucr/ac/cr/ie/bitacora.module';
 
 @Module({
   controllers: [HealthController],
@@ -100,6 +102,8 @@ import { PlatformModule } from './ucr/ac/cr/ie/platform.module';
     AccessLogsModule,
     SystemAuditModule,
     PlatformModule,
+    CoreModule,
+    BitacoraModule,
   ],
     providers: [
       {
