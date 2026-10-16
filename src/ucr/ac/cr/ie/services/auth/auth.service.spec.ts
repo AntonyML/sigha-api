@@ -204,6 +204,40 @@ describe('AuthService - Optimización de login y verify-2fa', () => {
             );
         });
 
+        it('debería hacer fallback de roles/roleIds a orgRoles/orgRoleIds cuando user_roles está vacío (migración 030)', async () => {
+            const hashedPassword = await PasswordUtil.hash('Password123!');
+            const user = new User(1, '123456789', 'Juan', 'Perez', 'juan@example.com', hashedPassword);
+            user.platformRole = PlatformRole.PLATFORM_OWNER;
+            mockUserRepo.findOne = mock(async () => user);
+            mockUserRoleService.findRolesByUserId = mock(async () => []);
+            mockOrgMemberRepo.find = mock(async () => [
+                {
+                    userId: 1,
+                    organizationId: 10,
+                    isPrimary: true,
+                    organization: { id: 10, name: 'ASOPOGUA', slug: 'asopogua', isActive: true, logoUrl: null },
+                },
+            ]);
+            mockOrgMemberRepo.findOne = mock(async () => ({ userId: 1, organizationId: 10, roleId: 2, role: { id: 2, rName: 'admin' } }));
+
+            const response = await authService.login(
+                { uEmail: 'juan@example.com', uPassword: 'Password123!' },
+                '127.0.0.1',
+                'Mozilla/5.0',
+            );
+
+            expect(response.user.roles).toEqual(['admin']);
+            expect(response.user.orgRoles).toEqual(['admin']);
+            expect(mockJwtService.sign).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    roleIds: [2],
+                    roles: ['admin'],
+                    orgRoleIds: [2],
+                    orgRoles: ['admin'],
+                }),
+            );
+        });
+
         it('debería rechazar login con credenciales inválidas', async () => {
             mockUserRepo.findOne = mock(async () => null);
 
