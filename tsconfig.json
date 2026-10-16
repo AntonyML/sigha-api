@@ -2,6 +2,11 @@
   "compilerOptions": {
     "module": "commonjs",
     "moduleResolution": "node",
+    "types": [
+      "node",
+      "bun",
+      "multer"
+    ],
     "resolveJsonModule": true,
     "declaration": true,
     "removeComments": true,

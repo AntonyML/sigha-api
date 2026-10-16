@@ -17,7 +17,7 @@ export class EntranceExitController {
     @Roles(RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.DIRECTOR, RoleType.NURSE, RoleType.SOCIAL_WORKER)
     @ApiOperation({
         summary: 'Registrar nueva entrada o salida',
-        description: 'Crea un nuevo registro de entrada o salida al hogar. Adaptable para empleados, adultos mayores, visitantes, voluntarios, vehículos, etc. El frontend debe enviar los datos correctos según el tipo de acceso (entrance/exit).'
+        description: 'Crea un nuevo registro de entrada o salida al centro. Adaptable para empleados, adultos mayores, visitantes, voluntarios, vehículos, etc. El frontend debe enviar los datos correctos según el tipo de acceso (entrance/exit).'
     })
     @ApiResponse({ 
         status: 201, 

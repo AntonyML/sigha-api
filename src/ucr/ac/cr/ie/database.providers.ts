@@ -36,6 +36,7 @@ import {
 } from './domain/nursing';
 import { Permission, RolePermission } from './domain/permissions';
 import { Settings } from './domain/settings/settings.entity';
+import { Organization, OrganizationMember } from './domain/organizations';
 
 /**
  * Build the TypeORM DataSource options from environment variables.
@@ -86,6 +87,8 @@ function buildDataSourceOptions(): DataSourceOptions {
         Permission,
         RolePermission,
         Settings,
+        Organization,
+        OrganizationMember,
     ];
 
     const sslEnabled = 
@@ -121,7 +124,7 @@ function buildDataSourceOptions(): DataSourceOptions {
         port: parseInt(process.env.DB_PORT || '5432', 10),
         username: process.env.DB_USERNAME || 'postgres',
         password: process.env.DB_PASSWORD || '',
-        database: process.env.DB_NAME || 'hogar_de_ancianos',
+        database: process.env.DB_NAME || 'sigha',
         ssl: sslEnabled ? { rejectUnauthorized: false } : false,
     };
 }

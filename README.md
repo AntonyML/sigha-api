@@ -1,12 +1,12 @@
 # SIGHA API
 
-[![npm version](https://img.shields.io/badge/npm-1.0.0-blue)](https://www.npmjs.com/package/hogar-ancianos-backend)
+[![npm version](https://img.shields.io/badge/npm-1.0.0-blue)](https://www.npmjs.com/package/sigha-backend)
 [![build status](https://img.shields.io/badge/build-passing-brightgreen)](#)
 [![license](https://img.shields.io/badge/license-UNLICENSED-lightgrey)](#)
 
 ## Descripción General
 
-API RESTful basada en NestJS que gestiona el **Sistema Integral de Gestión del Hogar de Ancianos (SIGHA)**. Proporciona autenticación JWT con soporte opcional de 2FA, control de roles y permisos granulares, y operaciones CRUD para usuarios, notificaciones, registros clínicos, programas y más.
+API RESTful basada en NestJS que gestiona el **Sistema Integral de Gestión Holística y de Asistencia (SIGHA)**. Proporciona autenticación JWT con soporte opcional de 2FA, control de roles y permisos granulares, y operaciones CRUD para usuarios, notificaciones, registros clínicos, programas y más.
 
 ## Arquitectura y Flujo
 
@@ -20,8 +20,8 @@ API RESTful basada en NestJS que gestiona el **Sistema Integral de Gestión del 
 
 | Requisito | Detalle |
 |-----------|----------|
-| **Node.js** | >= 20.x |
-| **npm** | >= 10.x |
+| **Bun** | >= 1.1.x (Recomendado 1.3+) |
+| **Node.js** (opcional/compatibilidad) | >= 22.x |
 | **PostgreSQL** | 12+ (o Supabase) |
 | **Variables de entorno** | Ver la tabla "Variables de Entorno" abajo |
 | **Docker** (opcional) | Para despliegue en contenedor |
@@ -33,19 +33,71 @@ API RESTful basada en NestJS que gestiona el **Sistema Integral de Gestión del 
 git clone https://github.com/tu-org/sigha-api.git
 cd sigha-api
 
-# Instalar dependencias
-npm ci
+# Instalar dependencias con Bun
+bun install
 
-# Copiar variables de entorno de ejemplo y completarlas
+# Opción A: Con Infisical CLI (Recomendado / Inyección de secretos en memoria)
+# 1. Autenticar CLI (solo una vez por máquina)
+infisical login
+
+# 2. Ejecutar en desarrollo inyectando secretos desde Infisical
+bun run start:infisical
+
+# 3. Ejecutar tests con secretos de Infisical
+bun run test:infisical
+
+# Opción B: Con archivo .env local clásico
 cp .env.example .env
 # Editar .env con los valores reales
+bun run start:dev
 
-# Ejecutar en modo desarrollo
-npm run start:dev
+# Ejecutar tests locales
+bun test
+bun run test:cov
 
 # Compilar y ejecutar en producción
-npm run build && npm run start:prod
+bun run build && bun run start:prod
+# O en producción con Infisical:
+bun run build && bun run start:prod:infisical
 ```
+
+## Despliegue en Render (sigha-api)
+
+El repo usa **Bun** (`packageManager: bun@1.3.14`, solo existe `bun.lock`).
+Render fallaba con `pnpm install --frozen-lockfile` porque ese comando por
+defecto no respeta Bun. El fix vive en `render.yaml` (IaC del repo):
+
+- `buildCommand`: `corepack enable` + `bun install --frozen-lockfile` + `bun run build`
+- `startCommand`: `bun dist/main.js` (`bun run start:render` hace lo mismo)
+- `healthCheckPath`: `/health` (controlador público, sin JWT ni DB)
+- `NODE_VERSION: 22.17.0` + `.node-version` (Render pide Node >= 22)
+- `BUN_VERSION: 1.3.14` (igual que `packageManager`)
+- `autoDeploy: false` (despliegas a mano tras revisar)
+
+Pasos en la GUI de Render (sin tocar código):
+
+1. Dashboard → tu servicio `sigha-api` → **Settings → Build & Deploy**:
+   - **Build Command** = `corepack enable && bun install --frozen-lockfile && bun run build`
+   - **Start Command** = `bun dist/main.js`
+   - **Health Check Path** = `/health`
+2. **Environment**: agrega como **Secret** (nunca en el repo):
+   `NODE_ENV=production`, `DATABASE_URL` (+ `DB_SSL=true` si es Supabase/pooler),
+   `JWT_SECRET` (>= 16 chars), `CORS_ORIGINS=https://<tu-front>.onrender.com`.
+   Opcionales: `RESEND_API_KEY`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`.
+   Render inyecta `PORT` solo; `main.ts` ya escucha `0.0.0.0` con ese `PORT`.
+3. **Manual Deploy → Deploy latest commit** (rama `main`, commit `46429fe` o posterior).
+4. Verifica: `GET https://<tu-api>.onrender.com/health` → `{ "status": "ok", ... }`.
+5. Si `render.yaml` existe en la rama desplegada, Render lo propone como
+   Blueprint; acepta **usar esos mismos comandos** (no vuelvas a `pnpm`).
+
+> Nota: `main.ts` carga `.env.production` solo si existe el archivo; en Render
+> no existe y usa las Environment Variables del dashboard (comportamiento esperado).
+
+## Flujo de Trabajo Git (multi-agente con worktrees)
+
+- `dev` es la rama de integración y el checkout principal (`C:\DEV\sigha\sigha-api`) **no se edita**: siempre en `dev`, siempre limpio. Solo el coordinador integra ahí.
+- Cada agente trabaja en su worktree aislado `C:\DEV\sigha\_wt\sigha-api\<id>-<tarea>` con rama `agent/<id>/<tarea>` creada desde `origin/dev`.
+- Antes de empezar: reclama tus archivos en `C:\DEV\sigha\_wt\_claims\sigha-api.json` (dos agentes nunca tocan el mismo archivo). Protocolo completo en `C:\DEV\sigha\AGENTS.md` y `AGENTS.md`.
 
 ## Variables de Entorno
 
@@ -58,7 +110,7 @@ npm run build && npm run start:prod
 | `DB_PORT` | Puerto PostgreSQL | `5432` |
 | `DB_USERNAME` | Usuario DB | `postgres` |
 | `DB_PASSWORD` | Contraseña DB | `mysecret` |
-| `DB_NAME` | Nombre de base de datos | `hogar_de_ancianos` |
+| `DB_NAME` | Nombre de base de datos | `sigha` |
 | `DB_SSL` | `true` para TLS | `false` |
 | `TYPEORM_LOGGING` | Logueo de consultas (debug) | `false` |
 | `LOG_LEVEL` | Nivel de logs (fatal, error, warn, info, http, audit, debug, trace) | `info` |
@@ -66,7 +118,7 @@ npm run build && npm run start:prod
 | `JWT_EXPIRES_IN` | Tiempo de vida del token | `1h` |
 | `RESEND_API_KEY` | API key para envío de correos | `re_xxxxxxxxxxxxx` |
 | `RESEND_FROM_EMAIL` | Remitente de correo | `noreply@tu-dominio.com` |
-| `RESEND_FROM_NAME` | Nombre del remitente | `Hogar de Ancianos` |
+| `RESEND_FROM_NAME` | Nombre del remitente | `Sistema Integral de Gestión Holística y de Asistencia` |
 | `SUPABASE_URL` | URL del bucket Supabase | `https://<ref>.supabase.co` |
 | `SUPABASE_SERVICE_ROLE_KEY` | Credencial de servicio Supabase | `<clave>` |
 

@@ -1,0 +1,23 @@
+# Registro de cambios
+
+Registra aquí solo cambios integrados en `dev`. El agente que integra agrega una entrada bajo el lock `dev-sigha-api` tras re-verificar el cambio en `dev`; las demás tareas no editan este archivo.
+
+Formato: `YYYY-MM-DD | <taskId> | tipo: resumen | verificación: resultado`.
+
+- 2026-10-13 | agent/antigravity/migrate-to-bun | chore: migración de runtime, gestor de dependencias y test runner a Bun | verificación: bun install, bun test (25 pass, 0 fail), bun run build y db:check exitosos.
+2026-10-13 | sigha-api-20261013-f4t8 | feat: job de despacho programado de notificaciones pendientes | verificacion: typecheck limpio, bun test 48 pass/0 fail, build OK (worktree y dev).
+2026-10-13 | sigha-api-20261013-g9w3 | test: unit tests de UserService | verificacion: typecheck limpio, bun test 65 pass/0 fail, build OK (worktree y dev).
+2026-10-13 | sigha-api-20261013-9z3r | refactor: renombrar Hogar de Ancianos a Sistema Integral de Gestión Holística y de Asistencia (SIGHA) | verificación: typecheck OK, bun test 82 pass/0 fail, build OK (worktree y dev); funcional: swagger/SYSTEM_NAME/README con nombre nuevo, cero restos en src.
+2026-10-13 | sigha-api-20261013-c4ab | refactor: eliminacion de scripts de seed, atajos directos a DB y StartupService | verificacion: typecheck limpio, bun test 82 pass/0 fail, build OK (worktree y dev).
+2026-10-13 | sigha-api-20261013-tsf4 | feat: backend como autoridad SaaS con contexto de organización en sesión, endpoints /organizations, TenantGuard y scoping de referencia en notifications | verificación: typecheck limpio, bun test 92 pass/0 fail, nest build OK (worktree y dev); verificación funcional HTTP live (login/organizations, switch active-org, 403 en org ajena, TenantGuard 403 sin org y 200 con org).
+2026-10-13 | sigha-api-20261013-m7x2 | feat: configuracion de proyecto Infisical (.infisical.json), scripts de ejecucion desacoplados y documentacion | verificacion: typecheck limpio, bun test 92 pass/0 fail, infisical live injection 92 pass/0 fail, nest build OK (worktree y dev).
+2026-10-13 | sigha-api-20261013-02tp | feat: configurar deploy Render con Bun (render.yaml + GET /health publico + .node-version) | verificación: tsc --noEmit OK, bun test health 1 pass, nest build OK (worktree y dev); render.yaml validado (bun install/build, start dist/main.js, health /health).
+
+2026-10-13 | sigha-api-20261013-8qht | docs: actualizar deuda sobre cadencia y tamaño del lote del job de notificaciones | verificación: typecheck OK, bun test 93 pass/0 fail, build OK; prueba del job 5 pass/0 fail.
+2026-10-13 | sigha-api-20261013-gt3x | build: agregar @nestjs/cli a devDependencies para builds reproducibles en Render | verificación: tsc --noEmit OK, bun test 93 pass/0 fail, nest build OK (worktree y dev).
+2026-10-14 | sigha-api-20261014-n8v2 | perf: optimización N+1 en expedientes virtuales con hidratación en lotes | verificación: typecheck limpio, bun test 98 pass/0 fail, nest build OK (worktree y dev).
+2026-10-14 | sigha-api-20261014-w3k9 | perf: caché en memoria para consulta de identificación (Hacienda) | verificación: typecheck limpio, bun test 103 pass/0 fail, nest build OK (worktree y dev).
+2026-10-14 | sigha-api-20261014-41sl | perf: paralelizar consultas independientes y desacoplar auditoría en login y 2fa | verificación: typecheck limpio, bun test 109 pass/0 fail, nest build OK (worktree y dev).
+2026-10-14 | sigha-api-20261014-awb6 | feat: validacion obligatoria y condicional en POST /virtual-records/create (familia y programa requeridos; pf_email/pf_phone requeridos; condicionales oa_other/fallecido/neoplasias; servicio envia document types, 50 args, requiere migracion 019) | verificación: typecheck limpio, bun test 117 pass/0 fail (8 nuevos DTO), nest build OK (worktree y dev); smoke funcional del endpoint pendiente de aplicar 019 en Supabase dev
+2026-10-14 | sigha-api-20261014-kpsi | feat: migración de transporte de email a Mailbridge REST (/api/send) con app SIGHA y 6 plantillas | verificación: typecheck limpio, bun test 129 pass/0 fail (12 tests propios de email y mailer), nest build OK (worktree y dev); verificación funcional: app SIGHA y 6 plantillas provisionadas en Mailbridge, envíos con to_override y auditoría validada.
+2026-10-14 | sigha-api-20261014-8z6j | feat: endpoints y métodos tipados para 5 plantillas adicionales (citas, alertas médicas, entradas/salidas) y módulo público de consultas web con Throttler | verificación: bun test 136 pass/0 fail (7 tests nuevos), nest build OK (worktree y dev); módulo contact-inquiries documentado en Swagger.

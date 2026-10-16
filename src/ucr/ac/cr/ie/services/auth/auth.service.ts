@@ -1,13 +1,14 @@
-import { Injectable, UnauthorizedException, BadRequestException, Inject, NotFoundException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException, Inject, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { Repository, MoreThan } from 'typeorm';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
+import type { Cache } from 'cache-manager';
 import { User } from '../../domain/auth/core/user.entity';
 import { UserSession } from '../../domain/auth/sessions/user-session.entity';
 import { UserTwoFactor } from '../../domain/auth/security/user-two-factor.entity';
 import { PasswordResetToken } from '../../domain/auth/tokens/password-reset-token.entity';
+import { Organization, OrganizationMember } from '../../domain/organizations';
 import { PasswordUtil, DateUtil, TwoFactorUtil } from '../../common/utils';
 import { LoginDto, ForgotPasswordDto, ResetPasswordDto } from '../../dto/auth';
 import { LoginResponse, Setup2FAResponse, Enable2FAResponse, TwoFactorStatusResponse } from '../../interfaces/auth';
@@ -34,6 +35,10 @@ export class AuthService {
         private twoFactorRepository: Repository<UserTwoFactor>,
         @Inject('PasswordResetTokenRepository')
         private passwordResetTokenRepository: Repository<PasswordResetToken>,
+        @Inject('OrganizationRepository')
+        private organizationRepository: Repository<Organization>,
+        @Inject('OrganizationMemberRepository')
+        private organizationMemberRepository: Repository<OrganizationMember>,
         private readonly emailService: EmailService,
         private readonly auditService: AuditService,
         private readonly userRoleService: UserRoleService,
@@ -49,6 +54,27 @@ export class AuthService {
         const roleIds = userRoles.map(r => r.id).sort((a, b) => a - b);
         const roles = userRoles.map(r => r.rName).sort();
         return { roleIds, roles };
+    }
+
+    /**
+     * Resolves the user's active organizations with their primary status.
+     */
+    async getUserOrganizations(userId: number): Promise<Array<{ id: number; name: string; slug: string; logoUrl: string | null; isPrimary: boolean }>> {
+        const members = await this.organizationMemberRepository.find({
+            where: { userId },
+            relations: ['organization'],
+            order: { isPrimary: 'DESC', organizationId: 'ASC' },
+        });
+
+        return members
+            .filter(m => m.organization && m.organization.isActive)
+            .map(m => ({
+                id: m.organization.id,
+                name: m.organization.name,
+                slug: m.organization.slug,
+                logoUrl: m.organization.logoUrl ?? null,
+                isPrimary: Boolean(m.isPrimary),
+            }));
     }
 
     /**
@@ -74,11 +100,14 @@ export class AuthService {
             throw new UnauthorizedException('Credenciales inválidas');
         }
 
-        const { roles } = await this.resolveUserRoles(user.id);
-
-        const twoFactor = await this.twoFactorRepository.findOne({
-            where: { userId: user.id, tfaEnabled: true },
-        });
+        // Paralelizar consultas de roles, organizaciones y estado 2FA
+        const [{ roleIds, roles }, organizations, twoFactor] = await Promise.all([
+            this.resolveUserRoles(user.id),
+            this.getUserOrganizations(user.id),
+            this.twoFactorRepository.findOne({
+                where: { userId: user.id, tfaEnabled: true },
+            }),
+        ]);
 
         if (twoFactor && !twoFactorCode) {
             const tempToken = this.jwtService.sign(
@@ -96,6 +125,7 @@ export class AuthService {
                 },
                 requiresTwoFactor: true,
                 tempToken,
+                organizations,
             };
         }
 
@@ -112,80 +142,86 @@ export class AuthService {
 
                 const updatedBackupCodes = TwoFactorUtil.removeUsedBackupCode(twoFactorCode, backupCodes);
                 twoFactor.tfaBackupCodes = JSON.stringify(updatedBackupCodes);
-                await this.twoFactorRepository.save(twoFactor);
             }
 
             twoFactor.tfaLastUsed = new Date();
             await this.twoFactorRepository.save(twoFactor);
 
-            return this.generateTokens(user, ipAddress, userAgent, true);
+            return this.generateTokens(user, ipAddress, userAgent, true, undefined, {
+                roleIds,
+                roles,
+                organizations,
+            });
         }
 
-        return this.generateTokens(user, ipAddress, userAgent, false);
+        return this.generateTokens(user, ipAddress, userAgent, false, undefined, {
+            roleIds,
+            roles,
+            organizations,
+        });
     }
 
     /**
      * Completa el login con 2FA
      */
     async completeTwoFactorLogin(tempToken: string, twoFactorCode: string, ipAddress?: string, userAgent?: string): Promise<LoginResponse> {
+        let payload: any;
         try {
-            const payload = this.jwtService.verify(tempToken);
-
-            if (!payload.require2FA) {
-                throw new UnauthorizedException('Token temporal inválido');
-            }
-
-            const user = await this.userRepository.findOne({
-                where: { id: payload.sub, uIsActive: true },
-            });
-
-            if (!user) {
-                throw new UnauthorizedException('Usuario no encontrado');
-            }
-
-            const twoFactor = await this.twoFactorRepository.findOne({
-                where: { userId: user.id, tfaEnabled: true },
-            });
-
-            if (!twoFactor) {
-                throw new UnauthorizedException('2FA no configurado');
-            }
-
-            const isValidCode = TwoFactorUtil.verifyToken(twoFactorCode, twoFactor.tfaSecret);
-
-            if (!isValidCode) {
-                const backupCodes = JSON.parse(twoFactor.tfaBackupCodes || '[]');
-                const isValidBackupCode = TwoFactorUtil.verifyBackupCode(twoFactorCode, backupCodes);
-
-                if (!isValidBackupCode) {
-                    throw new UnauthorizedException('Código de autenticación inválido');
-                }
-
-                const updatedBackupCodes = TwoFactorUtil.removeUsedBackupCode(twoFactorCode, backupCodes);
-                twoFactor.tfaBackupCodes = JSON.stringify(updatedBackupCodes);
-                await this.twoFactorRepository.save(twoFactor);
-            }
-
-            twoFactor.tfaLastUsed = new Date();
-            await this.twoFactorRepository.save(twoFactor);
-
-            const result = await this.generateTokens(user, ipAddress, userAgent, true);
-
-            // Registrar auditoría de login exitoso con 2FA
-            await this.auditService.createDigitalRecord(
-                user.id,
-                {
-                    action: AuditAction.LOGIN,
-                    tableName: 'users',
-                    recordId: user.id,
-                    description: `Login exitoso con 2FA desde IP: ${ipAddress || 'unknown'}`
-                }
-            );
-
-            return result;
-        } catch (error) {
+            payload = this.jwtService.verify(tempToken);
+        } catch {
             throw new UnauthorizedException('Token temporal inválido o expirado');
         }
+
+        if (!payload || !payload.require2FA) {
+            throw new UnauthorizedException('Token temporal inválido');
+        }
+
+        // Paralelizar la búsqueda de usuario y configuración 2FA
+        const [user, twoFactor] = await Promise.all([
+            this.userRepository.findOne({
+                where: { id: payload.sub, uIsActive: true },
+            }),
+            this.twoFactorRepository.findOne({
+                where: { userId: payload.sub, tfaEnabled: true },
+            }),
+        ]);
+
+        if (!user) {
+            throw new UnauthorizedException('Usuario no encontrado');
+        }
+
+        if (!twoFactor) {
+            throw new UnauthorizedException('2FA no configurado');
+        }
+
+        const isValidCode = TwoFactorUtil.verifyToken(twoFactorCode, twoFactor.tfaSecret);
+
+        if (!isValidCode) {
+            const backupCodes = JSON.parse(twoFactor.tfaBackupCodes || '[]');
+            const isValidBackupCode = TwoFactorUtil.verifyBackupCode(twoFactorCode, backupCodes);
+
+            if (!isValidBackupCode) {
+                throw new UnauthorizedException('Código de autenticación inválido');
+            }
+
+            const updatedBackupCodes = TwoFactorUtil.removeUsedBackupCode(twoFactorCode, backupCodes);
+            twoFactor.tfaBackupCodes = JSON.stringify(updatedBackupCodes);
+        }
+
+        twoFactor.tfaLastUsed = new Date();
+
+        // Paralelizar el guardado de 2FA y la resolución de roles y organizaciones
+        const [, { roleIds, roles }, organizations] = await Promise.all([
+            this.twoFactorRepository.save(twoFactor),
+            this.resolveUserRoles(user.id),
+            this.getUserOrganizations(user.id),
+        ]);
+
+        return this.generateTokens(user, ipAddress, userAgent, true, undefined, {
+            roleIds,
+            roles,
+            organizations,
+        });
     }
 
     /**
@@ -322,8 +358,8 @@ export class AuthService {
                         // Regenerar tokens con twoFactorVerified = true para evitar logout forzado
                         const tokens = await this.generateTokens(user, undefined, undefined, true);
 
-                        // Invalidar caché de estado 2FA
-                        await this.cacheManager.del('2fa-status');
+                        // Invalidar caché de estado 2FA de este usuario
+                        await this.cacheManager.del(`2fa-status-${userId}`);
 
                         return {
                             success: true,
@@ -359,8 +395,8 @@ export class AuthService {
                     }
                 );
 
-                // Invalidar caché de estado 2FA
-                await this.cacheManager.del('2fa-status');
+                // Invalidar caché de estado 2FA de este usuario
+                await this.cacheManager.del(`2fa-status-${userId}`);
 
                 return { success: true };
     }
@@ -458,17 +494,57 @@ export class AuthService {
     }
 
     /**
-     * Genera tokens de acceso y actualiza sesión
+     * Genera tokens de acceso y actualiza sesión con el contexto de organización
      */
-    private async generateTokens(user: User, ipAddress?: string, userAgent?: string, twoFactorVerified: boolean = false): Promise<LoginResponse> {
-        const { roleIds, roles } = await this.resolveUserRoles(user.id);
+    private async generateTokens(
+        user: User,
+        ipAddress?: string,
+        userAgent?: string,
+        twoFactorVerified: boolean = false,
+        targetOrgId?: number,
+        preloaded?: {
+            roleIds: number[];
+            roles: string[];
+            organizations: Array<{ id: number; name: string; slug: string; logoUrl: string | null; isPrimary: boolean }>;
+        },
+    ): Promise<LoginResponse> {
+        let roleIds: number[];
+        let roles: string[];
+        let organizations: Array<{ id: number; name: string; slug: string; logoUrl: string | null; isPrimary: boolean }>;
+
+        if (preloaded) {
+            roleIds = preloaded.roleIds;
+            roles = preloaded.roles;
+            organizations = preloaded.organizations;
+        } else {
+            const [rolesData, orgsData] = await Promise.all([
+                this.resolveUserRoles(user.id),
+                this.getUserOrganizations(user.id),
+            ]);
+            roleIds = rolesData.roleIds;
+            roles = rolesData.roles;
+            organizations = orgsData;
+        }
+
+        let activeOrgId: number | null = null;
+        if (targetOrgId !== undefined) {
+            const match = organizations.find(o => o.id === targetOrgId);
+            if (!match) {
+                throw new ForbiddenException('El usuario no es miembro de la organización solicitada');
+            }
+            activeOrgId = targetOrgId;
+        } else {
+            const primary = organizations.find(o => o.isPrimary) || organizations[0];
+            activeOrgId = primary ? primary.id : null;
+        }
 
         const payload = {
             sub: user.id,
             email: user.uEmail,
             roleIds,
             roles,
-            twoFactorVerified
+            twoFactorVerified,
+            orgId: activeOrgId,
         };
 
         const accessToken = this.jwtService.sign(payload);
@@ -489,16 +565,18 @@ export class AuthService {
 
         await this.sessionRepository.save(session);
 
-        // Registrar auditoría de login exitoso
-        await this.auditService.createDigitalRecord(
+        // Registrar auditoría de login exitoso en segundo plano (desacoplada, no bloquea la respuesta HTTP)
+        this.auditService.createDigitalRecord(
             user.id,
             {
                 action: AuditAction.LOGIN,
                 tableName: 'users',
                 recordId: user.id,
-                description: `Login exitoso desde IP: ${ipAddress || 'unknown'}`
+                description: `Login exitoso${twoFactorVerified ? ' con 2FA' : ''} desde IP: ${ipAddress || 'unknown'}`
             }
-        );
+        ).catch(error => {
+            this.logger.error(`Error al registrar auditoría de login para usuario ${user.id}: ${error?.message || error}`);
+        });
 
         return {
             accessToken,
@@ -509,6 +587,56 @@ export class AuthService {
                 uName: user.uName,
                 roles,
             },
+            organizations,
+        };
+    }
+
+    /**
+     * Reemite tokens con una nueva organización activa seleccionada.
+     */
+    async switchActiveOrganization(
+        userId: number,
+        organizationId: number,
+        ipAddress?: string,
+        userAgent?: string,
+    ): Promise<{
+        accessToken: string;
+        refreshToken?: string;
+        activeOrganization: { id: number; name: string; slug: string; logoUrl: string | null };
+        organizations: Array<{ id: number; name: string; slug: string; logoUrl: string | null; isPrimary: boolean }>;
+    }> {
+        const [user, organizations, { roleIds, roles }] = await Promise.all([
+            this.userRepository.findOne({
+                where: { id: userId, uIsActive: true },
+            }),
+            this.getUserOrganizations(userId),
+            this.resolveUserRoles(userId),
+        ]);
+        if (!user) {
+            throw new UnauthorizedException('Usuario no encontrado');
+        }
+
+        const targetOrg = organizations.find(o => o.id === organizationId);
+        if (!targetOrg) {
+            throw new ForbiddenException('El usuario no es miembro de la organización solicitada');
+        }
+
+        const tokens = await this.generateTokens(user, ipAddress, userAgent, true, organizationId, {
+            roleIds,
+            roles,
+            organizations,
+        });
+
+        return {
+            accessToken: tokens.accessToken,
+            refreshToken: tokens.refreshToken,
+            activeOrganization: {
+                id: targetOrg.id,
+                name: targetOrg.name,
+                slug: targetOrg.slug,
+                logoUrl: targetOrg.logoUrl,
+            },
+            organizations,
         };
     }
 

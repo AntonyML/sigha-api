@@ -4,6 +4,7 @@ import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { LoggerModule } from './common/services/logger.module';
 import { WinstonModule } from 'nest-winston';
 import { createWinstonLogger } from './config/logger.config';
+import { validateEnv } from './config/environment.validation';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { DatabaseModule } from './ucr/ac/cr/ie/database.module';
@@ -30,17 +31,22 @@ import { OlderAdultFamilyModule } from './ucr/ac/cr/ie/older-adult-family.module
 import { OlderAdultUpdatesModule } from './ucr/ac/cr/ie/older-adult-updates.module';
 import { IdentificationLookupModule } from './ucr/ac/cr/ie/identification-lookup.module';
 import { JwtAuthGuard } from './ucr/ac/cr/ie/common/guards/jwt-auth.guard';
+import { HealthController } from './health.controller';
 import { SettingsModule } from './ucr/ac/cr/ie/settings.module';
 import { UserRequestsModule } from './ucr/ac/cr/ie/user-requests.module';
+import { OrganizationModule } from './ucr/ac/cr/ie/modules/organizations/organization.module';
+import { ContactInquiryModule } from './ucr/ac/cr/ie/contact-inquiry.module';
 
 @Module({
+  controllers: [HealthController],
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      validate: validateEnv,
     }),
     ThrottlerModule.forRoot([{
-      ttl: 60000,
-      limit: 5,
+      ttl: Number(process.env.THROTTLE_TTL ?? 60000),
+      limit: Number(process.env.THROTTLE_LIMIT ?? 100),
     }]),
     // Global Winston logger
     WinstonModule.forRoot(createWinstonLogger()),
@@ -70,6 +76,8 @@ import { UserRequestsModule } from './ucr/ac/cr/ie/user-requests.module';
     IdentificationLookupModule,
     SettingsModule,
     UserRequestsModule,
+    OrganizationModule,
+    ContactInquiryModule,
   ],
     providers: [
       {

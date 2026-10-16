@@ -124,15 +124,14 @@ export class EntranceExitService {
             entranceExit.eeDatetimeExit = new Date(eeDatetimeExit);
             
         } else if (entranceExit.eeAccessType === AccessType.EXIT) {
-            // Si era salida, debe completar con fecha de entrada
-            if (!eeDatetimeEntrance) {
-                throw new BadRequestException('Para cerrar un ciclo de salida, debe proporcionar la fecha de entrada');
-            }
+            // Si era salida, la fecha de entrada es opcional (pudo no haberse registrado)
             if (eeDatetimeExit && eeDatetimeExit.trim() !== '') {
                 throw new BadRequestException('No puede modificar la fecha de salida en un registro que ya la tiene');
             }
-            
-            entranceExit.eeDatetimeEntrance = new Date(eeDatetimeEntrance);
+
+            if (eeDatetimeEntrance && eeDatetimeEntrance.trim() !== '') {
+                entranceExit.eeDatetimeEntrance = new Date(eeDatetimeEntrance);
+            }
         }
 
         // Validar que la fecha de entrada sea anterior a la de salida

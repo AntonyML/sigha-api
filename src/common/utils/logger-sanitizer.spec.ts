@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'bun:test';
 import { sanitizeForLogging, containsSensitiveData } from './logger-sanitizer';
 import { CORRELATION_ID_HEADER } from './correlation-id.util';
 import { sanitizeValue } from './logger-sanitizer';

@@ -1,7 +1,5 @@
-import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { Resend } from 'resend';
-import { sanitizeForLogging } from '@common/utils/logger-sanitizer';
+import { Injectable, Logger, Optional } from '@nestjs/common';
+import { MailerService } from './mailer.service';
 
 export interface ResendSendParams {
   to: string;
@@ -16,69 +14,35 @@ export interface ResendSendResult {
   error?: string;
 }
 
+/**
+ * @deprecated Use MailerService or EmailService directly.
+ * Kept for backward compatibility with existing tests and modules.
+ */
 @Injectable()
 export class ResendService {
   private readonly logger = new Logger(ResendService.name);
-  private readonly client: Resend | null;
-  private readonly fromEmail: string;
-  private readonly fromName: string;
-  private readonly enabled: boolean;
 
-  constructor(private readonly configService: ConfigService) {
-    const apiKey = (this.configService.get<string>('RESEND_API_KEY') || '').trim();
-    this.fromEmail = (this.configService.get<string>('RESEND_FROM_EMAIL') || '').trim();
-    this.fromName = (this.configService.get<string>('RESEND_FROM_NAME') || 'Sistema Hogar de Ancianos').trim();
-    this.enabled = Boolean(apiKey) && Boolean(this.fromEmail);
-
-    if (!this.enabled) {
-      this.logger.warn(
-        '[ResendService] RESEND_API_KEY o RESEND_FROM_EMAIL no configurados. Los envíos de email estarán deshabilitados hasta que se configuren.',
-      );
-      this.client = null;
-      return;
-    }
-
-    this.client = new Resend(apiKey);
-        this.logger.log('[ResendService] Inicializado', sanitizeForLogging({ from: `${this.fromName} <${this.fromEmail}>` }));
-  }
+  constructor(@Optional() private readonly mailerService?: MailerService) {}
 
   isEnabled(): boolean {
-    return this.enabled;
+    return this.mailerService?.isEnabled() ?? false;
   }
 
   getFromAddress(): string {
-    return `${this.fromName} <${this.fromEmail}>`;
+    return 'SIGHA <hello@tonyml.com>';
   }
 
   async send(params: ResendSendParams): Promise<ResendSendResult> {
-    if (!this.enabled || !this.client) {
-          const reason = 'Resend no está configurado (faltan RESEND_API_KEY o RESEND_FROM_EMAIL).';
-          this.logger.error('[ResendService] Resend no está configurado', sanitizeForLogging({ reason }));
-      throw new InternalServerErrorException(reason);
+    if (!this.mailerService || !this.mailerService.isEnabled()) {
+      return { success: false, error: 'MailerService no configurado' };
     }
-
-    try {
-      const response = await this.client.emails.send({
-        from: this.getFromAddress(),
-        to: [params.to],
-        subject: params.subject,
+    const result = await this.mailerService.sendMail({
+      to: params.to,
+      variables: {
         html: params.html,
-        text: params.text,
-      });
-
-      if (response.error) {
-              const message = response.error.message || 'Error desconocido al enviar email';
-              this.logger.error('[ResendService] Error al enviar email', sanitizeForLogging({ to: params.to, message }));
-        throw new InternalServerErrorException(message);
-      }
-
-      const messageId = response.data?.id;
-            this.logger.log('[ResendService] Email enviado', sanitizeForLogging({ to: params.to, messageId: messageId ?? 'n/a' }));
-      return { success: true, messageId };
-    } catch (err) {
-              const message = err instanceof Error ? err.message : 'Error desconocido al enviar email';
-              this.logger.error('[ResendService] Excepción al enviar email', sanitizeForLogging({ to: params.to, message }));
-      throw new InternalServerErrorException(message);
-    }
+        subject: params.subject,
+      },
+    });
+    return { success: result.success, messageId: result.messageId, error: result.error };
   }
 }

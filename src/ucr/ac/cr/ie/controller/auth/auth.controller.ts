@@ -1,11 +1,10 @@
-import { Controller, Post, Body, UseGuards, Request, Get, Param, HttpCode, UseInterceptors } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Request, Get, Param, HttpCode } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService, LoginDto } from '../../services/auth/auth.service';
 import { JwtAuthGuard, TwoFactorGuard } from '../../common/guards';
 import { Public, Require2FA } from '../../common/decorators';
-import { ForgotPasswordDto, ResetPasswordDto } from '../../dto/auth';
-import { CacheInterceptor, CacheKey, CacheTTL } from '@nestjs/cache-manager';
+import { ForgotPasswordDto, ResetPasswordDto, ActiveOrganizationDto } from '../../dto/auth';
 
 @ApiTags('Autenticación')
 @Controller('auth')
@@ -96,6 +95,30 @@ export class AuthController {
 
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth('jwt')
+    @Get('organizations')
+    @ApiOperation({ summary: 'Obtener organizaciones del usuario autenticado' })
+    @ApiResponse({ status: 200, description: 'Lista de organizaciones del usuario' })
+    async getOrganizations(@Request() req) {
+        const userId = req.user.userId || req.user.id;
+        return await this.authService.getUserOrganizations(userId);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth('jwt')
+    @Post('active-organization')
+    @HttpCode(200)
+    @ApiOperation({ summary: 'Cambiar organización activa y reemitir tokens' })
+    @ApiResponse({ status: 200, description: 'Tokens reemitidos con nueva organización activa' })
+    @ApiResponse({ status: 403, description: 'El usuario no es miembro de la organización solicitada' })
+    async setActiveOrganization(@Body() body: ActiveOrganizationDto, @Request() req) {
+        const userId = req.user.userId || req.user.id;
+        const ipAddress = req.ip;
+        const userAgent = req.get('User-Agent');
+        return await this.authService.switchActiveOrganization(userId, body.organizationId, ipAddress, userAgent);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth('jwt')
     @Post('logout')
     @HttpCode(200)
     @ApiOperation({ summary: 'Cerrar sesión' })
@@ -143,9 +166,6 @@ export class AuthController {
     @UseGuards(JwtAuthGuard)
         @ApiBearerAuth('jwt')
         @Throttle({ default: { ttl: 60000, limit: 30 } })
-        @UseInterceptors(CacheInterceptor)
-        @CacheKey('2fa-status')
-        @CacheTTL(60000)
         @Get('2fa/status')
         @ApiOperation({
             summary: 'Obtener estado de autenticación de dos factores',

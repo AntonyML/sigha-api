@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn, type Relation } from 'typeorm';
 import { User } from '../core/user.entity';
 
 @Entity('user_two_factor')
@@ -29,7 +29,7 @@ export class UserTwoFactor {
 
   @OneToOne(() => User, user => user.twoFactor)
   @JoinColumn({ name: 'user_id' })
-  user: User;
+  user: Relation<User>;
 
   constructor(
     id: number,
