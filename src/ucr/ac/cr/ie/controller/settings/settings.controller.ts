@@ -23,7 +23,7 @@ import { UpsertSettingsDto } from '../../dto/settings/upsert-settings.dto';
 import { GlobalSettingsDto, VerifyGlobalSettingsAccessDto } from '../../dto/settings/global-settings.dto';
 import { Settings } from '../../domain/settings/settings.entity';
 import { RoleType } from '../../domain/auth/core/role.entity';
-import { Roles } from '../../common/decorators';
+import { Public, Roles } from '../../common/decorators';
 import { GlobalSettingsStepUpGuard, RolesGuard } from '../../common/guards';
 import { SupabaseStorageService } from '../../infrastructure/storage/supabase-storage.service';
 
@@ -58,6 +58,24 @@ export class SettingsController {
   @UseGuards(GlobalSettingsStepUpGuard)
   async getGlobalSettings(): Promise<Settings> {
     return this.service.getGlobalSettings();
+  }
+
+  // Public platform identity for marketing and unauthenticated surfaces.
+  // Only the two branding fields are exposed; the step-up protected record
+  // keeps the rest of the global settings private.
+  @Public()
+  @Get('global/public')
+  @Header('Cache-Control', 'public, max-age=60')
+  async getPublicGlobalSettings(): Promise<{ appName: string; logoUrl: string | null }> {
+    const settings = await this.service.getGlobalSettings();
+    const values = settings.settings as Record<string, unknown>;
+    const appName = typeof values.appName === 'string' && values.appName.trim()
+      ? values.appName.trim()
+      : 'SIGHA';
+    const logoUrl = typeof values.logoUrl === 'string' && values.logoUrl.trim()
+      ? values.logoUrl.trim()
+      : null;
+    return { appName, logoUrl };
   }
 
   @Put('global')
