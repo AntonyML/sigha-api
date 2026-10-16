@@ -63,6 +63,23 @@ import { ResidentMemo, ResidentMemoAcknowledgment } from './domain/memos';
 import { CareProgram, CareSubProgram, ResidentProgramEnrollment } from './domain/care-planning';
 import { AccessLog } from './domain/access-logs';
 import { SysAuditLog } from './domain/system-audit';
+import {
+    Persona,
+    DocumentoIdentidad,
+    MedioContacto,
+    Direccion,
+    RelacionPersona,
+    PersonaRol,
+    Perfil,
+    PerfilDigital,
+    PlantillaPerfil,
+    SeccionCampo,
+    DefinicionCampo,
+} from './domain/core';
+import {
+    BitacoraEntrada,
+    BitacoraAcuse,
+} from './domain/bitacora';
 
 /**
  * Build the TypeORM DataSource options from environment variables.
@@ -139,6 +156,19 @@ function buildDataSourceOptions(): DataSourceOptions {
         ResidentProgramEnrollment,
         AccessLog,
         SysAuditLog,
+        Persona,
+        DocumentoIdentidad,
+        MedioContacto,
+        Direccion,
+        RelacionPersona,
+        PersonaRol,
+        Perfil,
+        PerfilDigital,
+        PlantillaPerfil,
+        SeccionCampo,
+        DefinicionCampo,
+        BitacoraEntrada,
+        BitacoraAcuse,
     ];
 
     const sslEnabled = 
