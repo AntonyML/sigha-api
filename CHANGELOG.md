@@ -35,3 +35,4 @@ Formato: `YYYY-MM-DD | <taskId> | tipo: resumen | verificación: resultado`.
 2026-10-14 | sigha-api-20261014-xneq | feat: proteger Configuraciones Globales con step-up 2FA y permisos admin/superadmin | verificacion: bun test 167 pass/0 fail, typecheck y nest build OK en worktree y dev.
 2026-10-15 | sigha-api-20261015-v6m2 | tipo: funcionalidad | verificación: API 195 pruebas, typecheck y build PASS
 2026-10-16 | sigha-api-20261015-r8g4 | fix: autorizar con orgRoles y platformRole en RolesGuard, JwtAuthGuard, UserController y AuthService tras migración 030 | verificación: bun run test (230 pass, 0 fail), bun run build (exit 0)
+2026-10-16 | sigha-api-20261016-gnau | feat: endpoint público para identidad SaaS (appName, logoUrl) | verificación: 250 pruebas, typecheck y nest build PASS en dev
