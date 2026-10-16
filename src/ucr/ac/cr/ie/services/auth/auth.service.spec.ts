@@ -2,8 +2,8 @@ import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import '../../domain/auth/core/user-role.entity';
 import '../../domain/permissions/role-permission.entity';
 import { AuthService } from './auth.service';
-import { UnauthorizedException } from '@nestjs/common';
-import { User } from '../../domain/auth/core/user.entity';
+import { ForbiddenException, UnauthorizedException } from '@nestjs/common';
+import { User, PlatformRole } from '../../domain/auth/core/user.entity';
 import { PasswordUtil, TwoFactorUtil } from '../../common/utils';
 import { AuditAction } from '../../domain/audit';
 
@@ -44,6 +44,15 @@ describe('AuthService - Optimización de login y verify-2fa', () => {
         };
         mockUserRepo = {
             findOne: mock(async () => null),
+            createQueryBuilder: mock(() => {
+                const queryBuilder: any = {
+                    addSelect: mock(() => queryBuilder),
+                    where: mock(() => queryBuilder),
+                    andWhere: mock(() => queryBuilder),
+                    getOne: mock(async () => mockUserRepo.findOne()),
+                };
+                return queryBuilder;
+            }),
         };
         mockSessionRepo = {
             save: mock(async (session: any) => session),
@@ -61,6 +70,7 @@ describe('AuthService - Optimización de login y verify-2fa', () => {
         };
         mockOrgMemberRepo = {
             find: mock(async () => []),
+            findOne: mock(async () => null),
         };
         mockEmailService = {
             sendBackupCodes: mock(async () => ({ success: true })),
@@ -69,6 +79,7 @@ describe('AuthService - Optimización de login y verify-2fa', () => {
             createDigitalRecord: mock(async () => ({})),
             computeSessionDuration: mock(async () => 0),
             logAuditDbFunction: mock(async () => {}),
+            logAction: mock(async () => {}),
         };
         mockUserRoleService = {
             findRolesByUserId: mock(async () => [{ id: 1, rName: 'admin' }]),
@@ -160,6 +171,38 @@ describe('AuthService - Optimización de login y verify-2fa', () => {
             expect(mockSessionRepo.save).not.toHaveBeenCalled();
         });
 
+        it('debería publicar platformRole y el rol de la membresía activa (orgRoles)', async () => {
+            const hashedPassword = await PasswordUtil.hash('Password123!');
+            const user = new User(1, '123456789', 'Juan', 'Perez', 'juan@example.com', hashedPassword);
+            user.platformRole = PlatformRole.PLATFORM_OWNER;
+            mockUserRepo.findOne = mock(async () => user);
+            mockOrgMemberRepo.find = mock(async () => [
+                {
+                    userId: 1,
+                    organizationId: 10,
+                    isPrimary: true,
+                    organization: { id: 10, name: 'Sigha Central', slug: 'sigha-central', isActive: true, logoUrl: null },
+                },
+            ]);
+            mockOrgMemberRepo.findOne = mock(async () => ({ userId: 1, organizationId: 10, roleId: 2, role: { id: 2, rName: 'admin' } }));
+
+            const response = await authService.login(
+                { uEmail: 'juan@example.com', uPassword: 'Password123!' },
+                '192.168.1.50',
+                'Mozilla/5.0',
+            );
+
+            expect(response.user.platformRole).toBe(PlatformRole.PLATFORM_OWNER);
+            expect(response.user.orgRoles).toEqual(['admin']);
+            expect(mockJwtService.sign).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    platformRole: PlatformRole.PLATFORM_OWNER,
+                    orgRoleIds: [2],
+                    orgRoles: ['admin'],
+                }),
+            );
+        });
+
         it('debería rechazar login con credenciales inválidas', async () => {
             mockUserRepo.findOne = mock(async () => null);
 
@@ -234,6 +277,150 @@ describe('AuthService - Optimización de login y verify-2fa', () => {
                 'invalid-token',
                 '123456',
             )).rejects.toThrow(UnauthorizedException);
+        });
+    });
+
+    describe('global settings step-up', () => {
+        it('issues a five-minute token after an active admin verifies TOTP', async () => {
+            const user = new User(1, '123456789', 'Ana', 'Admin', 'ana@example.com', 'hash');
+            const twoFactor = {
+                id: 3,
+                userId: 1,
+                tfaEnabled: true,
+                tfaSecret: 'JBSWY3DPEHPK3PXP',
+                tfaLastUsed: null,
+            };
+            mockUserRepo.findOne = mock(async () => user);
+            mockTwoFactorRepo.findOne = mock(async () => twoFactor);
+
+            const originalVerifyToken = TwoFactorUtil.verifyToken;
+            TwoFactorUtil.verifyToken = mock(() => true);
+            try {
+                const result = await authService.createGlobalSettingsStepUpToken(1, '123456');
+
+                expect(result.accessToken).toBe('token-sub-1');
+                expect(new Date(result.expiresAt).getTime()).toBeGreaterThan(Date.now());
+                expect(mockJwtService.sign).toHaveBeenCalledWith(
+                    { sub: 1, purpose: 'global-settings-step-up' },
+                    { expiresIn: '5m' },
+                );
+                expect(twoFactor.tfaLastUsed).toBeInstanceOf(Date);
+                expect(mockTwoFactorRepo.save).toHaveBeenCalledWith(twoFactor);
+                expect(mockAuditService.logAction).toHaveBeenCalledTimes(1);
+            } finally {
+                TwoFactorUtil.verifyToken = originalVerifyToken;
+            }
+        });
+
+        it('rejects users without an admin role or enabled 2FA', async () => {
+            mockUserRepo.findOne = mock(async () => new User(2, '234567890', 'Diego', 'Director', 'd@example.com', 'hash'));
+            mockTwoFactorRepo.findOne = mock(async () => ({ userId: 2, tfaEnabled: true, tfaSecret: 'secret' }));
+            mockUserRoleService.findRolesByUserId = mock(async () => [{ id: 4, rName: 'director' }]);
+
+            await expect(authService.createGlobalSettingsStepUpToken(2, '123456')).rejects.toThrow(ForbiddenException);
+
+            mockUserRoleService.findRolesByUserId = mock(async () => [{ id: 1, rName: 'admin' }]);
+            mockTwoFactorRepo.findOne = mock(async () => null);
+            await expect(authService.createGlobalSettingsStepUpToken(2, '123456')).rejects.toThrow(ForbiddenException);
+        });
+
+        it('rejects an invalid TOTP without creating a step-up token', async () => {
+            mockUserRepo.findOne = mock(async () => new User(1, '123456789', 'Ana', 'Admin', 'ana@example.com', 'hash'));
+            mockTwoFactorRepo.findOne = mock(async () => ({ userId: 1, tfaEnabled: true, tfaSecret: 'secret' }));
+            const originalVerifyToken = TwoFactorUtil.verifyToken;
+            TwoFactorUtil.verifyToken = mock(() => false);
+
+            try {
+                await expect(authService.createGlobalSettingsStepUpToken(1, '000000')).rejects.toThrow(UnauthorizedException);
+                expect(mockJwtService.sign).not.toHaveBeenCalled();
+            } finally {
+                TwoFactorUtil.verifyToken = originalVerifyToken;
+            }
+        });
+
+        it('accepts only a matching, unexpired step-up token while admin role and 2FA remain active', async () => {
+            mockJwtService.verify = mock((token: string) => {
+                if (token === 'valid-global-token') {
+                    return { sub: 1, purpose: 'global-settings-step-up' };
+                }
+                throw new Error('invalid token');
+            });
+            mockUserRepo.findOne = mock(async () => new User(1, '123456789', 'Ana', 'Admin', 'ana@example.com', 'hash'));
+            mockTwoFactorRepo.findOne = mock(async () => ({ userId: 1, tfaEnabled: true, tfaSecret: 'secret' }));
+
+            expect(await authService.validateGlobalSettingsStepUpToken(1, 'valid-global-token')).toBe(true);
+            expect(await authService.validateGlobalSettingsStepUpToken(2, 'valid-global-token')).toBe(false);
+            expect(await authService.validateGlobalSettingsStepUpToken(1, 'invalid-token')).toBe(false);
+
+            mockUserRoleService.findRolesByUserId = mock(async () => [{ id: 4, rName: 'director' }]);
+            expect(await authService.validateGlobalSettingsStepUpToken(1, 'valid-global-token')).toBe(false);
+        });
+    });
+
+    describe('platform step-up', () => {
+        it('issues a five-minute token after a platform owner verifies TOTP', async () => {
+            const user = new User(1, '123456789', 'Ana', 'Owner', 'ana@example.com', 'hash');
+            user.platformRole = PlatformRole.PLATFORM_OWNER;
+            const twoFactor = {
+                id: 3,
+                userId: 1,
+                tfaEnabled: true,
+                tfaSecret: 'JBSWY3DPEHPK3PXP',
+                tfaLastUsed: null,
+            };
+            mockUserRepo.findOne = mock(async () => user);
+            mockTwoFactorRepo.findOne = mock(async () => twoFactor);
+
+            const originalVerifyToken = TwoFactorUtil.verifyToken;
+            TwoFactorUtil.verifyToken = mock(() => true);
+            try {
+                const result = await authService.createPlatformStepUpToken(1, '123456');
+
+                expect(result.accessToken).toBe('token-sub-1');
+                expect(new Date(result.expiresAt).getTime()).toBeGreaterThan(Date.now());
+                expect(mockJwtService.sign).toHaveBeenCalledWith(
+                    { sub: 1, purpose: 'platform-step-up' },
+                    { expiresIn: '5m' },
+                );
+                expect(twoFactor.tfaLastUsed).toBeInstanceOf(Date);
+                expect(mockAuditService.logAction).toHaveBeenCalledTimes(1);
+            } finally {
+                TwoFactorUtil.verifyToken = originalVerifyToken;
+            }
+        });
+
+        it('rejects users without a platform role or enabled 2FA', async () => {
+            mockUserRepo.findOne = mock(async () => new User(2, '234567890', 'Diego', 'Director', 'd@example.com', 'hash'));
+            mockTwoFactorRepo.findOne = mock(async () => ({ userId: 2, tfaEnabled: true, tfaSecret: 'secret' }));
+
+            await expect(authService.createPlatformStepUpToken(2, '123456')).rejects.toThrow(ForbiddenException);
+
+            const owner = new User(2, '234567890', 'Diego', 'Owner', 'd@example.com', 'hash');
+            owner.platformRole = PlatformRole.PLATFORM_SUPPORT;
+            mockUserRepo.findOne = mock(async () => owner);
+            mockTwoFactorRepo.findOne = mock(async () => null);
+            await expect(authService.createPlatformStepUpToken(2, '123456')).rejects.toThrow(ForbiddenException);
+        });
+
+        it('accepts only a matching platform step-up token while platform role and 2FA remain active', async () => {
+            mockJwtService.verify = mock((token: string) => {
+                if (token === 'valid-platform-token') {
+                    return { sub: 1, purpose: 'platform-step-up' };
+                }
+                throw new Error('invalid token');
+            });
+            const owner = new User(1, '123456789', 'Ana', 'Owner', 'ana@example.com', 'hash');
+            owner.platformRole = PlatformRole.PLATFORM_OWNER;
+            mockUserRepo.findOne = mock(async () => owner);
+            mockTwoFactorRepo.findOne = mock(async () => ({ userId: 1, tfaEnabled: true, tfaSecret: 'secret' }));
+
+            expect(await authService.validatePlatformStepUpToken(1, 'valid-platform-token')).toBe(true);
+            expect(await authService.validatePlatformStepUpToken(2, 'valid-platform-token')).toBe(false);
+            expect(await authService.validatePlatformStepUpToken(1, 'invalid-token')).toBe(false);
+
+            const plainUser = new User(1, '123456789', 'Ana', 'Plain', 'ana@example.com', 'hash');
+            mockUserRepo.findOne = mock(async () => plainUser);
+            expect(await authService.validatePlatformStepUpToken(1, 'valid-platform-token')).toBe(false);
         });
     });
 });

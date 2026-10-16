@@ -6,6 +6,8 @@ export interface LoginResponse {
         uEmail: string;
         uName: string;
         roles: string[];
+        orgRoles?: string[];
+        platformRole?: string | null;
     };
     requiresTwoFactor?: boolean;
     tempToken?: string;

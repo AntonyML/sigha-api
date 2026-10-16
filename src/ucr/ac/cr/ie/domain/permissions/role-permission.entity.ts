@@ -1,6 +1,6 @@
 import {
   Entity, PrimaryGeneratedColumn, Column,
-  ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn
+  ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn, type Relation
 } from 'typeorm';
 import { Role } from '../auth/core/role.entity';
 import { Permission } from './permission.entity';
@@ -27,9 +27,9 @@ export class RolePermission {
 
   @ManyToOne(() => Role)
   @JoinColumn({ name: 'role_id' })
-  role: Role;
+  role: Relation<Role>;
 
   @ManyToOne(() => Permission, p => p.rolePermissions)
   @JoinColumn({ name: 'permission_id' })
-  permission: Permission;
+  permission: Relation<Permission>;
 }

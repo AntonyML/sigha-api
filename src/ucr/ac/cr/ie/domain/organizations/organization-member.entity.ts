@@ -6,6 +6,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { User } from '../auth/core/user.entity';
+import { Role } from '../auth/core/role.entity';
 import { Organization } from './organization.entity';
 
 @Entity('organization_members')
@@ -19,6 +20,14 @@ export class OrganizationMember {
   @Column({ name: 'is_primary', type: 'boolean', default: false })
   isPrimary: boolean;
 
+  /**
+   * The membership's single organization role (one role per membership).
+   * NOT NULL in the database; the organization role catalog excludes
+   * platform-only roles.
+   */
+  @Column({ name: 'role_id', type: 'integer' })
+  roleId: number;
+
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
   user: User;
@@ -27,9 +36,19 @@ export class OrganizationMember {
   @JoinColumn({ name: 'organization_id' })
   organization: Organization;
 
-  constructor(userId?: number, organizationId?: number, isPrimary: boolean = false) {
+  @ManyToOne(() => Role, { onDelete: 'RESTRICT' })
+  @JoinColumn({ name: 'role_id' })
+  role: Role;
+
+  constructor(
+    userId?: number,
+    organizationId?: number,
+    isPrimary: boolean = false,
+    roleId?: number,
+  ) {
     if (userId !== undefined) this.userId = userId;
     if (organizationId !== undefined) this.organizationId = organizationId;
     this.isPrimary = isPrimary;
+    if (roleId !== undefined) this.roleId = roleId;
   }
 }

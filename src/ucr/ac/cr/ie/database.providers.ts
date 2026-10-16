@@ -37,6 +37,32 @@ import {
 import { Permission, RolePermission } from './domain/permissions';
 import { Settings } from './domain/settings/settings.entity';
 import { Organization, OrganizationMember } from './domain/organizations';
+import {
+    MedicationCatalog,
+    MedicationPrescription,
+    MedicationAdministration,
+} from './domain/pharmacy';
+import { Icd10Catalog, PatientCondition } from './domain/clinical-conditions';
+import { PatientVaccination } from './domain/vaccines';
+import { FacilityRoom, PatientBedAssignment } from './domain/inpatient';
+import {
+    ClinicalEncounter,
+    ClinicalVitalSigns,
+    NursingRound,
+    ClinicalNoteAddendum,
+    ClinicalScaleEvaluation,
+} from './domain/encounters';
+import {
+    PhysiotherapyEvaluation,
+    PsychologyEvaluation,
+    SocialWorkEvaluation,
+} from './domain/specialties';
+import { PatientLifestyleAssessment } from './domain/lifestyle';
+import { createTenantAwareDataSource } from './common/tenant/tenant-aware-data-source';
+import { ResidentMemo, ResidentMemoAcknowledgment } from './domain/memos';
+import { CareProgram, CareSubProgram, ResidentProgramEnrollment } from './domain/care-planning';
+import { AccessLog } from './domain/access-logs';
+import { SysAuditLog } from './domain/system-audit';
 
 /**
  * Build the TypeORM DataSource options from environment variables.
@@ -89,6 +115,30 @@ function buildDataSourceOptions(): DataSourceOptions {
         Settings,
         Organization,
         OrganizationMember,
+        MedicationCatalog,
+        MedicationPrescription,
+        MedicationAdministration,
+        Icd10Catalog,
+        PatientCondition,
+        PatientVaccination,
+        FacilityRoom,
+        PatientBedAssignment,
+        ClinicalEncounter,
+        ClinicalVitalSigns,
+        NursingRound,
+        ClinicalNoteAddendum,
+        ClinicalScaleEvaluation,
+        PhysiotherapyEvaluation,
+        PsychologyEvaluation,
+        SocialWorkEvaluation,
+        PatientLifestyleAssessment,
+        ResidentMemo,
+        ResidentMemoAcknowledgment,
+        CareProgram,
+        CareSubProgram,
+        ResidentProgramEnrollment,
+        AccessLog,
+        SysAuditLog,
     ];
 
     const sslEnabled = 
@@ -134,7 +184,8 @@ export const databaseProviders = [
         provide: 'DataSource',
         useFactory: async (): Promise<DataSource> => {
             const dataSource = new DataSource(buildDataSourceOptions());
-            return dataSource.initialize();
+            await dataSource.initialize();
+            return createTenantAwareDataSource(dataSource);
         },
     },
 ];

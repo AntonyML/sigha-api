@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, NotFoundException, Inject } from '@nestjs/common';
+import { Injectable, BadRequestException, ForbiddenException, NotFoundException, Inject } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { User } from '../../domain/auth/core/user.entity';
 import { Role } from '../../domain/auth/core/role.entity';
@@ -20,6 +20,7 @@ import { RoleChangesService } from '../role-changes/role-changes.service';
 import { UserRoleService } from '../auth/user-role.service';
 import { AuditService } from '../audit/audit.service';
 import { AuditAction } from '../../domain/audit';
+import { getTenantContext } from '../../common/tenant/tenant-context';
 
 @Injectable()
 export class UserService {
@@ -78,7 +79,44 @@ export class UserService {
             userData.uSLastName
         );
 
-        const savedUser = await this.userRepository.save(user);
+        const tenant = getTenantContext();
+        if (!tenant) {
+            throw new ForbiddenException('La creación de usuarios requiere una organización activa');
+        }
+
+        let userId: number;
+        try {
+            const rows = await tenant.manager.query(
+                'SELECT public.create_tenant_user($1,$2,$3,$4,$5,$6) AS id',
+                [user.uIdentification, user.uName, user.uFLastName, user.uSLastName ?? null, user.uEmail, hashedPassword],
+            ) as Array<{ id: number }>;
+            userId = Number(rows[0]?.id);
+        } catch (error) {
+            const databaseError = error as { code?: string; driverError?: { code?: string } };
+            if (databaseError.code === '23505' || databaseError.driverError?.code === '23505') {
+                throw new BadRequestException('El correo o la identificación ya están en uso');
+            }
+            throw error;
+        }
+        if (!Number.isSafeInteger(userId) || userId <= 0) {
+            throw new Error('La base de datos no devolvió el identificador del usuario creado');
+        }
+
+        const savedUser = await this.userRepository.findOne({
+            where: { id: userId },
+            select: {
+                id: true,
+                uIdentification: true,
+                uName: true,
+                uFLastName: true,
+                uSLastName: true,
+                uEmail: true,
+                uEmailVerified: true,
+                uIsActive: true,
+                createAt: true,
+            },
+        });
+        if (!savedUser) throw new NotFoundException('El usuario creado no pudo recuperarse');
 
         await this.userRoleService.assignRole(savedUser.id, roleId, undefined, true);
 
@@ -226,17 +264,19 @@ export class UserService {
      */
     async changePassword(userId: number, changePasswordDto: ChangePasswordDto): Promise<SuccessResponse> {
         const { currentPassword, newPassword } = changePasswordDto;
-
-        const user = await this.userRepository.findOne({
-            where: { id: userId },
-            select: ['id', 'uPassword']
-        });
-
-        if (!user) {
-            throw new NotFoundException('Usuario no encontrado');
+        const tenant = getTenantContext();
+        if (!tenant || tenant.userId !== userId) {
+            throw new ForbiddenException('El cambio de contraseña requiere el contexto del usuario autenticado');
         }
 
-        const isCurrentPasswordValid = await PasswordUtil.verify(currentPassword, user.uPassword);
+        const rows = await tenant.manager.query(
+            'SELECT public.get_current_user_password_hash($1) AS password_hash',
+            [userId],
+        ) as Array<{ password_hash: string }>;
+        const passwordHash = rows[0]?.password_hash;
+        if (!passwordHash) throw new NotFoundException('Usuario no encontrado');
+
+        const isCurrentPasswordValid = await PasswordUtil.verify(currentPassword, passwordHash);
         if (!isCurrentPasswordValid) {
             throw new BadRequestException('Contraseña actual incorrecta');
         }
@@ -247,7 +287,10 @@ export class UserService {
         }
 
         const hashedNewPassword = await PasswordUtil.hash(newPassword);
-        await this.userRepository.update(userId, { uPassword: hashedNewPassword });
+        await tenant.manager.query(
+            'SELECT public.update_current_user_password($1,$2)',
+            [userId, hashedNewPassword],
+        );
 
         await this.auditService.createDigitalRecord(
             userId,

@@ -3,11 +3,12 @@ import { Throttle } from '@nestjs/throttler';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService, LoginDto } from '../../services/auth/auth.service';
 import { JwtAuthGuard, TwoFactorGuard } from '../../common/guards';
-import { Public, Require2FA } from '../../common/decorators';
+import { Public, Require2FA, SkipTenant } from '../../common/decorators';
 import { ForgotPasswordDto, ResetPasswordDto, ActiveOrganizationDto } from '../../dto/auth';
 
 @ApiTags('Autenticación')
 @Controller('auth')
+@SkipTenant()
 export class AuthController {
     constructor(private readonly authService: AuthService) { }
 
@@ -105,9 +106,27 @@ export class AuthController {
 
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth('jwt')
+    @Post('context')
+    @HttpCode(200)
+    @ApiOperation({ summary: 'Cambiar el contexto (organización activa) y reemitir tokens' })
+    @ApiResponse({ status: 200, description: 'Tokens reemitidos con el nuevo contexto activo' })
+    @ApiResponse({ status: 403, description: 'El usuario no es miembro de la organización solicitada' })
+    async setContext(@Body() body: ActiveOrganizationDto, @Request() req) {
+        const userId = req.user.userId || req.user.id;
+        const ipAddress = req.ip;
+        const userAgent = req.get('User-Agent');
+        return await this.authService.switchActiveOrganization(userId, body.organizationId, ipAddress, userAgent);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth('jwt')
     @Post('active-organization')
     @HttpCode(200)
-    @ApiOperation({ summary: 'Cambiar organización activa y reemitir tokens' })
+    @ApiOperation({
+        summary: 'Cambiar organización activa y reemitir tokens',
+        deprecated: true,
+        description: 'Deprecado: usa POST /auth/context. Se mantiene como alias hasta que el cliente web migre (web-1).',
+    })
     @ApiResponse({ status: 200, description: 'Tokens reemitidos con nueva organización activa' })
     @ApiResponse({ status: 403, description: 'El usuario no es miembro de la organización solicitada' })
     async setActiveOrganization(@Body() body: ActiveOrganizationDto, @Request() req) {

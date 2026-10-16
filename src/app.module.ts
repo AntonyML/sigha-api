@@ -36,6 +36,18 @@ import { SettingsModule } from './ucr/ac/cr/ie/settings.module';
 import { UserRequestsModule } from './ucr/ac/cr/ie/user-requests.module';
 import { OrganizationModule } from './ucr/ac/cr/ie/modules/organizations/organization.module';
 import { ContactInquiryModule } from './ucr/ac/cr/ie/contact-inquiry.module';
+import { PharmacyModule } from './ucr/ac/cr/ie/pharmacy.module';
+import { InpatientModule } from './ucr/ac/cr/ie/inpatient.module';
+import { EncountersModule } from './ucr/ac/cr/ie/encounters.module';
+import { SpecialtiesModule } from './ucr/ac/cr/ie/specialties.module';
+import { LifestyleModule } from './ucr/ac/cr/ie/lifestyle.module';
+import { TenantGuard } from './ucr/ac/cr/ie/common/guards/tenant.guard';
+import { TenantContextInterceptor } from './common/interceptors/tenant-context.interceptor';
+import { MemosModule } from './ucr/ac/cr/ie/memos.module';
+import { CarePlanningModule } from './ucr/ac/cr/ie/care-planning.module';
+import { AccessLogsModule } from './ucr/ac/cr/ie/access-logs.module';
+import { SystemAuditModule } from './ucr/ac/cr/ie/system-audit.module';
+import { PlatformModule } from './ucr/ac/cr/ie/platform.module';
 
 @Module({
   controllers: [HealthController],
@@ -78,6 +90,16 @@ import { ContactInquiryModule } from './ucr/ac/cr/ie/contact-inquiry.module';
     UserRequestsModule,
     OrganizationModule,
     ContactInquiryModule,
+    PharmacyModule,
+    InpatientModule,
+    EncountersModule,
+    SpecialtiesModule,
+    LifestyleModule,
+    MemosModule,
+    CarePlanningModule,
+    AccessLogsModule,
+    SystemAuditModule,
+    PlatformModule,
   ],
     providers: [
       {
@@ -87,6 +109,14 @@ import { ContactInquiryModule } from './ucr/ac/cr/ie/contact-inquiry.module';
       {
         provide: APP_GUARD,
         useClass: JwtAuthGuard,
+      },
+      {
+        provide: APP_GUARD,
+        useClass: TenantGuard,
+      },
+      {
+        provide: APP_INTERCEPTOR,
+        useClass: TenantContextInterceptor,
       },
       {
         provide: APP_INTERCEPTOR,
