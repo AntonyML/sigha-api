@@ -4,6 +4,7 @@ import '../../domain/permissions/role-permission.entity';
 import { AuthService } from './auth.service';
 import { ForbiddenException, UnauthorizedException } from '@nestjs/common';
 import { User, PlatformRole } from '../../domain/auth/core/user.entity';
+import { OrganizationStatus, PlanTier } from '../../domain/organizations';
 import { PasswordUtil, TwoFactorUtil } from '../../common/utils';
 import { AuditAction } from '../../domain/audit';
 
@@ -197,6 +198,40 @@ describe('AuthService - Optimización de login y verify-2fa', () => {
             expect(mockJwtService.sign).toHaveBeenCalledWith(
                 expect.objectContaining({
                     platformRole: PlatformRole.PLATFORM_OWNER,
+                    orgRoleIds: [2],
+                    orgRoles: ['admin'],
+                }),
+            );
+        });
+
+        it('debería hacer fallback de roles/roleIds a orgRoles/orgRoleIds cuando user_roles está vacío (migración 030)', async () => {
+            const hashedPassword = await PasswordUtil.hash('Password123!');
+            const user = new User(1, '123456789', 'Juan', 'Perez', 'juan@example.com', hashedPassword);
+            user.platformRole = PlatformRole.PLATFORM_OWNER;
+            mockUserRepo.findOne = mock(async () => user);
+            mockUserRoleService.findRolesByUserId = mock(async () => []);
+            mockOrgMemberRepo.find = mock(async () => [
+                {
+                    userId: 1,
+                    organizationId: 10,
+                    isPrimary: true,
+                    organization: { id: 10, name: 'ASOPOGUA', slug: 'asopogua', isActive: true, logoUrl: null },
+                },
+            ]);
+            mockOrgMemberRepo.findOne = mock(async () => ({ userId: 1, organizationId: 10, roleId: 2, role: { id: 2, rName: 'admin' } }));
+
+            const response = await authService.login(
+                { uEmail: 'juan@example.com', uPassword: 'Password123!' },
+                '127.0.0.1',
+                'Mozilla/5.0',
+            );
+
+            expect(response.user.roles).toEqual(['admin']);
+            expect(response.user.orgRoles).toEqual(['admin']);
+            expect(mockJwtService.sign).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    roleIds: [2],
+                    roles: ['admin'],
                     orgRoleIds: [2],
                     orgRoles: ['admin'],
                 }),
@@ -421,6 +456,145 @@ describe('AuthService - Optimización de login y verify-2fa', () => {
             const plainUser = new User(1, '123456789', 'Ana', 'Plain', 'ana@example.com', 'hash');
             mockUserRepo.findOne = mock(async () => plainUser);
             expect(await authService.validatePlatformStepUpToken(1, 'valid-platform-token')).toBe(false);
+        });
+    });
+
+    describe('organization branding, status and planTier in session context', () => {
+        it('getUserOrganizations includes brandingOverrides, status and planTier with defaults when null/undefined', async () => {
+            mockOrgMemberRepo.find = mock(async () => [
+                {
+                    userId: 1,
+                    organizationId: 10,
+                    isPrimary: true,
+                    organization: {
+                        id: 10,
+                        name: 'Sigha Central',
+                        slug: 'sigha-central',
+                        isActive: true,
+                        logoUrl: 'https://example.com/central.png',
+                        brandingOverrides: {
+                            displayName: 'Central Override',
+                            logoUrl: 'https://example.com/override.png',
+                            primaryColor: '#1E40AF',
+                        },
+                        status: OrganizationStatus.ACTIVE,
+                        planTier: PlanTier.ENTERPRISE,
+                    },
+                },
+                {
+                    userId: 1,
+                    organizationId: 20,
+                    isPrimary: false,
+                    organization: {
+                        id: 20,
+                        name: 'Sigha Norte',
+                        slug: 'sigha-norte',
+                        isActive: true,
+                        logoUrl: null,
+                        brandingOverrides: null,
+                        status: OrganizationStatus.SUSPENDED,
+                        planTier: PlanTier.BASIC,
+                    },
+                },
+            ]);
+
+            const orgs = await authService.getUserOrganizations(1);
+
+            expect(orgs).toEqual([
+                {
+                    id: 10,
+                    name: 'Sigha Central',
+                    slug: 'sigha-central',
+                    logoUrl: 'https://example.com/central.png',
+                    isPrimary: true,
+                    brandingOverrides: {
+                        displayName: 'Central Override',
+                        logoUrl: 'https://example.com/override.png',
+                        primaryColor: '#1E40AF',
+                    },
+                    status: OrganizationStatus.ACTIVE,
+                    planTier: PlanTier.ENTERPRISE,
+                },
+                {
+                    id: 20,
+                    name: 'Sigha Norte',
+                    slug: 'sigha-norte',
+                    logoUrl: null,
+                    isPrimary: false,
+                    brandingOverrides: null,
+                    status: OrganizationStatus.SUSPENDED,
+                    planTier: PlanTier.BASIC,
+                },
+            ]);
+        });
+
+        it('switchActiveOrganization exposes brandingOverrides, status and planTier in activeOrganization and organizations', async () => {
+            const user = new User(1, '123456789', 'Juan', 'Perez', 'juan@example.com', 'hash');
+            mockUserRepo.findOne = mock(async () => user);
+            mockOrgMemberRepo.find = mock(async () => [
+                {
+                    userId: 1,
+                    organizationId: 10,
+                    isPrimary: true,
+                    organization: {
+                        id: 10,
+                        name: 'Sigha Central',
+                        slug: 'sigha-central',
+                        isActive: true,
+                        logoUrl: null,
+                        brandingOverrides: null,
+                        status: OrganizationStatus.ACTIVE,
+                        planTier: PlanTier.BASIC,
+                    },
+                },
+                {
+                    userId: 1,
+                    organizationId: 20,
+                    isPrimary: false,
+                    organization: {
+                        id: 20,
+                        name: 'Sigha Premium',
+                        slug: 'sigha-premium',
+                        isActive: true,
+                        logoUrl: 'https://example.com/base.png',
+                        brandingOverrides: {
+                            displayName: 'Hogar Premium',
+                            primaryColor: '#047857',
+                        },
+                        status: OrganizationStatus.ACTIVE,
+                        planTier: PlanTier.PREMIUM,
+                    },
+                },
+            ]);
+
+            const result = await authService.switchActiveOrganization(1, 20, '127.0.0.1', 'TestAgent');
+
+            expect(result.activeOrganization).toEqual({
+                id: 20,
+                name: 'Sigha Premium',
+                slug: 'sigha-premium',
+                logoUrl: 'https://example.com/base.png',
+                brandingOverrides: {
+                    displayName: 'Hogar Premium',
+                    primaryColor: '#047857',
+                },
+                status: OrganizationStatus.ACTIVE,
+                planTier: PlanTier.PREMIUM,
+            });
+            expect(result.organizations).toHaveLength(2);
+            expect(result.organizations[1]).toEqual({
+                id: 20,
+                name: 'Sigha Premium',
+                slug: 'sigha-premium',
+                logoUrl: 'https://example.com/base.png',
+                isPrimary: false,
+                brandingOverrides: {
+                    displayName: 'Hogar Premium',
+                    primaryColor: '#047857',
+                },
+                status: OrganizationStatus.ACTIVE,
+                planTier: PlanTier.PREMIUM,
+            });
         });
     });
 });

@@ -1,6 +1,8 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from '../decorators/roles.decorator';
+import { PlatformRole } from '../../domain/auth/core/user.entity';
+import { RoleType } from '../../domain/auth/core/role.entity';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -17,15 +19,23 @@ export class RolesGuard implements CanActivate {
         }
 
         const { user } = context.switchToHttp().getRequest();
-
-        if (!user || !Array.isArray(user.roles) || user.roles.length === 0) {
+        if (!user) {
             return false;
         }
 
-        // Multi-role: allow access if the user owns at least one of the
-        // required roles. RolesGuard remains a coarse "name match" guard
-        // for legacy @Roles decorator compatibility; per-action checks
-        // go through PermissionService.hasAnyPermission (JWT roleIds).
-        return requiredRoles.some((role) => user.roles.includes(role));
+        const effectiveRoles = new Set<string>([
+            ...(Array.isArray(user.orgRoles) ? user.orgRoles : []),
+            ...(Array.isArray(user.roles) ? user.roles : []),
+        ]);
+
+        if (user.platformRole === PlatformRole.PLATFORM_OWNER) {
+            effectiveRoles.add(RoleType.SUPER_ADMIN);
+        }
+
+        if (effectiveRoles.size === 0) {
+            return false;
+        }
+
+        return requiredRoles.some((role) => effectiveRoles.has(role));
     }
 }

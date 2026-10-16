@@ -98,7 +98,34 @@ export class AuthController {
     @ApiBearerAuth('jwt')
     @Get('organizations')
     @ApiOperation({ summary: 'Obtener organizaciones del usuario autenticado' })
-    @ApiResponse({ status: 200, description: 'Lista de organizaciones del usuario' })
+    @ApiResponse({
+        status: 200,
+        description: 'Lista de organizaciones del usuario',
+        schema: {
+            type: 'array',
+            items: {
+                type: 'object',
+                properties: {
+                    id: { type: 'number' },
+                    name: { type: 'string' },
+                    slug: { type: 'string' },
+                    logoUrl: { type: 'string', nullable: true },
+                    isPrimary: { type: 'boolean' },
+                    brandingOverrides: {
+                        type: 'object',
+                        nullable: true,
+                        properties: {
+                            displayName: { type: 'string' },
+                            logoUrl: { type: 'string' },
+                            primaryColor: { type: 'string' },
+                        },
+                    },
+                    status: { type: 'string', enum: ['ACTIVE', 'SUSPENDED', 'ARCHIVED'] },
+                    planTier: { type: 'string', enum: ['BASIC', 'STANDARD', 'PREMIUM', 'ENTERPRISE'] },
+                },
+            },
+        },
+    })
     async getOrganizations(@Request() req) {
         const userId = req.user.userId || req.user.id;
         return await this.authService.getUserOrganizations(userId);
@@ -109,7 +136,61 @@ export class AuthController {
     @Post('context')
     @HttpCode(200)
     @ApiOperation({ summary: 'Cambiar el contexto (organización activa) y reemitir tokens' })
-    @ApiResponse({ status: 200, description: 'Tokens reemitidos con el nuevo contexto activo' })
+    @ApiResponse({
+        status: 200,
+        description: 'Tokens reemitidos con el nuevo contexto activo',
+        schema: {
+            type: 'object',
+            properties: {
+                accessToken: { type: 'string' },
+                refreshToken: { type: 'string' },
+                activeOrganization: {
+                    type: 'object',
+                    properties: {
+                        id: { type: 'number' },
+                        name: { type: 'string' },
+                        slug: { type: 'string' },
+                        logoUrl: { type: 'string', nullable: true },
+                        brandingOverrides: {
+                            type: 'object',
+                            nullable: true,
+                            properties: {
+                                displayName: { type: 'string' },
+                                logoUrl: { type: 'string' },
+                                primaryColor: { type: 'string' },
+                            },
+                        },
+                        status: { type: 'string', enum: ['ACTIVE', 'SUSPENDED', 'ARCHIVED'] },
+                        planTier: { type: 'string', enum: ['BASIC', 'STANDARD', 'PREMIUM', 'ENTERPRISE'] },
+                    },
+                },
+                organizations: {
+                    type: 'array',
+                    items: {
+                        type: 'object',
+                        properties: {
+                            id: { type: 'number' },
+                            name: { type: 'string' },
+                            slug: { type: 'string' },
+                            logoUrl: { type: 'string', nullable: true },
+                            isPrimary: { type: 'boolean' },
+                            brandingOverrides: {
+                                type: 'object',
+                                nullable: true,
+                                properties: {
+                                    displayName: { type: 'string' },
+                                    logoUrl: { type: 'string' },
+                                    primaryColor: { type: 'string' },
+                                },
+                            },
+                            status: { type: 'string', enum: ['ACTIVE', 'SUSPENDED', 'ARCHIVED'] },
+                            planTier: { type: 'string', enum: ['BASIC', 'STANDARD', 'PREMIUM', 'ENTERPRISE'] },
+                        },
+                    },
+                },
+            },
+        },
+    })
     @ApiResponse({ status: 403, description: 'El usuario no es miembro de la organización solicitada' })
     async setContext(@Body() body: ActiveOrganizationDto, @Request() req) {
         const userId = req.user.userId || req.user.id;
@@ -127,7 +208,61 @@ export class AuthController {
         deprecated: true,
         description: 'Deprecado: usa POST /auth/context. Se mantiene como alias hasta que el cliente web migre (web-1).',
     })
-    @ApiResponse({ status: 200, description: 'Tokens reemitidos con nueva organización activa' })
+    @ApiResponse({
+        status: 200,
+        description: 'Tokens reemitidos con nueva organización activa',
+        schema: {
+            type: 'object',
+            properties: {
+                accessToken: { type: 'string' },
+                refreshToken: { type: 'string' },
+                activeOrganization: {
+                    type: 'object',
+                    properties: {
+                        id: { type: 'number' },
+                        name: { type: 'string' },
+                        slug: { type: 'string' },
+                        logoUrl: { type: 'string', nullable: true },
+                        brandingOverrides: {
+                            type: 'object',
+                            nullable: true,
+                            properties: {
+                                displayName: { type: 'string' },
+                                logoUrl: { type: 'string' },
+                                primaryColor: { type: 'string' },
+                            },
+                        },
+                        status: { type: 'string', enum: ['ACTIVE', 'SUSPENDED', 'ARCHIVED'] },
+                        planTier: { type: 'string', enum: ['BASIC', 'STANDARD', 'PREMIUM', 'ENTERPRISE'] },
+                    },
+                },
+                organizations: {
+                    type: 'array',
+                    items: {
+                        type: 'object',
+                        properties: {
+                            id: { type: 'number' },
+                            name: { type: 'string' },
+                            slug: { type: 'string' },
+                            logoUrl: { type: 'string', nullable: true },
+                            isPrimary: { type: 'boolean' },
+                            brandingOverrides: {
+                                type: 'object',
+                                nullable: true,
+                                properties: {
+                                    displayName: { type: 'string' },
+                                    logoUrl: { type: 'string' },
+                                    primaryColor: { type: 'string' },
+                                },
+                            },
+                            status: { type: 'string', enum: ['ACTIVE', 'SUSPENDED', 'ARCHIVED'] },
+                            planTier: { type: 'string', enum: ['BASIC', 'STANDARD', 'PREMIUM', 'ENTERPRISE'] },
+                        },
+                    },
+                },
+            },
+        },
+    })
     @ApiResponse({ status: 403, description: 'El usuario no es miembro de la organización solicitada' })
     async setActiveOrganization(@Body() body: ActiveOrganizationDto, @Request() req) {
         const userId = req.user.userId || req.user.id;

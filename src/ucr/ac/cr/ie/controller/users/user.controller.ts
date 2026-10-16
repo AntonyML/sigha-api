@@ -18,9 +18,16 @@ const ADMIN_LIKE_ROLES: string[] = [
     RoleType.DIRECTOR,
 ];
 
-function hasAdminLikeRole(user: { roles?: string[] } | undefined): boolean {
-    if (!user || !Array.isArray(user.roles)) return false;
-    return user.roles.some((r) => ADMIN_LIKE_ROLES.includes(r));
+function hasAdminLikeRole(
+    user: { roles?: string[]; orgRoles?: string[]; platformRole?: string | null } | undefined,
+): boolean {
+    if (!user) return false;
+    if (user.platformRole === 'PLATFORM_OWNER') return true;
+    const effective = [
+        ...(Array.isArray(user.orgRoles) ? user.orgRoles : []),
+        ...(Array.isArray(user.roles) ? user.roles : []),
+    ];
+    return effective.some((r) => ADMIN_LIKE_ROLES.includes(r));
 }
 
 @ApiTags('Usuarios')
