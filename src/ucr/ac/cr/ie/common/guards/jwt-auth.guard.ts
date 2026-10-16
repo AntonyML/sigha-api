@@ -93,12 +93,15 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
                 throw new UnauthorizedException('Se requiere verificación de dos factores');
             }
 
-            // Resolve canonical role identity from user_roles bridge.
-            // The JWT carries roleIds/roles; we always re-resolve from the
-            // bridge to enforce freshness across role changes / logouts.
+            // Resolve canonical role identity from user_roles bridge, falling back
+            // to the active organization membership claims (migration 030+).
             const userRoles = await this.userRoleService.findRolesByUserId(user.id);
-            const roleIds = userRoles.map(r => r.id).sort((a, b) => a - b);
-            const roles = userRoles.map(r => r.rName).sort();
+            const bridgeRoleIds = userRoles.map(r => r.id).sort((a, b) => a - b);
+            const bridgeRoles = userRoles.map(r => r.rName).sort();
+            const orgRoleIds: number[] = Array.isArray(payload.orgRoleIds) ? payload.orgRoleIds : [];
+            const orgRoles: string[] = Array.isArray(payload.orgRoles) ? payload.orgRoles : [];
+            const roleIds = bridgeRoleIds.length > 0 ? bridgeRoleIds : orgRoleIds;
+            const roles = bridgeRoles.length > 0 ? bridgeRoles : orgRoles;
 
             request.user = {
                 id: user.id,
@@ -107,9 +110,9 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
                 roleIds,
                 roles,
                 // Canonical platform-plane context carried by the JWT.
-                platformRole: payload.platformRole ?? null,
-                orgRoleIds: Array.isArray(payload.orgRoleIds) ? payload.orgRoleIds : [],
-                orgRoles: Array.isArray(payload.orgRoles) ? payload.orgRoles : [],
+                platformRole: user.platformRole ?? payload.platformRole ?? null,
+                orgRoleIds,
+                orgRoles,
                 orgId: payload.orgId !== undefined ? payload.orgId : null,
             };
 

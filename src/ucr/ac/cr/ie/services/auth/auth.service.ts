@@ -63,9 +63,22 @@ export class AuthService {
         return { roleIds, roles };
     }
 
-    private async canManageGlobalSettings(userId: number): Promise<boolean> {
-        const roles = await this.userRoleService.findRolesByUserId(userId);
-        return roles.some(role => [RoleType.ADMIN, RoleType.SUPER_ADMIN].includes(role.rName as RoleType));
+    private async canManageGlobalSettings(userId: number, platformRole?: string | null): Promise<boolean> {
+        if (platformRole === 'PLATFORM_OWNER') {
+            return true;
+        }
+        const [roles, memberships] = await Promise.all([
+            this.userRoleService.findRolesByUserId(userId),
+            this.organizationMemberRepository.find({
+                where: { userId },
+                relations: ['role'],
+            }),
+        ]);
+        const allRoleNames = [
+            ...roles.map(role => role.rName),
+            ...memberships.map(m => m.role?.rName).filter((name): name is string => Boolean(name)),
+        ];
+        return allRoleNames.some(rName => [RoleType.ADMIN, RoleType.SUPER_ADMIN].includes(rName as RoleType));
     }
 
     /**
@@ -163,15 +176,15 @@ export class AuthService {
         userId: number,
         twoFactorCode: string,
     ): Promise<{ accessToken: string; expiresAt: string }> {
-        const [user, twoFactor, canManage] = await Promise.all([
+        const [user, twoFactor] = await Promise.all([
             this.userRepository.findOne({ where: { id: userId, uIsActive: true } }),
             this.twoFactorRepository.findOne({ where: { userId, tfaEnabled: true } }),
-            this.canManageGlobalSettings(userId),
         ]);
 
         if (!user) {
             throw new UnauthorizedException('La sesión no es válida');
         }
+        const canManage = await this.canManageGlobalSettings(userId, user.platformRole);
         if (!canManage) {
             throw new ForbiddenException('Solo admin o super admin puede acceder a Configuraciones Globales');
         }
@@ -210,13 +223,15 @@ export class AuthService {
                 return false;
             }
 
-            const [user, twoFactor, canManage] = await Promise.all([
+            const [user, twoFactor] = await Promise.all([
                 this.userRepository.findOne({ where: { id: userId, uIsActive: true } }),
                 this.twoFactorRepository.findOne({ where: { userId, tfaEnabled: true } }),
-                this.canManageGlobalSettings(userId),
             ]);
 
-            return Boolean(user && twoFactor && canManage);
+            if (!user || !twoFactor) {
+                return false;
+            }
+            return await this.canManageGlobalSettings(userId, user.platformRole);
         } catch {
             return false;
         }
@@ -751,6 +766,8 @@ export class AuthService {
             : null;
         const orgRoleIds = orgRole ? [orgRole.id] : [];
         const orgRoles = orgRole ? [orgRole.name] : [];
+        const effectiveRoleIds = roleIds.length > 0 ? roleIds : orgRoleIds;
+        const effectiveRoles = roles.length > 0 ? roles : orgRoles;
 
         const payload = {
             sub: user.id,
@@ -763,8 +780,8 @@ export class AuthService {
             orgId: activeOrgId,
             // Legacy aliases kept for the current web client until it migrates
             // to orgRoleIds/orgRoles (web-1).
-            roleIds,
-            roles,
+            roleIds: effectiveRoleIds,
+            roles: effectiveRoles,
         };
 
         const accessToken = this.jwtService.sign(payload);
@@ -805,7 +822,7 @@ export class AuthService {
                 id: user.id,
                 uEmail: user.uEmail,
                 uName: user.uName,
-                roles,
+                roles: effectiveRoles,
                 orgRoles,
                 platformRole: user.platformRole ?? null,
             },
